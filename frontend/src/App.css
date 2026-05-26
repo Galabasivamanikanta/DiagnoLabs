@@ -1,0 +1,13 @@
+/* App specific layout adjustments */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove default Vite padding/alignment */
+@media (min-width: 1024px) {
+  #root {
+    display: block;
+  }
+}

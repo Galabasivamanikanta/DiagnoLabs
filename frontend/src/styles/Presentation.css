@@ -1,0 +1,177 @@
+/* Presentation Styles */
+.presentation-container {
+  min-height: 100vh;
+  background: #fdfdfd;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.slide {
+  width: 100%;
+  max-width: 1200px;
+  background: white;
+  min-height: 600px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  padding: 4rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  border: 1px solid #eee;
+}
+
+.slide:hover {
+  transform: translateY(-5px);
+}
+
+.university-logo-container {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.parul-logo {
+  height: 60px;
+}
+
+.naac-badge {
+  height: 50px;
+}
+
+/* Slide 1: Title Slide */
+.title-box {
+  margin: 4rem auto 3rem;
+  width: 90%;
+  border: 4px solid #333;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.title-box h1 {
+  font-size: 4rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.presenter-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 3rem;
+  margin-top: 2rem;
+  padding: 0 2rem;
+}
+
+.grid-section h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: underline;
+  margin-bottom: 1.5rem;
+  color: #000;
+}
+
+.grid-section p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin: 0.5rem 0;
+  color: #444;
+}
+
+.footer-text {
+  margin-top: auto;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #000;
+  padding-bottom: 1rem;
+}
+
+/* Slide 2: Content Slide */
+.slide-header {
+  border-bottom: 2px solid #eee;
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.slide-header h2 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0;
+  color: #000;
+}
+
+.content-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.content-list > li {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: #222;
+}
+
+.content-list > li::before {
+  content: "•";
+  color: #000;
+  font-weight: bold;
+}
+
+.nested-list {
+  list-style: none;
+  padding-left: 3.5rem;
+  margin-top: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.nested-list li {
+  font-size: 1.15rem;
+  font-weight: 400;
+  margin-bottom: 0.8rem;
+  color: #444;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.nested-list li::before {
+  content: "•";
+  color: #666;
+}
+
+.slide-footer {
+  position: absolute;
+  bottom: 2rem;
+  left: 4rem;
+  right: 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide {
+  animation: fadeIn 0.8s ease-out forwards;
+}

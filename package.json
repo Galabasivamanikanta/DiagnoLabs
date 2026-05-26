@@ -1,0 +1,16 @@
+{
+    "name": "diagnolabs-root",
+    "version": "1.0.0",
+    "description": "Root configuration for DiagnoLabs Project",
+    "scripts": {
+        "start": "npx concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+        "dev": "npm start",
+        "clean-start": "taskkill /f /im node.exe /t || true && taskkill /f /im vite.exe /t || true && npm start",
+        "backend": "npm run dev --prefix backend",
+        "frontend": "npm run dev --prefix frontend",
+        "install-all": "npm install --prefix backend && npm install --prefix frontend"
+    },
+    "dependencies": {
+        "pdfkit": "^0.18.0"
+    }
+}
