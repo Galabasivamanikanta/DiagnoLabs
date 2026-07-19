@@ -266,4 +266,30 @@ router.get('/search', async (req, res) => {
     }
 });
 
+// UPDATE A TEST (Staff/Admin/Owner only)
+router.put('/:id', verifyToken, async (req, res) => {
+    if (req.user.role === 'patient') return res.status(403).json("Unauthorized");
+    try {
+        const updatedTest = await Test.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        );
+        res.status(200).json(updatedTest);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// DELETE A TEST (Staff/Admin/Owner only)
+router.delete('/:id', verifyToken, async (req, res) => {
+    if (req.user.role === 'patient') return res.status(403).json("Unauthorized");
+    try {
+        await Test.findByIdAndDelete(req.params.id);
+        res.status(200).json("Test deleted successfully");
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
 module.exports = router;
