@@ -450,7 +450,7 @@ const LabDashboard = () => {
                             { id: 'reports', label: 'Report Desk', icon: <FileText size={14} /> },
                             { id: 'analytics', label: 'Clinical TAT', icon: <Activity size={14} /> },
                             { id: 'billing', label: 'Billing Ledger', icon: <DollarSign size={14} /> },
-                            { id: 'profile', label: 'Accreditation', icon: <Award size={14} /> }
+                            { id: 'profile', label: 'Profile & Settings', icon: <User size={14} /> }
                         ].map(t => (
                             <button
                                 key={t.id}
