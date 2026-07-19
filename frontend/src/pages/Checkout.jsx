@@ -363,7 +363,6 @@ const Checkout = () => {
                             </div>
                         )}
                     </div>
-                    </div>
                     ) : (
                     <div style={{ marginBottom: '3rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
