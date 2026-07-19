@@ -32,7 +32,10 @@ router.post('/employees', verifyTokenAndAdmin, async (req, res) => {
         const { password, ...others } = savedUser._doc;
         res.status(201).json(others);
     } catch (err) {
-        res.status(500).json(err);
+        if (err.code === 11000) {
+            return res.status(400).json({ message: "Email is already registered under another account." });
+        }
+        res.status(500).json({ message: err.message || "Failed to create employee" });
     }
 });
 
@@ -56,7 +59,10 @@ router.put('/employees/:id', verifyTokenAndAdmin, async (req, res) => {
         
         res.status(200).json(updatedUser);
     } catch (err) {
-        res.status(500).json(err);
+        if (err.code === 11000) {
+            return res.status(400).json({ message: "Email is already registered under another account." });
+        }
+        res.status(500).json({ message: err.message || "Failed to update employee details" });
     }
 });
 
