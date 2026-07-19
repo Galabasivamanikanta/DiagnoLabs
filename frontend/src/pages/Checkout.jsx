@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import { CreditCard, MapPin, Calendar, Clock, ShieldCheck, CheckCircle2, Activity, Edit2, ArrowRight, Navigation, User, AlertCircle, Receipt, Info } from 'lucide-react';
+import { CreditCard, MapPin, Calendar, Clock, ShieldCheck, CheckCircle2, Activity, Edit2, ArrowRight, Navigation, User, AlertCircle, Receipt, Info, Home, Building2, Syringe } from 'lucide-react';
 
 const Checkout = () => {
     const { state } = useLocation();
@@ -18,6 +18,7 @@ const Checkout = () => {
     const [time, setTime] = useState('');
     const [locating, setLocating] = useState(false);
     const [labFullAddress, setLabFullAddress] = useState('');
+    const [collectionType, setCollectionType] = useState('home'); // 'home' or 'visit'
 
     const handleLocationClick = () => {
         if (!navigator.geolocation) {
@@ -108,7 +109,10 @@ const Checkout = () => {
             totalAmount: test.price,
             appointmentDate: date,
             appointmentTime: time,
-            sampleCollectionAddress: flatNo ? `${flatNo}, ${address}` : address
+            collectionType: collectionType,
+            sampleCollectionAddress: collectionType === 'home'
+                ? (flatNo ? `${flatNo}, ${address}` : address)
+                : (labFullAddress || test.lab?.address || 'Visit Lab')
         };
 
         try {
@@ -229,8 +233,74 @@ const Checkout = () => {
                 </div>
 
                 <form onSubmit={handleBooking}>
-                    
-                    {/* Collection Address */}
+
+                    {/* Collection Type Selector */}
+                    <div style={{ marginBottom: '3rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Syringe size={20} style={{ color: '#7c3aed' }} /> How would you like your sample collected?
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                            {/* Home Collection Card */}
+                            <div
+                                onClick={() => setCollectionType('home')}
+                                style={{
+                                    border: `2px solid ${collectionType === 'home' ? '#2563eb' : '#e2e8f0'}`,
+                                    borderRadius: '20px',
+                                    padding: '1.75rem',
+                                    cursor: 'pointer',
+                                    background: collectionType === 'home' ? '#eff6ff' : 'white',
+                                    transition: 'all 0.2s ease',
+                                    position: 'relative',
+                                    boxShadow: collectionType === 'home' ? '0 4px 20px rgba(37,99,235,0.15)' : 'none'
+                                }}
+                            >
+                                {collectionType === 'home' && (
+                                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563eb', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CheckCircle2 size={14} color="white" />
+                                    </div>
+                                )}
+                                <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: collectionType === 'home' ? '#dbeafe' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                                    <Home size={26} style={{ color: collectionType === 'home' ? '#2563eb' : '#6b7280' }} />
+                                </div>
+                                <div style={{ fontWeight: '800', fontSize: '1.1rem', color: '#111827', marginBottom: '0.4rem' }}>Home Collection</div>
+                                <div style={{ fontSize: '0.88rem', color: '#6b7280', lineHeight: '1.5' }}>Our certified technician will visit your home to collect the sample at your preferred time.</div>
+                                <div style={{ marginTop: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#dcfce7', color: '#16a34a', fontSize: '0.78rem', fontWeight: '700', padding: '0.3rem 0.7rem', borderRadius: '20px' }}>
+                                    <CheckCircle2 size={12} /> Doorstep Service
+                                </div>
+                            </div>
+
+                            {/* Visit Lab Card */}
+                            <div
+                                onClick={() => setCollectionType('visit')}
+                                style={{
+                                    border: `2px solid ${collectionType === 'visit' ? '#7c3aed' : '#e2e8f0'}`,
+                                    borderRadius: '20px',
+                                    padding: '1.75rem',
+                                    cursor: 'pointer',
+                                    background: collectionType === 'visit' ? '#f5f3ff' : 'white',
+                                    transition: 'all 0.2s ease',
+                                    position: 'relative',
+                                    boxShadow: collectionType === 'visit' ? '0 4px 20px rgba(124,58,237,0.15)' : 'none'
+                                }}
+                            >
+                                {collectionType === 'visit' && (
+                                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#7c3aed', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CheckCircle2 size={14} color="white" />
+                                    </div>
+                                )}
+                                <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: collectionType === 'visit' ? '#ede9fe' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                                    <Building2 size={26} style={{ color: collectionType === 'visit' ? '#7c3aed' : '#6b7280' }} />
+                                </div>
+                                <div style={{ fontWeight: '800', fontSize: '1.1rem', color: '#111827', marginBottom: '0.4rem' }}>Visit the Lab</div>
+                                <div style={{ fontSize: '0.88rem', color: '#6b7280', lineHeight: '1.5' }}>Walk into the partner lab at your scheduled time. Sample collected on-site by professionals.</div>
+                                <div style={{ marginTop: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#f3e8ff', color: '#7c3aed', fontSize: '0.78rem', fontWeight: '700', padding: '0.3rem 0.7rem', borderRadius: '20px' }}>
+                                    <Building2 size={12} /> In-Lab Collection
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Collection Address - conditional on type */}
+                    {collectionType === 'home' ? (
                     <div style={{ marginBottom: '3rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <MapPin size={20} style={{ color: '#d97706' }} /> Home Collection Address
@@ -293,6 +363,26 @@ const Checkout = () => {
                             </div>
                         )}
                     </div>
+                    </div>
+                    ) : (
+                    <div style={{ marginBottom: '3rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Building2 size={20} style={{ color: '#7c3aed' }} /> Lab Visit Location
+                        </h3>
+                        <div style={{ background: '#f5f3ff', border: '2px solid #ede9fe', borderRadius: '16px', padding: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Building2 size={22} style={{ color: '#7c3aed' }} />
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: '800', fontSize: '1rem', color: '#111827', marginBottom: '0.3rem' }}>{test.lab?.name || 'DiagnoLabs Partner Lab'}</div>
+                                <div style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: '1.5' }}>{labFullAddress || test.lab?.address || `${test.lab?.city || ''} — Please check the lab address before visiting.`}</div>
+                                <div style={{ marginTop: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: '#dcfce7', color: '#16a34a', fontSize: '0.78rem', fontWeight: '700', padding: '0.35rem 0.8rem', borderRadius: '20px' }}>
+                                    <CheckCircle2 size={12} /> Please carry a valid ID and your booking confirmation
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    )}
 
                     {/* Date & Time Selection */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
