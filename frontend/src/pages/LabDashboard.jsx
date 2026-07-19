@@ -399,6 +399,26 @@ const LabDashboard = () => {
 
     const { weeklyCases, monthlyRevenue } = getAnalyticsData();
 
+    const handleUserFormChange = (e) => {
+        setUserForm({ ...userForm, [e.target.name]: e.target.value });
+    };
+
+    const saveUserProfile = async (e) => {
+        e.preventDefault();
+        if (!user) return;
+        setSavingUser(true);
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, userForm, getHeaders());
+            setUser(res.data);
+            alert("Profile details updated successfully!");
+        } catch (err) {
+            console.error("Error saving user credentials:", err);
+            alert(err.response?.data?.message || "Failed to update profile details.");
+        } finally {
+            setSavingUser(false);
+        }
+    };
+
     // Filters
     const filteredOrders = orders.filter(order => {
         const matchesSearch = !searchQuery || (
