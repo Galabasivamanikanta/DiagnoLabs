@@ -25,7 +25,7 @@ const bookingSchema = new mongoose.Schema({
     // STATUS TRACKING
     status: {
         type: String,
-        enum: ['Pending', 'Confirmed', 'Sample Collected', 'Report Uploaded', 'Cancelled'],
+        enum: ['Pending', 'Confirmed', 'Sample Collected', 'Sample Processing', 'Report Uploaded', 'Cancelled'],
         default: 'Pending'
     },
 

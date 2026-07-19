@@ -52,7 +52,7 @@ const ReceiptModal = ({ booking, onClose, user }) => {
     };
 
     const instructions = getClinicalInstructions(booking.testDetails?.[0]?.testName);
-    const STAGES = ['Pending', 'Confirmed', 'Sample Collected', 'Report Uploaded'];
+    const STAGES = ['Pending', 'Confirmed', 'Sample Collected', 'Sample Processing', 'Report Uploaded'];
     const currentStageIdx = booking.status === 'Cancelled' ? -1 : Math.max(0, STAGES.indexOf(booking.status));
     const bookingId = `DH-${booking._id?.slice(-8).toUpperCase()}`;
     const receiptDate = new Date(booking.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });

@@ -25,9 +25,10 @@ import {
 import ReceiptModal from '../components/patient/ReceiptModal';
 
 const statusConfig = {
-    'Pending':          { color: '#92400e', bg: '#fef3c7', icon: <Clock size={14} /> },
+    'Pending':            { color: '#92400e', bg: '#fef3c7', icon: <Clock size={14} /> },
     'Confirmed':        { color: '#1e40af', bg: '#dbeafe', icon: <CheckCircle2 size={14} /> },
     'Sample Collected': { color: '#5b21b6', bg: '#ede9fe', icon: <FlaskConical size={14} /> },
+    'Sample Processing':{ color: '#6d28d9', bg: '#f5f3ff', icon: <FlaskConical size={14} /> },
     'Report Uploaded':  { color: '#166534', bg: '#dcfce7', icon: <CheckCircle2 size={14} /> },
     'Cancelled':        { color: '#991b1b', bg: '#fee2e2', icon: <XCircle size={14} /> },
 };
@@ -142,6 +143,7 @@ const BookingHistory = () => {
                             <option value="Pending">Pending</option>
                             <option value="Confirmed">Confirmed</option>
                             <option value="Sample Collected">Sample Collected</option>
+                            <option value="Sample Processing">Sample Processing</option>
                             <option value="Report Uploaded">Report Uploaded</option>
                             <option value="Cancelled">Cancelled</option>
                         </select>

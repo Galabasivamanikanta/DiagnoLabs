@@ -54,6 +54,7 @@ const statusBadgeConfig = {
     'Pending':          { color: '#92400e', bg: '#fef3c7' },
     'Confirmed':        { color: '#1e40af', bg: '#dbeafe' },
     'Sample Collected': { color: '#5b21b6', bg: '#ede9fe' },
+    'Sample Processing':{ color: '#6d28d9', bg: '#f5f3ff' },
     'Report Uploaded':  { color: '#166534', bg: '#dcfce7' },
     'Cancelled':        { color: '#991b1b', bg: '#fee2e2' },
 };

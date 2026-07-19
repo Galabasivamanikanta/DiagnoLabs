@@ -376,6 +376,7 @@ const LabDashboard = () => {
                                                     <option value="Pending">Pending Assignment</option>
                                                     <option value="Confirmed">Confirmed Appointment</option>
                                                     <option value="Sample Collected">Collection Completed</option>
+                                                    <option value="Sample Processing">Sample Processing</option>
                                                     <option value="Cancelled">Void Appointment</option>
                                                 </select>
                                             )}
