@@ -31,7 +31,8 @@ import {
     Edit2,
     AlertCircle,
     Download,
-    Award
+    Award,
+    X
 } from 'lucide-react';
 import {
     AreaChart,
@@ -98,6 +99,12 @@ const LabDashboard = () => {
         longitude: ''
     });
     const [newPincode, setNewPincode] = useState('');
+    const [newAccred, setNewAccred] = useState({
+        label: '',
+        certificateId: '',
+        status: 'Active',
+        expiryDate: ''
+    });
 
     const [userForm, setUserForm] = useState({
         name: '',
@@ -151,7 +158,7 @@ const LabDashboard = () => {
             setOrders(ordersRes.data);
 
             // Fetch lab's tests catalog
-            const testsRes = await axios.get(`${API_BASE_URL}/api/labs/search?lab=${res.data._id}`);
+            const testsRes = await axios.get(`${API_BASE_URL}/api/tests/search?lab=${res.data._id}`);
             setTests(testsRes.data);
         } catch (err) {
             console.error("Error fetching lab partner data:", err);
@@ -313,6 +320,35 @@ const LabDashboard = () => {
             console.error(err);
         } finally {
             setSavingLab(false);
+        }
+    };
+
+    const addAccreditation = async (e) => {
+        e.preventDefault();
+        if (!newAccred.label || !newAccred.certificateId) {
+            alert("Please fill in Label and Certificate ID.");
+            return;
+        }
+        const updated = [...(labDetails?.accreditations || []), newAccred];
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { accreditations: updated }, getHeaders());
+            setLabDetails(res.data);
+            setNewAccred({ label: '', certificateId: '', status: 'Active', expiryDate: '' });
+            alert("Compliance certificate registered successfully!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save certification.");
+        }
+    };
+
+    const removeAccreditation = async (idx) => {
+        if (!window.confirm("Remove this accreditation certificate?")) return;
+        const updated = labDetails.accreditations.filter((_, i) => i !== idx);
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { accreditations: updated }, getHeaders());
+            setLabDetails(res.data);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -901,23 +937,63 @@ const LabDashboard = () => {
                         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-5">
                             <h3 className="text-sm font-black text-slate-800 flex items-center gap-1"><Award size={18} className="text-navy" /> Compliance Accreditations</h3>
                             
-                            <div className="space-y-3">
-                                {[
-                                    { label: 'NABL Certificate', id: 'NABL-2026-X', status: 'Active', valid: 'Dec 2028' },
-                                    { label: 'ICMR Approval Stamp', id: 'ICMR-AP-89', status: 'Active', valid: 'Lifetime' },
-                                    { label: 'ISO 15189 compliance', id: 'ISO-Q-15189', status: 'Pending Review', valid: 'Oct 2026' }
-                                ].map((c, i) => (
-                                    <div key={i} className="border border-slate-100 rounded-xl p-3 bg-slate-50">
+                            {/* Form to add certification */}
+                            <form onSubmit={addAccreditation} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Add Accreditation</span>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. NABL Certificate"
+                                    required
+                                    value={newAccred.label}
+                                    onChange={(e) => setNewAccred({ ...newAccred, label: e.target.value })}
+                                    className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
+                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Certificate ID"
+                                        required
+                                        value={newAccred.certificateId}
+                                        onChange={(e) => setNewAccred({ ...newAccred, certificateId: e.target.value })}
+                                        className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Dec 2028"
+                                        required
+                                        value={newAccred.expiryDate}
+                                        onChange={(e) => setNewAccred({ ...newAccred, expiryDate: e.target.value })}
+                                        className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-navy text-white text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1">
+                                    <Plus size={12} /> Register Certificate
+                                </button>
+                            </form>
+
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                                {labDetails?.accreditations?.map((c, i) => (
+                                    <div key={i} className="border border-slate-150 rounded-xl p-3 bg-slate-50 relative group">
+                                        <button 
+                                            type="button"
+                                            onClick={() => removeAccreditation(i)}
+                                            className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
                                         <div className="flex justify-between items-start">
-                                            <span className="text-xs font-bold text-slate-800">{c.label}</span>
+                                            <span className="text-xs font-bold text-slate-800 pr-4">{c.label}</span>
                                             <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${c.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{c.status}</span>
                                         </div>
                                         <div className="flex justify-between text-[10px] text-slate-400 mt-2 font-semibold">
-                                            <span>UID: {c.id}</span>
-                                            <span>Expiry: {c.valid}</span>
+                                            <span>UID: {c.certificateId}</span>
+                                            <span>Expiry: {c.expiryDate}</span>
                                         </div>
                                     </div>
                                 ))}
+                                {(!labDetails?.accreditations || labDetails.accreditations.length === 0) && (
+                                    <span className="text-xs text-slate-400 font-semibold italic block text-center py-4">No active compliance certificates.</span>
+                                )}
                             </div>
                         </div>
 
