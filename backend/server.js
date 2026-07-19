@@ -129,6 +129,15 @@ app.get('/api/utils/geocode', async (req, res) => {
 // STATIC ASSETS (Reports/Images)
 app.use('/uploads', express.static('uploads'));
 
+// SERVE REACT FRONTEND (Production)
+const frontendDist = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDist));
+
+// React Router catch-all: serve index.html for all non-API routes
+app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
 // --- GLOBAL ERROR CATCHING & AUTO-HEAL SYSTEM ---
 // Prevents the Node.js process from crashing on random uncaught exceptions
 process.on('uncaughtException', (err) => {
