@@ -184,13 +184,21 @@ router.get('/search', async (req, res) => {
                     tests = labs.slice(0, 100).map(labItem => ({
                         _id: `synth_${labItem.googlePlaceId}_${q.toLowerCase()}`,
                         testName: q.charAt(0).toUpperCase() + q.slice(1),
-                        price: 299 + (Math.floor(Math.random() * 200)), // Market-standard random price
+                        price: 299 + (Math.floor(Math.random() * 200)),
                         category: "Clinical Diagnostic",
                         turnaroundTime: "24 Hours",
                         description: "Comprehensive automated analysis available via DAA Phlebotomy Network.",
                         lab: labItem,
                         isSynthetic: true
                     }));
+                } else if (q && !pincode && labs.length === 0) {
+                    // NO location given — do a global search across all tests
+                    console.log(`🌐 Global search fallback for "${q}" with no location filter...`);
+                    tests = await Test.find({ testName: { $regex: q, $options: 'i' } }).populate('lab').limit(50);
+                    // If still nothing, show all tests
+                    if (tests.length === 0) {
+                        tests = await Test.find({}).populate('lab').limit(30);
+                    }
                 } else if (lab) {
                     console.log(`📡 Synthesizing default clinical portfolio for specific Lab ID: ${lab}...`);
                     const specificLab = await Lab.findById(lab);
