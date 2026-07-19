@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, Download, CheckCircle2, Clock, FlaskConical, AlertCircle, Building2, FileText, Shield } from 'lucide-react';
+import { X, Download, CheckCircle2, Clock, FlaskConical, AlertCircle, Building2, FileText, Shield, User } from 'lucide-react';
+import BrandLogo from '../BrandLogo';
 
 const ReceiptModal = ({ booking, onClose, user }) => {
     if (!booking) return null;
@@ -37,27 +38,19 @@ const ReceiptModal = ({ booking, onClose, user }) => {
     const STAGES = ['Pending', 'Confirmed', 'Sample Collected', 'Report Uploaded'];
     const currentStageIdx = booking.status === 'Cancelled' ? -1 : Math.max(0, STAGES.indexOf(booking.status));
     const bookingId = `DH-${booking._id?.slice(-8).toUpperCase()}`;
-    const receiptDate = new Date(booking.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-    const Row = ({ label, value, mono = false, highlight = false }) => (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.55rem 0', borderBottom: '1px dashed rgba(255,255,255,0.08)' }}>
-            <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-            <span style={{ fontFamily: mono ? 'monospace' : 'inherit', fontSize: mono ? '0.82rem' : '0.88rem', fontWeight: '700', color: highlight ? '#4ade80' : '#f1f5f9', letterSpacing: mono ? '0.03em' : 'normal' }}>{value}</span>
-        </div>
-    );
+    const receiptDate = new Date(booking.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
 
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 9999, padding: '1.5rem', fontFamily: "'Inter', 'Segoe UI', sans-serif"
+            zIndex: 9999, padding: '1.5rem', fontFamily: "'Plus Jakarta Sans', 'Outfit', sans-serif"
         }}>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
-                .receipt-scroll::-webkit-scrollbar { width: 4px; }
-                .receipt-scroll::-webkit-scrollbar-track { background: #1e293b; }
-                .receipt-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+                .rcpt-scroll::-webkit-scrollbar { width: 5px; }
+                .rcpt-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+                .rcpt-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 @media print {
                     body * { visibility: hidden !important; }
                     .receipt-print, .receipt-print * { visibility: visible !important; }
@@ -66,168 +59,248 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                 }
             `}</style>
 
-            <div className="receipt-print receipt-scroll" style={{
-                background: '#0f172a',
+            <div className="receipt-print rcpt-scroll" style={{
+                background: '#ffffff',
                 borderRadius: '20px',
-                width: '100%', maxWidth: '680px',
+                width: '100%', maxWidth: '700px',
                 maxHeight: '92vh', overflowY: 'auto',
-                boxShadow: '0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)',
-                color: '#f1f5f9'
+                boxShadow: '0 32px 80px rgba(0,51,102,0.18), 0 0 0 1px rgba(0,51,102,0.08)',
             }}>
-                {/* ── TOP HEADER ── */}
+                {/* ── HEADER ── */}
                 <div style={{
-                    background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 60%)',
+                    background: 'linear-gradient(135deg, #003366 0%, #002244 100%)',
                     padding: '1.75rem 2rem',
-                    borderBottom: '1px solid rgba(255,255,255,0.07)',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
+                    borderRadius: '20px 20px 0 0',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
-                    <div>
-                        <img src="/diagnolabs_logo.png" alt="DiagnoLabs" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.3)' }} />
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#64748b', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Official Digital Receipt</div>
+                    {/* Brand */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '12px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <BrandLogo size={38} />
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: '900', fontSize: '1.25rem', color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1 }}>DiagnoLabs</div>
+                            <div style={{ fontSize: '0.6rem', color: '#c5a059', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '3px' }}>Clinical Discovery</div>
+                        </div>
                     </div>
-                    <div className="no-print" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                        <button onClick={() => window.print()} style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            background: '#2563eb', color: 'white', border: 'none',
-                            borderRadius: '10px', padding: '0.5rem 1.1rem',
-                            fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer'
-                        }}>
-                            <Download size={14} /> Download PDF
-                        </button>
-                        <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '50%', width: '34px', height: '34px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', color: '#94a3b8'
-                        }}>
-                            <X size={16} />
-                        </button>
+
+                    {/* Right side */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
+                        <div className="no-print" style={{ display: 'flex', gap: '0.6rem' }}>
+                            <button onClick={() => window.print()} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.4rem',
+                                background: '#c5a059', color: 'white', border: 'none',
+                                borderRadius: '10px', padding: '0.45rem 1rem',
+                                fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer'
+                            }}>
+                                <Download size={13} /> Download PDF
+                            </button>
+                            <button onClick={onClose} style={{
+                                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+                                borderRadius: '50%', width: '32px', height: '32px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', color: '#ffffff'
+                            }}>
+                                <X size={15} />
+                            </button>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: '900', fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Official Receipt</div>
+                            <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#c5a059', fontWeight: '700', letterSpacing: '0.04em', marginTop: '2px' }}>{bookingId}</div>
+                        </div>
                     </div>
                 </div>
 
-                {/* ── STATUS BADGE ── */}
-                <div style={{ padding: '1.25rem 2rem', background: '#0a1628', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px #4ade80', animation: 'pulse 2s infinite' }} />
-                        <span style={{ fontWeight: '800', fontSize: '0.9rem', color: '#4ade80', letterSpacing: '0.05em' }}>
+                {/* ── STATUS STRIP ── */}
+                <div style={{
+                    background: '#059669',
+                    padding: '0.65rem 2rem',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <CheckCircle2 size={15} color="white" />
+                        <span style={{ fontWeight: '800', fontSize: '0.82rem', color: 'white', letterSpacing: '0.06em' }}>
                             {booking.paymentStatus === 'Paid' ? 'PAYMENT CONFIRMED' : booking.paymentStatus?.toUpperCase()}
                         </span>
                     </div>
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>
-                        {receiptDate} &nbsp;|&nbsp; {bookingId}
-                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', fontWeight: '600' }}>{receiptDate}</span>
                 </div>
 
                 <div style={{ padding: '1.75rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
                     {/* ── TRACKING STEPPER ── */}
-                    <div className="no-print" style={{ background: '#1e293b', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Booking Progress</div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '14px', left: '5%', right: '5%', height: '2px', background: '#334155', zIndex: 1 }} />
-                            <div style={{ position: 'absolute', top: '14px', left: '5%', width: `${currentStageIdx >= 0 ? (currentStageIdx / (STAGES.length - 1)) * 90 : 0}%`, height: '2px', background: '#22c55e', zIndex: 2, transition: 'width 0.5s ease' }} />
+                    <div className="no-print" style={{ background: '#f0f7ff', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid #e0eeff' }}>
+                        <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1rem', opacity: 0.6 }}>Booking Progress</div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' }}>
+                            <div style={{ position: 'absolute', top: '13px', left: '5%', right: '5%', height: '2px', background: '#dce8f5', zIndex: 1 }} />
+                            <div style={{ position: 'absolute', top: '13px', left: '5%', width: `${currentStageIdx >= 0 ? (currentStageIdx / (STAGES.length - 1)) * 90 : 0}%`, height: '2px', background: '#059669', zIndex: 2, transition: 'width 0.5s ease' }} />
                             {STAGES.map((stage, idx) => {
                                 const done = idx <= currentStageIdx;
                                 const curr = idx === currentStageIdx;
                                 return (
                                     <div key={stage} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, flex: 1 }}>
                                         <div style={{
-                                            width: '28px', height: '28px', borderRadius: '50%',
-                                            background: done ? '#22c55e' : '#1e293b',
-                                            border: `2px solid ${done ? '#22c55e' : '#334155'}`,
+                                            width: '26px', height: '26px', borderRadius: '50%',
+                                            background: done ? '#059669' : 'white',
+                                            border: `2px solid ${done ? '#059669' : '#dce8f5'}`,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            boxShadow: curr ? '0 0 0 4px rgba(34,197,94,0.2)' : 'none'
+                                            boxShadow: curr ? '0 0 0 4px rgba(5,150,105,0.15)' : 'none'
                                         }}>
-                                            {done ? <CheckCircle2 size={14} color="white" /> : <Clock size={12} color="#475569" />}
+                                            {done ? <CheckCircle2 size={13} color="white" /> : <Clock size={11} color="#94a3b8" />}
                                         </div>
-                                        <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontWeight: '700', textAlign: 'center', color: done ? '#22c55e' : '#475569', whiteSpace: 'nowrap' }}>{stage}</div>
+                                        <div style={{ marginTop: '0.5rem', fontSize: '0.62rem', fontWeight: '700', textAlign: 'center', color: done ? '#059669' : '#94a3b8', lineHeight: 1.3 }}>{stage}</div>
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* ── TRANSACTION DETAILS ── */}
-                    <div style={{ background: '#1e293b', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <FileText size={14} color="#3b82f6" />
-                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Transaction Details</span>
+                    {/* ── TRANSACTION REFERENCE ── */}
+                    <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
+                            <FileText size={14} color="#003366" />
+                            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.7 }}>Transaction Reference</span>
                         </div>
-                        <Row label="Booking ID" value={bookingId} mono />
-                        <Row label="Transaction ID" value={booking.razorpayPaymentId || 'N/A'} mono />
-                        <Row label="UTR / Order ID" value={booking.razorpayOrderId || 'N/A'} mono />
-                        <Row label="Date" value={receiptDate} />
-                        <Row label="Status" value={booking.paymentStatus === 'Paid' ? 'PAID SUCCESSFULLY' : booking.paymentStatus} highlight />
-                    </div>
-
-                    {/* ── PATIENT + LAB ── */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div style={{ background: '#1e293b', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Patient</div>
-                            <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#f1f5f9', marginBottom: '0.25rem' }}>{user?.name}</div>
-                            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem', color: '#475569', fontWeight: '600' }}>{user?.customerId || 'DL-XXXXXXXX'}</div>
-                        </div>
-                        <div style={{ background: '#1e293b', borderRadius: '14px', padding: '1.25rem 1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                                <Building2 size={12} color="#64748b" />
-                                <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Assigned Lab</span>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', fontSize: '0.8rem' }}>
+                            <div>
+                                <span style={{ color: '#94a3b8', display: 'block', marginBottom: '0.25rem', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase' }}>Booking ID</span>
+                                <span style={{ fontWeight: '700', color: '#0f172a', fontFamily: 'monospace', fontSize: '0.85rem' }}>{bookingId}</span>
                             </div>
-                            <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#f1f5f9', lineHeight: '1.4' }}>{booking.lab?.name || 'DAA Network Lab'}</div>
+                            <div>
+                                <span style={{ color: '#94a3b8', display: 'block', marginBottom: '0.25rem', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase' }}>Transaction ID</span>
+                                <span style={{ fontWeight: '700', color: '#0f172a', fontFamily: 'monospace', fontSize: '0.85rem' }}>{booking.razorpayPaymentId || 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span style={{ color: '#94a3b8', display: 'block', marginBottom: '0.25rem', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase' }}>Order ID</span>
+                                <span style={{ fontWeight: '700', color: '#0f172a', fontFamily: 'monospace', fontSize: '0.85rem' }}>{booking.razorpayOrderId || 'N/A'}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* ── TEST DETAILS TABLE ── */}
-                    <div style={{ background: '#1e293b', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ padding: '0.75rem 1.5rem', background: '#162032', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Test Description</span>
-                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Amount</span>
+                    {/* ── TRANSACTION + PATIENT + LAB GRID ── */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        {/* Patient & Booking Details */}
+                        <div style={{ background: '#f0f7ff', borderRadius: '14px', padding: '1.25rem', border: '1px solid #e0eeff' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                                <User size={13} color="#003366" />
+                                <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.7 }}>Patient & Schedule</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Name:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.name || booking.patient?.name}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Customer ID:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a', fontFamily: 'monospace' }}>{user?.customerId || 'DL-202607-md'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Phone:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.phone || booking.patient?.phone || 'N/A'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Email:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.email || booking.patient?.email || 'N/A'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Appointment:</span>
+                                    <span style={{ fontWeight: '700', color: '#059669' }}>
+                                        {new Date(booking.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} ({booking.appointmentTime})
+                                    </span>
+                                </div>
+                                <div style={{ borderTop: '1px dashed #dbeafe', marginTop: '0.4rem', paddingTop: '0.4rem' }}>
+                                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Collection Address:</span>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block' }}>{booking.sampleCollectionAddress}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Lab Details */}
+                        <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '1.25rem', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                                <Building2 size={13} color="#003366" />
+                                <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.7 }}>Assigned Laboratory</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Lab Name:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.name || 'DiagnoLabs Partner'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Phone:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.phone || '1800-120-4121'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Email:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.email || 'support@diagnolabs.in'}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#64748b' }}>Hours:</span>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>
+                                        {booking.lab?.openingTime || '08:00 AM'} - {booking.lab?.closingTime || '08:00 PM'}
+                                    </span>
+                                </div>
+                                <div style={{ borderTop: '1px dashed #e2e8f0', marginTop: '0.4rem', paddingTop: '0.4rem' }}>
+                                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Lab Location:</span>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block' }}>
+                                        {booking.lab?.address || 'DAA Network Hub, India'}, {booking.lab?.city || ''} {booking.lab?.pincode || ''}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── TEST DETAILS ── */}
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '14px', overflow: 'hidden' }}>
+                        <div style={{ background: '#003366', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Test Description</span>
+                            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Amount</span>
                         </div>
                         {booking.testDetails?.map((t, i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.9rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>{t.testName}</span>
-                                <span style={{ fontWeight: '700', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.88rem' }}>₹{t.price}</span>
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1.5rem', borderBottom: '1px solid #f1f5f9', background: 'white' }}>
+                                <span style={{ fontWeight: '700', fontSize: '0.9rem', color: '#0f172a' }}>{t.testName}</span>
+                                <span style={{ fontWeight: '700', fontFamily: 'monospace', fontSize: '0.88rem', color: '#475569' }}>₹{t.price}</span>
                             </div>
                         ))}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#162032', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                            <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#94a3b8' }}>TOTAL PAID</span>
-                            <span style={{ fontWeight: '900', fontFamily: 'JetBrains Mono, monospace', fontSize: '1.1rem', color: '#4ade80' }}>₹{booking.totalAmount}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', background: '#f0f7ff', borderTop: '2px solid #003366' }}>
+                            <span style={{ fontWeight: '800', fontSize: '0.85rem', color: '#003366' }}>TOTAL PAID</span>
+                            <span style={{ fontWeight: '900', fontFamily: 'monospace', fontSize: '1.2rem', color: '#003366' }}>₹{booking.totalAmount}</span>
                         </div>
                     </div>
 
                     {/* ── CLINICAL INSTRUCTIONS ── */}
-                    <div style={{ background: '#1c1a08', border: '1px solid #3d3000', borderRadius: '14px', padding: '1.25rem 1.5rem' }}>
+                    <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '14px', padding: '1.25rem 1.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <AlertCircle size={14} color="#fbbf24" />
-                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Clinical Instructions & Precautions</span>
+                            <AlertCircle size={14} color="#d97706" />
+                            <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Clinical Instructions & Precautions</span>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.82rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', fontSize: '0.82rem' }}>
                             <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fbbf24', fontWeight: '700', marginBottom: '0.2rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#92400e', fontWeight: '800', marginBottom: '0.2rem' }}>
                                     <FlaskConical size={12} /> Collection Items:
                                 </div>
-                                <div style={{ color: '#d97706', paddingLeft: '1.1rem', lineHeight: '1.5' }}>{instructions.items}</div>
+                                <div style={{ color: '#b45309', paddingLeft: '1.1rem', lineHeight: 1.5 }}>{instructions.items}</div>
                             </div>
                             <div>
-                                <div style={{ color: '#fbbf24', fontWeight: '700', marginBottom: '0.2rem' }}>🍽️ Food & Fasting:</div>
-                                <div style={{ color: '#d97706', paddingLeft: '1.1rem', lineHeight: '1.5' }}>{instructions.food}</div>
+                                <div style={{ color: '#92400e', fontWeight: '800', marginBottom: '0.2rem' }}>🍽️ Food & Fasting:</div>
+                                <div style={{ color: '#b45309', paddingLeft: '1.1rem', lineHeight: 1.5 }}>{instructions.food}</div>
                             </div>
                             <div>
-                                <div style={{ color: '#fbbf24', fontWeight: '700', marginBottom: '0.2rem' }}>⚠️ Precautions:</div>
-                                <div style={{ color: '#d97706', paddingLeft: '1.1rem', lineHeight: '1.5' }}>{instructions.precautions}</div>
+                                <div style={{ color: '#92400e', fontWeight: '800', marginBottom: '0.2rem' }}>⚠️ Precautions:</div>
+                                <div style={{ color: '#b45309', paddingLeft: '1.1rem', lineHeight: 1.5 }}>{instructions.precautions}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* ── FOOTER ── */}
-                    <div style={{ textAlign: 'center', padding: '0.5rem 0 0.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#334155', fontSize: '0.72rem', fontWeight: '700', marginBottom: '0.4rem' }}>
-                            <Shield size={12} /> Digitally verified by DiagnoLabs Clinical Network
+                    <div style={{ textAlign: 'center', paddingTop: '0.25rem', borderTop: '1px dashed #e2e8f0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: '#94a3b8', fontSize: '0.72rem', fontWeight: '700', marginBottom: '0.3rem' }}>
+                            <Shield size={11} /> Digitally verified by DiagnoLabs Clinical Network
                         </div>
-                        <div style={{ fontSize: '0.7rem', color: '#1e293b', fontWeight: '600' }}>
-                            This is an electronically generated receipt. No physical signature required.
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: '#334155', marginTop: '0.2rem' }}>
-                            support@diagnolabs.in &nbsp;|&nbsp; 1800-XXX-XXXX
+                        <div style={{ fontSize: '0.7rem', color: '#cbd5e1', fontWeight: '600' }}>
+                            Electronically generated — no physical signature required. &nbsp;|&nbsp; support@diagnolabs.in
                         </div>
                     </div>
                 </div>
