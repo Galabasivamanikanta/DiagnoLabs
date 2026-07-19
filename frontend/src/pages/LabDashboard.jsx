@@ -931,137 +931,81 @@ const LabDashboard = () => {
 
                 {/* Tab 6: Profile & Accreditation Compliance */}
                 {activeTab === 'profile' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        {/* Left column: accred/certifications */}
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-5">
-                            <h3 className="text-sm font-black text-slate-800 flex items-center gap-1"><Award size={18} className="text-navy" /> Compliance Accreditations</h3>
-                            
-                            {/* Form to add certification */}
-                            <form onSubmit={addAccreditation} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Add Accreditation</span>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. NABL Certificate"
-                                    required
-                                    value={newAccred.label}
-                                    onChange={(e) => setNewAccred({ ...newAccred, label: e.target.value })}
-                                    className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
-                                />
-                                <div className="grid grid-cols-2 gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Certificate ID"
-                                        required
-                                        value={newAccred.certificateId}
-                                        onChange={(e) => setNewAccred({ ...newAccred, certificateId: e.target.value })}
-                                        className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Dec 2028"
-                                        required
-                                        value={newAccred.expiryDate}
-                                        onChange={(e) => setNewAccred({ ...newAccred, expiryDate: e.target.value })}
-                                        className="w-full border border-slate-300 rounded p-1.5 text-[11px] font-bold"
+                    <div className="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center gap-4 border-b border-slate-155 pb-6 mb-6">
+                            <div className="w-16 h-16 rounded-2xl bg-navy text-gold text-2xl font-black flex items-center justify-center">
+                                {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">{user?.name || 'Authorized Staff'}</h3>
+                                <div className="flex gap-1.5 items-center mt-1">
+                                    <span className="bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase border border-blue-200">
+                                        Role: {user?.role === 'lab_partner' ? 'Lab Partner' : user?.role || 'Staff'}
+                                    </span>
+                                    <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase border border-emerald-200">
+                                        Status: ACTIVE
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={saveUserProfile} className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Full Representative Name</label>
+                                <div className="relative">
+                                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="text" 
+                                        name="name"
+                                        value={userForm.name} 
+                                        onChange={handleUserFormChange} 
+                                        required 
+                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
                                     />
                                 </div>
-                                <button type="submit" className="w-full bg-navy text-white text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1">
-                                    <Plus size={12} /> Register Certificate
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Registered Login Email</label>
+                                <div className="relative">
+                                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="email" 
+                                        name="email"
+                                        value={userForm.email} 
+                                        onChange={handleUserFormChange} 
+                                        required 
+                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Contact Mobile Number</label>
+                                <div className="relative">
+                                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        type="text" 
+                                        name="phone"
+                                        value={userForm.phone} 
+                                        onChange={handleUserFormChange} 
+                                        required 
+                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="border-t border-slate-200 pt-5 flex justify-end">
+                                <button 
+                                    type="submit" 
+                                    disabled={savingUser}
+                                    className="px-4 py-2 bg-navy hover:bg-navy-deep text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition-all"
+                                >
+                                    {savingUser ? <Loader2 size={13} className="animate-spin" /> : <Save size={14} />}
+                                    Save Personal Profile
                                 </button>
-                            </form>
-
-                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                                {labDetails?.accreditations?.map((c, i) => (
-                                    <div key={i} className="border border-slate-150 rounded-xl p-3 bg-slate-50 relative group">
-                                        <button 
-                                            type="button"
-                                            onClick={() => removeAccreditation(i)}
-                                            className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
-                                        <div className="flex justify-between items-start">
-                                            <span className="text-xs font-bold text-slate-800 pr-4">{c.label}</span>
-                                            <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${c.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{c.status}</span>
-                                        </div>
-                                        <div className="flex justify-between text-[10px] text-slate-400 mt-2 font-semibold">
-                                            <span>UID: {c.certificateId}</span>
-                                            <span>Expiry: {c.expiryDate}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!labDetails?.accreditations || labDetails.accreditations.length === 0) && (
-                                    <span className="text-xs text-slate-400 font-semibold italic block text-center py-4">No active compliance certificates.</span>
-                                )}
                             </div>
-                        </div>
-
-                        {/* Middle & Right columns: forms */}
-                        <div className="lg:col-span-2 space-y-6">
-                            
-                            {/* Facility Profile */}
-                            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                                <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-1"><Building2 size={18} className="text-gold" /> Facility Physical Records</h3>
-                                
-                                <form onSubmit={saveLabProfile} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Laboratory Facility Name</label>
-                                            <input type="text" name="name" value={labForm.name} onChange={(e) => setLabForm({ ...labForm, name: e.target.value })} required className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">City Jurisdiction</label>
-                                            <input type="text" name="city" value={labForm.city} onChange={(e) => setLabForm({ ...labForm, city: e.target.value })} required className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Accredited Physical Address</label>
-                                        <textarea rows="2" name="address" value={labForm.address} onChange={(e) => setLabForm({ ...labForm, address: e.target.value })} required className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold resize-none" />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Accredited Latitude</label>
-                                            <input type="number" step="any" name="latitude" value={labForm.latitude} onChange={(e) => setLabForm({ ...labForm, latitude: e.target.value })} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Accredited Longitude</label>
-                                            <input type="number" step="any" name="longitude" value={labForm.longitude} onChange={(e) => setLabForm({ ...labForm, longitude: e.target.value })} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-end pt-2 border-t border-slate-100">
-                                        <button type="submit" disabled={savingLab} className="px-4 py-2 bg-navy text-white rounded-lg text-xs font-bold flex items-center gap-1.5">
-                                            {savingLab ? <Loader2 size={13} className="animate-spin" /> : <Save size={14} />}
-                                            Save Compliance Changes
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            {/* Coverage Pincodes */}
-                            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                                <h3 className="text-sm font-black text-slate-800 mb-2 flex items-center gap-1"><MapPin size={18} className="text-navy" /> Coverage & Jurisdictions</h3>
-                                <p className="text-[11px] text-slate-400 font-semibold mb-4">Set operational area codes for local home collections dispatch routing.</p>
-                                
-                                <div className="flex gap-2 mb-4">
-                                    <input type="text" placeholder="e.g. 390019" value={newPincode} onChange={(e) => setNewPincode(e.target.value)} className="border border-slate-300 rounded-lg p-2 text-xs font-bold w-40" />
-                                    <button onClick={addPincode} className="px-3 bg-navy text-white rounded-lg text-xs font-bold flex items-center"><Plus size={16} /></button>
-                                </div>
-
-                                <div className="flex flex-wrap gap-1.5">
-                                    {labDetails?.servicePincodes?.map(pin => (
-                                        <span key={pin} className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full text-xs font-bold">
-                                            {pin}
-                                            <X size={12} onClick={() => removePincode(pin)} className="text-red-500 cursor-pointer" />
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
+                        </form>
                     </div>
                 )}
 
