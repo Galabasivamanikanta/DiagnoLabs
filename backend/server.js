@@ -150,3 +150,5 @@ app.use((err, req, res, next) => {
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`[GATEWAY] DiagnoLabs Clinical Services Active on Port ${PORT}`);
 });
+
+module.exports = app;
