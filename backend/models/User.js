@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true }, 
     phone: { type: String, required: true },
+    customerId: { type: String, unique: true, sparse: true },
     isVerified: { type: Boolean, default: false },
     role: {
         type: String,
@@ -37,6 +38,11 @@ const userSchema = new mongoose.Schema({
             lng: Number
         }
     },
+    dob: { type: String, default: '' },
+    gender: { type: String, enum: ['Male', 'Female', 'Other', ''], default: '' },
+    bloodGroup: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-', ''], default: '' },
+    emergencyContact: { type: String, default: '' },
+    profilePic: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now }
 });
 

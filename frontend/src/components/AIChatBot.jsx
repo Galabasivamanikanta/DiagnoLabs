@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { MessageSquare, Send, X, Bot, User, FileImage, Clipboard, ArrowRight, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
@@ -52,7 +52,7 @@ const AIChatBot = () => {
             });
 
             setChat(prev => [...prev, { role: 'model', content: res.data.reply }]);
-        } catch (err) {
+        } catch {
             setChat(prev => [...prev, { role: 'model', content: "Sorry, I'm having trouble connecting to my medical database. Please try again later." }]);
         } finally {
             setLoading(false);

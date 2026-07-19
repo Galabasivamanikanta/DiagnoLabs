@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     MapPin,
@@ -27,6 +27,12 @@ const Home = () => {
     const [coords, setCoords] = useState(null);
     const [locLoading, setLocLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Automatically request GPS on app load
+        detectLocation();
+        // eslint-disable-next-line
+    }, []);
 
     const detectLocation = () => {
         if (!navigator.geolocation) {

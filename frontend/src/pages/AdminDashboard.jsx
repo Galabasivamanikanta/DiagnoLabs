@@ -6,13 +6,15 @@ import { API_BASE_URL } from '../config';
 import EmployeeManagement from '../components/admin/EmployeeManagement';
 import LabVerification from '../components/admin/LabVerification';
 import AdminProfile from '../components/admin/AdminProfile';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import BrandLogo from '../components/BrandLogo';
 import {
     LayoutDashboard, Users, ClipboardList, Settings, LogOut, UserCircle,
     Bell, Search, Filter, ArrowUpRight, ArrowDownRight,
     Activity, TrendingUp, Calendar, FileText, Microscope,
-    ChevronRight, ExternalLink, Clock, Zap, Menu, X
+    ChevronRight, ExternalLink, Clock, Zap, Menu, X,
+    IdCard, Phone, Mail, MapPin, Droplets, CalendarDays, Building2, BadgeIndianRupee, CheckCircle2, XCircle, FlaskConical
 } from 'lucide-react';
 import '../styles/AdminDashboard.css';
 
@@ -47,6 +49,165 @@ const formatDate = (dateStr) => {
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
+
+const statusBadgeConfig = {
+    'Pending':          { color: '#92400e', bg: '#fef3c7' },
+    'Confirmed':        { color: '#1e40af', bg: '#dbeafe' },
+    'Sample Collected': { color: '#5b21b6', bg: '#ede9fe' },
+    'Report Uploaded':  { color: '#166534', bg: '#dcfce7' },
+    'Cancelled':        { color: '#991b1b', bg: '#fee2e2' },
+};
+
+const CustomerLookupPanel = ({ user: adminUser }) => {
+    const [query, setQuery] = useState('');
+    const [result, setResult] = useState(null);
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleLookup = async (e) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+        setLookupLoading(true);
+        setError('');
+        setResult(null);
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/auth/lookup/${query.trim().toUpperCase()}`,
+                { headers: { token: `Bearer ${adminUser?.accessToken}` } }
+            );
+            setResult(res.data);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Customer not found. Please check the ID and try again.');
+        } finally {
+            setLookupLoading(false);
+        }
+    };
+
+    const infoRow = (icon, label, value) => (
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+            <div style={{ padding: '0.5rem', background: '#f1f5f9', borderRadius: '8px', flexShrink: 0, color: 'var(--primary)' }}>{icon}</div>
+            <div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600' }}>{label}</div>
+                <div style={{ fontWeight: '800', color: 'var(--text-main)', fontSize: '0.97rem' }}>{value || 'Not provided'}</div>
+            </div>
+        </div>
+    );
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Search Box */}
+            <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div style={{ padding: '0.75rem', background: 'var(--primary-light)', borderRadius: '14px', color: 'var(--primary)' }}><IdCard size={24} /></div>
+                    <div>
+                        <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '800', color: 'var(--text-main)' }}>Customer ID Lookup</h3>
+                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Enter the customer's unique DL-XXXXXXXX ID to retrieve their full profile and booking history.</p>
+                    </div>
+                </div>
+                <form onSubmit={handleLookup} style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                        <IdCard size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value.toUpperCase())}
+                            placeholder="e.g. DL-AB3K7XQ2"
+                            style={{ width: '100%', padding: '1rem 1rem 1rem 3rem', borderRadius: '12px', border: '1.5px solid var(--border)', fontWeight: '700', fontSize: '1.05rem', outline: 'none', letterSpacing: '1px', fontFamily: 'monospace' }}
+                        />
+                    </div>
+                    <button type="submit" disabled={lookupLoading} style={{ padding: '1rem 2.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
+                        <Search size={18} /> {lookupLoading ? 'Searching...' : 'Find Customer'}
+                    </button>
+                </form>
+                {error && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#fee2e2', borderRadius: '10px', color: '#991b1b', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <XCircle size={18} /> {error}
+                    </div>
+                )}
+            </div>
+
+            {/* Results */}
+            {result && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* User Card */}
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '2rem', fontWeight: '900', flexShrink: 0 }}>
+                                    {result.user.name?.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.6rem', fontWeight: '800', color: 'var(--text-main)' }}>{result.user.name}</h3>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.85rem', borderRadius: '100px', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: '800', fontSize: '0.85rem' }}>
+                                        <IdCard size={14} /> {result.user.customerId}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.2rem', background: result.user.isVerified ? '#dcfce7' : '#fef3c7', borderRadius: '100px', color: result.user.isVerified ? '#166534' : '#92400e', fontWeight: '800', fontSize: '0.85rem' }}>
+                                <CheckCircle2 size={15} /> {result.user.isVerified ? 'Verified' : 'Unverified'}
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+                            {infoRow(<Mail size={18} />, 'Email Address', result.user.email)}
+                            {infoRow(<Phone size={18} />, 'Mobile Number', result.user.phone)}
+                            {infoRow(<CalendarDays size={18} />, 'Date of Birth', result.user.dob ? new Date(result.user.dob).toLocaleDateString('en-IN') : null)}
+                            {infoRow(<Droplets size={18} />, 'Blood Group', result.user.bloodGroup)}
+                            {infoRow(<IdCard size={18} />, 'Gender', result.user.gender)}
+                            {infoRow(<MapPin size={18} />, 'Address', result.user.address?.street)}
+                            {infoRow(<CalendarDays size={18} />, 'Registered On', new Date(result.user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }))}
+                            {infoRow(<Activity size={18} />, 'Total Bookings', `${result.bookings.length} booking${result.bookings.length !== 1 ? 's' : ''}`)}
+                        </div>
+                    </div>
+
+                    {/* Booking History Table */}
+                    <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                        <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <FlaskConical size={20} style={{ color: 'var(--primary)' }} />
+                            <h4 style={{ margin: 0, fontWeight: '800', color: 'var(--text-main)', fontSize: '1.1rem' }}>Booking History ({result.bookings.length})</h4>
+                        </div>
+                        {result.bookings.length === 0 ? (
+                            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '700' }}>No bookings found for this customer.</div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f8fafc' }}>
+                                            {['S.No', 'Booking ID', 'Date', 'Test(s)', 'Lab', 'Amount', 'Status'].map(h => (
+                                                <th key={h} style={{ padding: '0.9rem 1.1rem', textAlign: 'left', fontWeight: '800', fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {result.bookings.map((b, idx) => {
+                                            const cfg = statusBadgeConfig[b.status] || statusBadgeConfig['Pending'];
+                                            return (
+                                                <tr key={b._id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                                    <td style={{ padding: '1rem 1.1rem', fontWeight: '800', color: 'var(--text-muted)' }}>{idx + 1}</td>
+                                                    <td style={{ padding: '1rem 1.1rem' }}><span style={{ fontFamily: 'monospace', fontWeight: '800', color: 'var(--primary)' }}>DH-{b._id.slice(-8).toUpperCase()}</span></td>
+                                                    <td style={{ padding: '1rem 1.1rem', whiteSpace: 'nowrap', fontWeight: '700' }}>{new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                    <td style={{ padding: '1rem 1.1rem' }}>
+                                                        <div style={{ fontWeight: '700', color: 'var(--text-main)' }}>{b.testDetails?.[0]?.testName || 'N/A'}</div>
+                                                        {b.testDetails?.length > 1 && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>+{b.testDetails.length - 1} more</div>}
+                                                    </td>
+                                                    <td style={{ padding: '1rem 1.1rem', fontWeight: '700', whiteSpace: 'nowrap' }}>{b.lab?.name || 'N/A'}</td>
+                                                    <td style={{ padding: '1rem 1.1rem', fontWeight: '800', whiteSpace: 'nowrap' }}>₹{b.totalAmount?.toLocaleString('en-IN')}</td>
+                                                    <td style={{ padding: '1rem 1.1rem' }}>
+                                                        <span style={{ display: 'inline-block', padding: '0.3rem 0.8rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>{b.status}</span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const AdminDashboard = () => {
     const { user, logout } = useContext(AuthContext);
     const [bookings, setBookings] = useState([]);
@@ -56,12 +217,6 @@ const AdminDashboard = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
-    }, []);
 
     const fetchData = async () => {
         try {
@@ -73,6 +228,12 @@ const AdminDashboard = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchData();
+        const interval = setInterval(fetchData, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -122,6 +283,7 @@ const AdminDashboard = () => {
         { id: 'network', label: 'Network', icon: Microscope },
         { id: 'employees', label: 'Employees', icon: Users },
         { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+        { id: 'lookup', label: 'Customer Lookup', icon: IdCard },
         { id: 'profile', label: 'My Identity', icon: UserCircle },
     ];
 
@@ -191,6 +353,7 @@ const AdminDashboard = () => {
                             {activeTab === 'network' && 'Network Discovery'}
                             {activeTab === 'employees' && 'Employee Directory'}
                             {activeTab === 'analytics' && 'Analytics & Insights'}
+                            {activeTab === 'lookup' && 'Customer Lookup'}
                         </h1>
                         <p>
                             {activeTab === 'overview' && 'Real-time laboratory network monitoring & coordination'}
@@ -198,6 +361,7 @@ const AdminDashboard = () => {
                             {activeTab === 'network' && 'Audit and authorize newly discovered clinical facilities'}
                             {activeTab === 'employees' && 'Manage team members and access permissions'}
                             {activeTab === 'analytics' && 'Performance metrics and operational insights'}
+                            {activeTab === 'lookup' && 'Find any customer instantly using their unique Customer ID'}
                         </p>
                     </div>
                     <div className="admin-topbar-actions">
@@ -732,6 +896,12 @@ const AdminDashboard = () => {
                                     )}
                                 </div>
                             </div>
+                        </motion.div>
+                    )}
+                    {/* ═══ Customer Lookup Tab ═══ */}
+                    {activeTab === 'lookup' && (
+                        <motion.div key="lookup" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <CustomerLookupPanel user={user} />
                         </motion.div>
                     )}
                     {/* ═══ Profile Tab ═══ */}

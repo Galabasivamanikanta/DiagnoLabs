@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     UserPlus, Edit3, Trash2, X, Search, Shield, 
@@ -43,10 +44,6 @@ const EmployeeManagement = () => {
         role: 'employee'
     });
 
-    useEffect(() => {
-        fetchEmployees();
-    }, []);
-
     const fetchEmployees = async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/api/admin/employees`);
@@ -57,6 +54,10 @@ const EmployeeManagement = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

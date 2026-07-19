@@ -157,7 +157,7 @@ const LabDetails = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                                {filteredTests.map((test, index) => (
+                                {filteredTests.map((test) => (
                                     <div key={test._id} className="glass-card premium-card" style={{ padding: '2rem', background: 'white', borderRadius: '28px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
                                             <div style={{ width: '50px', height: '50px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -1,0 +1,112 @@
+﻿
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\admin\EmployeeManagement.jsx
+  57:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  55 |
+  56 |     useEffect(() => {
+> 57 |         fetchEmployees();
+     |         ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |     }, []);
+  59 |
+  60 |     const handleInputChange = (e) => {  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\admin\LabVerification.jsx
+  43:39  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  41 |
+  42 |     useEffect(() => {
+> 43 |         if (viewMode === 'discovery') fetchPendingLabs();
+     |                                       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |         else fetchVerifiedLabs();
+  45 |     }, [viewMode]);
+  46 |  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\context\AuthContext.jsx
+  52:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  50 |                 });
+  51 |         }
+> 52 |         setLoading(false);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |     }, []);
+  54 |
+  55 |     const login = async (email, password) => {  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\AdminDashboard.jsx
+  71:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  69 |
+  70 |     useEffect(() => {
+> 71 |         fetchData();
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  72 |         const interval = setInterval(fetchData, 30000);
+  73 |         return () => clearInterval(interval);
+  74 |     }, []);  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\Checkout.jsx
+  20:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  18 |     useEffect(() => {
+  19 |         if (user?.address?.street) {
+> 20 |             setAddress(curr => curr !== user.address.street ? user.address.street : curr);
+     |             ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  21 |             setIsEditing(curr => curr !== false ? false : curr);
+  22 |         }
+  23 |     }, [user]);  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\Labs.jsx
+  55:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  53 |
+  54 |     useEffect(() => {
+> 55 |         fetchLabs();
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |     }, [urlPincode]);
+  57 |
+  58 |     const isLabOpen = (openingTime, closingTime) => {  react-hooks/set-state-in-effect
+  56:8   warning  React Hook useEffect has a missing dependency: 'fetchLabs'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  83:71  error    'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-undef
+  84:56  error    'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-undef
+  85:29  error    'cityFilter' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-undef
+  85:90  error    'cityFilter' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-undef
+  91:31  error    'statusFilter' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  91:58  error    'statusFilter' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+
+Γ£û 13 problems (12 errors, 1 warning)
+

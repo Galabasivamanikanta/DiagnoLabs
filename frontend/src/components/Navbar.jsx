@@ -1,8 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { MapPin, User, LogOut, LayoutDashboard, ChevronDown, Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, User, LogOut, LayoutDashboard, ChevronDown, Menu, X, Clock } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 const Navbar = () => {
@@ -23,8 +22,9 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    // Use a conditional check in the return instead of an early return to avoid hook issues
-    if (location.pathname === '/admin/dashboard') return null;
+    // Hide navbar on auth and dashboard pages
+    const hideNavbarPaths = ['/admin/dashboard', '/login', '/register', '/partner/login', '/admin/login', '/demo'];
+    if (hideNavbarPaths.includes(location.pathname)) return null;
 
     return (
         <nav style={{
@@ -112,21 +112,31 @@ const Navbar = () => {
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>{user.email}</div>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    <Link to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'lab_partner' ? '/partner/dashboard' : '/patient/dashboard'} className="dropdown-item">
-                                        <LayoutDashboard size={18} /> Administrative Console
-                                    </Link>
+                                    {user.role === 'admin' ? (
+                                        <Link to="/admin/dashboard" className="dropdown-item">
+                                            <LayoutDashboard size={18} /> Admin Dashboard
+                                        </Link>
+                                    ) : user.role === 'lab_partner' ? (
+                                        <Link to="/partner/dashboard" className="dropdown-item">
+                                            <LayoutDashboard size={18} /> Partner Dashboard
+                                        </Link>
+                                    ) : (
+                                        <>
+                                            <Link to="/patient/profile" className="dropdown-item">
+                                                <User size={18} /> Profile
+                                            </Link>
+                                            <Link to="/patient/history" className="dropdown-item">
+                                                <Clock size={18} /> History
+                                            </Link>
+                                        </>
+                                    )}
                                     <button onClick={handleLogout} className="dropdown-item text-danger">
-                                        <LogOut size={18} /> Security Sign Out
+                                        <LogOut size={18} /> Logout
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <Link to="/login" className="btn btn-outline" style={{ padding: '0.6rem 1.5rem', border: 'none', fontWeight: '800' }}>Login</Link>
-                            <Link to="/register" className="btn btn-primary" style={{ padding: '0.7rem 1.8rem', fontSize: '0.9rem' }}>Citizen Portal</Link>
-                        </div>
-                    )}
+                    ) : null}
                 </div>
 
                 {/* Mobile Menu Toggle */}

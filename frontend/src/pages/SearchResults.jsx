@@ -34,7 +34,6 @@ const SearchResults = () => {
     const labId = searchParams.get('lab');
     const [tests, setTests] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All');
     const navigate = useNavigate();
 
@@ -80,12 +79,11 @@ const SearchResults = () => {
                 
                 // FRONTEND FAIL-SAFE: Re-evaluating tiers locally for consistent counting
                 const tieredSelectedTests = (res.data || []).map(test => {
-                    if (test.lab && !test.lab.category) {
+                    if (test.lab) {
                         const r = test.lab.rating || 3.5;
-                        const v = test.lab.totalReviews || 0;
-                        if (r >= 4.2 && v >= 5) test.lab.category = "Premium";
-                        else if (r >= 3.5 || v >= 0) test.lab.category = "Scalable";
-                        else test.lab.category = "Low Category";
+                        if (r >= 4.5) test.lab.category = "Premium";
+                        else if (r >= 4.2) test.lab.category = "Scalable";
+                        else test.lab.category = "Standard";
                     }
                     return test;
                 });
@@ -93,7 +91,6 @@ const SearchResults = () => {
                 setTests(tieredSelectedTests);
             } catch (err) {
                 console.error("Search Error:", err);
-                setError(`Failed to fetch items. Please try again later.`);
             } finally {
                 setLoading(false);
             }
@@ -101,6 +98,19 @@ const SearchResults = () => {
 
         fetchTests();
     }, [query, labId, pincode, lat, lng]);
+
+    // Apply filtering logic for both the Map and the List
+    const filteredTests = activeFilter === 'All' 
+        ? tests 
+        : tests.filter(t => {
+            const r = t.lab?.rating || 3.5;
+            let cat = "";
+            if (r >= 4.5) cat = "Premium";
+            else if (r >= 4.2) cat = "Scalable";
+            else cat = "Standard";
+            
+            return cat.toLowerCase() === activeFilter.toLowerCase();
+        });
 
     return (
         <div style={{ background: 'var(--background)', minHeight: '100vh', paddingTop: '8rem', paddingBottom: '5rem' }}>
@@ -136,28 +146,25 @@ const SearchResults = () => {
                     {/* NEW: Category Tier Filters for consistent discovery experience */}
                     {!loading && tests.length > 0 && (
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '3rem', flexWrap: 'wrap' }}>
-                             {['All', 'Premium', 'Scalable', 'Low Category'].map(filter => {
+                             {['All', 'Premium', 'Scalable', 'Standard'].map(filter => {
                                 const count = filter === 'All' ? tests.length : tests.filter(test => (test.lab?.category || '').toLowerCase() === filter.toLowerCase()).length;
-                                // ALWAYS VISIBLE: Ensuring consistent clinical discovery interface
                                 
                                 return (
                                     <button
                                         key={filter}
                                         onClick={() => setActiveFilter(filter)}
+                                        className={`btn ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
                                         style={{
                                             padding: '0.6rem 1.5rem',
                                             borderRadius: '100px',
                                             border: activeFilter === filter ? 'none' : '1px solid var(--border)',
-                                            background: activeFilter === filter ? 'var(--primary)' : 'white',
-                                            color: activeFilter === filter ? 'white' : 'var(--text-muted)',
                                             fontWeight: '800',
                                             fontSize: '0.85rem',
                                             cursor: 'pointer',
-                                            boxShadow: activeFilter === filter ? 'var(--shadow-sm)' : 'none',
-                                            transition: 'all 0.3s ease',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '0.5rem'
+                                            gap: '0.5rem',
+                                            transition: 'all 0.2s'
                                         }}
                                     >
                                         {filter === 'Premium' ? '✨ Premium' : filter}
@@ -177,7 +184,7 @@ const SearchResults = () => {
                             <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>Clinical Service Visualisation</h2>
                         </div>
                         <NetworkMap 
-                            labs={Array.from(new Map(tests.map(test => [test.lab?._id || test.lab?.googlePlaceId, test.lab])).values()).filter(Boolean)} 
+                            labs={Array.from(new Map(filteredTests.map(test => [test.lab?._id || test.lab?.googlePlaceId, test.lab])).values()).filter(Boolean)} 
                             userLocation={lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null} 
                             height="450px" 
                         />
@@ -201,23 +208,7 @@ const SearchResults = () => {
                                 <button onClick={() => { setActiveFilter('All'); navigate('/'); }} className="btn btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.1rem', borderRadius: '16px' }}>Reset Search</button>
                             </div>
                         ) : (
-                            (() => {
-                                 const filteredTests = activeFilter === 'All' 
-                                    ? tests 
-                                    : tests.filter(t => {
-                                        let cat = t.lab?.category || "";
-                                        // Auto-categorize if the lab doesn't have a category (based on rating/reviews)
-                                        if (!cat) {
-                                            const r = t.lab?.rating || 3.5;
-                                            const v = t.lab?.totalReviews || 0;
-                                            if (r >= 4.4 && v >= 10) cat = "Premium";
-                                            else if (r >= 3.8 && v >= 2) cat = "Scalable";
-                                            else cat = "Low Category";
-                                        }
-                                        return cat.toLowerCase() === activeFilter.toLowerCase();
-                                    });
-                                 return filteredTests;
-                            })().map((test, index) => {
+                            filteredTests.map((test, index) => {
                                 const theme = getIconColor(test.testName);
                                 return (
                                     <div key={test._id} className="glass-card premium-card animate-fade-in" style={{
@@ -227,8 +218,8 @@ const SearchResults = () => {
                                         padding: '2rem 2.5rem',
                                         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                         animationDelay: `${index * 0.1}s`,
-                                        background: 'white',
-                                        border: '1px solid rgba(226, 232, 240, 0.8)',
+                                        background: test.lab?.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (test.lab?.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
+                                        border: test.lab?.category === 'Premium' ? '1px solid rgba(245, 158, 11, 0.4)' : (test.lab?.category === 'Scalable' ? '1px solid rgba(148, 163, 184, 0.4)' : '1px solid rgba(194, 65, 12, 0.3)'),
                                         borderRadius: '32px',
                                         position: 'relative',
                                         overflow: 'hidden'

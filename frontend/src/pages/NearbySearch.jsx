@@ -25,9 +25,6 @@ const NearbySearch = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All');
     const [visibleCount, setVisibleCount] = useState(10);
-    const [sortBy, setSortBy] = useState('nearest');
-    const [openOnly, setOpenOnly] = useState(false);
-    const [homeSample, setHomeSample] = useState(false);
     const navigate = useNavigate();
 
     const handleSearch = () => {
@@ -54,15 +51,10 @@ const NearbySearch = () => {
                     
                     // FRONTEND FAIL-SAFE: Re-evaluating tiers locally for consistent counting
                     const tieredLabs = (res.data || []).map(lab => {
-                        if (!lab.category) {
-                            const r = lab.rating || 4.2;
-                            const isHospital = lab.labType === 'hospital' || lab.labType === 'chain';
-                            
-                            // PREMIUM: NABL Verified OR High Rating OR Hospital Grade
-                            if (lab.isVerified || r >= 4.4 || isHospital) lab.category = "Premium";
-                            else if (r >= 3.8) lab.category = "Scalable";
-                            else lab.category = "Low Category";
-                        }
+                        const r = lab.rating || 4.2;
+                        if (r >= 4.5) lab.category = "Premium";
+                        else if (r >= 4.2) lab.category = "Scalable";
+                        else lab.category = "Standard";
                         return lab;
                     });
 
@@ -84,6 +76,19 @@ const NearbySearch = () => {
             }
         );
     };
+
+    // Apply filtering logic for both Map and List
+    const processedResults = results.map(lab => {
+        const r = lab.rating || 4.2;
+        if (r >= 4.5) lab.category = "Premium";
+        else if (r >= 4.2) lab.category = "Scalable";
+        else lab.category = "Standard";
+        return lab;
+    });
+
+    const filteredResults = activeFilter === 'All' 
+        ? processedResults 
+        : processedResults.filter(lab => (lab.category || '').toLowerCase() === activeFilter.toLowerCase());
 
     return (
         <div style={{ background: 'var(--background)', minHeight: '100vh', paddingTop: '8rem', paddingBottom: '5rem' }}>
@@ -127,7 +132,7 @@ const NearbySearch = () => {
                         </div>
                     </div>
                     <div style={{
-                        maxWidth: '800px',
+                        maxWidth: '1000px',
                         margin: '0 auto',
                         display: 'flex',
                         gap: '0.75rem',
@@ -141,11 +146,11 @@ const NearbySearch = () => {
                             <Search size={20} style={{ marginRight: '0.75rem', color: 'var(--text-light)' }} />
                             <input
                                 type="text"
-                                placeholder="Enter specific diagnostics (e.g. Thyroid Panel, Lipid Portfolio)"
+                                placeholder="Search specific diagnostics (e.g., Blood, MRI, Thyroid Panel)"
                                 value={testQuery}
                                 onChange={(e) => setTestQuery(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                style={{ border: 'none', background: 'transparent', flex: 1, fontSize: '1.1rem', fontWeight: '500', outline: 'none' }}
+                                style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '1.1rem', fontWeight: '500', outline: 'none' }}
                             />
                         </div>
                         <button
@@ -168,30 +173,28 @@ const NearbySearch = () => {
                     {results.length > 0 && (
                         <>
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem', flexWrap: 'wrap' }}>
-                                 {['All', 'Premium', 'Scalable', 'Low Category'].map(filter => {
+                                 {['All', 'Premium', 'Scalable', 'Standard'].map(filter => {
                                     const count = filter === 'All' ? results.length : results.filter(l => (l.category || '').toLowerCase() === filter.toLowerCase()).length;
                                     
                                     return (
                                         <button
                                             key={filter}
                                             onClick={() => { setActiveFilter(filter); setVisibleCount(10); }}
+                                            className={`btn ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
                                             style={{
                                                 padding: '0.6rem 1.5rem',
                                                 borderRadius: '100px',
                                                 border: activeFilter === filter ? 'none' : '1px solid var(--border)',
-                                                background: activeFilter === filter ? 'var(--primary)' : 'white',
-                                                color: activeFilter === filter ? 'white' : 'var(--text-muted)',
                                                 fontWeight: '800',
                                                 fontSize: '0.9rem',
                                                 cursor: 'pointer',
-                                                boxShadow: activeFilter === filter ? '0 4px 10px hsla(var(--primary-hsl), 0.3)' : 'none',
-                                                transition: 'all 0.2s ease',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '0.5rem'
+                                                gap: '0.5rem',
+                                                transition: 'all 0.2s ease'
                                             }}
                                         >
-                                            {filter === 'Premium' ? 'Premium' : filter === 'Low Category' ? 'Low Category' : filter}
+                                            {filter === 'Premium' ? '✨ Premium' : filter}
                                             <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>({count})</span>
                                         </button>
                                     );
@@ -209,7 +212,7 @@ const NearbySearch = () => {
                             <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>Interactive Network Intelligence</h2>
                         </div>
                         <NetworkMap 
-                            labs={results} 
+                            labs={filteredResults} 
                             userLocation={userLocation} 
                             height="500px" 
                         />
@@ -219,40 +222,19 @@ const NearbySearch = () => {
 
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
-                    {(
-                        (() => {
-                            const processedResults = results.map(lab => {
-                                if (!lab.category) {
-                                    const r = lab.rating || 4.2;
-                                    const isHospital = lab.labType === 'hospital' || lab.labType === 'chain';
-                                    
-                                    // PREMIUM: Verify by Certification, Type, or Rating
-                                    if (lab.isVerified || r >= 4.4 || isHospital) lab.category = "Premium";
-                                    else if (r >= 3.8) lab.category = "Scalable";
-                                    else lab.category = "Low Category";
-                                }
-                                return lab;
-                            });
-
-                            const filteredResults = activeFilter === 'All' 
-                                ? processedResults 
-                                : processedResults.filter(lab => (lab.category || '').toLowerCase() === activeFilter.toLowerCase());
-
-                            return filteredResults.slice(0, 40); // Increased visibility pool
-                        })()
-                    ).map((lab, index) => (
+                    {filteredResults.slice(0, visibleCount).map((lab, index) => (
                         <div key={lab._id || lab.googlePlaceId} className="glass-card premium-card animate-fade-in" style={{
                             padding: '2rem',
                             borderRadius: '28px',
                             display: 'flex',
                             flexDirection: 'column',
                             animationDelay: `${index * 0.1}s`,
-                            background: 'rgba(255, 255, 255, 0.95)',
+                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
                             backdropFilter: 'blur(10px)',
                             position: 'relative',
                             overflow: 'hidden',
                             height: '100%',
-                            border: '1px solid rgba(226, 232, 240, 0.8)'
+                            border: lab.category === 'Premium' ? '1px solid rgba(245, 158, 11, 0.4)' : (lab.category === 'Scalable' ? '1px solid rgba(148, 163, 184, 0.4)' : '1px solid rgba(194, 65, 12, 0.3)')
                         }}>
                             {/* High-Accuracy Label Overlay */}
                             <div style={{

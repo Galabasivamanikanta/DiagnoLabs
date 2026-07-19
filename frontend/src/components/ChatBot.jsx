@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     MessageSquare, Send, Bot, Sparkles, ChevronDown, RefreshCw,
     Mic, MicOff, Paperclip, FileText, X, Loader2, FlaskConical,
@@ -6,15 +6,21 @@ import {
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     ClipboardList, CreditCard, BookOpen
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
-import { AuthContext } from '../context/AuthContext';
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
+
+let msgIdCounter = 0;
+const getUniqueId = (offset = 0) => {
+    msgIdCounter += 1;
+    return Date.now() + msgIdCounter + offset;
+};
 
 /** Strip all control tokens before speaking / displaying clean text */
 const cleanText = (text) =>
@@ -147,7 +153,6 @@ const ActionBanner = ({ action, onAction }) => {
 // Main ChatBot Component
 // ─────────────────────────────────────────────────────────────
 const ChatBot = () => {
-    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -281,7 +286,7 @@ const ChatBot = () => {
 
         const displayText = attachedFile ? `📎 ${attachedFile.name}${text ? ` — ${text}` : ''}` : text;
 
-        setMessages(prev => [...prev, { id: Date.now(), text: displayText, sender: 'user' }]);
+        setMessages(prev => [...prev, { id: getUniqueId(), text: displayText, sender: 'user' }]);
         setInputValue('');
         setShowQuickPrompts(false);
         setIsLoading(true);
@@ -321,7 +326,7 @@ const ChatBot = () => {
                 .trim();
 
             const botMsg = {
-                id: Date.now() + 1,
+                id: getUniqueId(1),
                 text: cleanedText,
                 sender: 'bot',
                 recommendations,
@@ -340,7 +345,7 @@ const ChatBot = () => {
         } catch (err) {
             const errMsg = err.response?.data?.details || 'Unable to reach the clinical AI. Please try again.';
             const errBotMsg = {
-                id: Date.now() + 2,
+                id: getUniqueId(2),
                 text: `⚠️ ${errMsg}`,
                 sender: 'bot',
                 isError: true,

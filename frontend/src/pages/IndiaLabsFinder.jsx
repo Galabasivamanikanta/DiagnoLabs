@@ -56,7 +56,7 @@ const IndiaLabsFinder = () => {
       if ((res.data || []).length === 0) {
         setError('No labs found for this location.');
       }
-    } catch (e) {
+    } catch {
       setError('Failed to fetch lab details.');
     } finally {
       setLoading(false);

@@ -3,6 +3,7 @@ const Booking = require('../models/Booking');
 const { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { sendTransactionReceipt } = require('../services/notificationService');
 let generateClinicalReport;
 try {
     const reportGen = require('../utils/reportGenerator');
@@ -52,9 +53,9 @@ router.get('/all', verifyTokenAndAdmin, async (req, res) => {
 });
 
 // GET USER'S BOOKINGS (Self or Admin)
-router.get('/user/:userId', verifyTokenAndAuthorization, async (req, res) => {
+router.get('/user/:id', verifyTokenAndAuthorization, async (req, res) => {
     try {
-        const bookings = await Booking.find({ patient: req.params.userId })
+        const bookings = await Booking.find({ patient: req.params.id })
             .populate('lab')
             .sort({ createdAt: -1 });
         res.status(200).json(bookings);
@@ -144,6 +145,11 @@ router.put('/:id', verifyToken, async (req, res) => {
     }
 });
 
+// RAZORPAY: GET PUBLIC KEY
+router.get('/razorpay-key', (req, res) => {
+    res.status(200).json({ key: process.env.RAZORPAY_KEY_ID });
+});
+
 // RAZORPAY: CREATE ORDER (Authenticated)
 router.post('/razorpay-order', verifyToken, async (req, res) => {
     try {
@@ -188,7 +194,7 @@ router.post('/verify-payment', verifyToken, async (req, res) => {
             return res.status(400).json({ success: false, msg: 'Transaction not legitimate!' });
         }
 
-        const booking = await Booking.findById(bookingId);
+        const booking = await Booking.findById(bookingId).populate('patient', 'name email phone');
         if (booking) {
             booking.paymentStatus = 'Paid';
             booking.razorpayOrderId = razorpay_order_id;
@@ -196,6 +202,22 @@ router.post('/verify-payment', verifyToken, async (req, res) => {
             booking.razorpaySignature = razorpay_signature;
             booking.status = 'Confirmed';
             await booking.save();
+
+            // Notify all parties via multi-channel notification engine
+            try {
+                // Ensure lab is populated for the notification
+                const populatedBooking = await Booking.findById(bookingId).populate('patient', 'name email phone').populate('lab', 'name email phone');
+                
+                // Fallback for synthetic labs not in DB
+                const labData = populatedBooking.lab || { name: 'DAA Network Lab', email: 'network@diagnolabs.in', phone: 'N/A' };
+                
+                if (populatedBooking.patient) {
+                    await sendTransactionReceipt(populatedBooking, populatedBooking.patient, labData);
+                }
+            } catch (notifyErr) {
+                console.error("Notification Engine Error:", notifyErr);
+                // Non-blocking error
+            }
         }
 
         res.status(200).json({

@@ -10,12 +10,15 @@ import Checkout from './pages/Checkout';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import LabDashboard from './pages/LabDashboard';
-import PatientDashboard from './pages/PatientDashboard';
+import UserProfile from './pages/UserProfile';
+import BookingHistory from './pages/BookingHistory';
 import Labs from './pages/Labs';
 import LabDetails from './pages/LabDetails';
 import NearbySearch from './pages/NearbySearch';
 import IndiaLabsFinder from './pages/IndiaLabsFinder';
 import { AuthProvider } from './context/AuthContext';
+import DemoGuard from './components/DemoGuard';
+import Demo from './pages/Demo';
 
 
 // Utility Portals (Admin & Lab)
@@ -44,12 +47,14 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Navbar />
-        <ChatBot />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<SearchResults />} />
+        <DemoGuard>
+          <Navbar />
+          <ChatBot />
+          <Routes>
+            <Route path="/demo" element={<Demo />} />
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<SearchResults />} />
           <Route path="/labs" element={<Labs />} />
           <Route path="/lab/:id" element={<LabDetails />} />
           <Route path="/nearby-search" element={<NearbySearch />} />
@@ -58,9 +63,17 @@ function App() {
 
           <Route path="/register" element={<Register />} />
           {/* Patient Portal - Protected */}
-          <Route path="/patient/dashboard" element={
+          <Route path="/patient/dashboard" element={<Navigate to="/patient/history" replace />} />
+          
+          <Route path="/patient/profile" element={
             <ProtectedRoute roles={['patient']}>
-              <PatientDashboard />
+              <UserProfile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/patient/history" element={
+            <ProtectedRoute roles={['patient']}>
+              <BookingHistory />
             </ProtectedRoute>
           } />
 
@@ -86,6 +99,7 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </DemoGuard>
       </BrowserRouter>
     </AuthProvider>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
@@ -5,7 +6,14 @@ import { API_BASE_URL } from '../config';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const storedUser = localStorage.getItem('user');
+        try {
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch {
+            return null;
+        }
+    });
     const [loading, setLoading] = useState(true);
 
     // Function to set Auth Header for all Axios requests
@@ -19,27 +27,26 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         // Check local storage for user info and token on load
-        const storedUser = localStorage.getItem('user');
         const token = localStorage.getItem('token');
         
-        if (storedUser && token) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
+        if (token) {
             setAuthHeader(token);
 
             // Sync with backend to get latest details
-            // Note: Now we have the token set in headers, so this call should work
             axios.get(`${API_BASE_URL}/api/auth/users`)
                 .then(res => {
-                    const latest = res.data.find(u => u._id === parsedUser._id);
-                    if (latest) {
-                        setUser(latest);
-                        localStorage.setItem('user', JSON.stringify(latest));
+                    const storedUser = localStorage.getItem('user');
+                    if (storedUser) {
+                        const parsedUser = JSON.parse(storedUser);
+                        const latest = res.data.find(u => u._id === parsedUser._id);
+                        if (latest) {
+                            setUser(latest);
+                            localStorage.setItem('user', JSON.stringify(latest));
+                        }
                     }
                 })
                 .catch(err => {
                     console.error("Profile sync failed - User may not be authorized to view All Users", err);
-                    // Standard fallback: If we can't sync via /users, just keep looking
                 });
         }
         setLoading(false);

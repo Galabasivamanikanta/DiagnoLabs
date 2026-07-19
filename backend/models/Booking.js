@@ -7,13 +7,13 @@ const bookingSchema = new mongoose.Schema({
         required: true
     },
     lab: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Lab',
         required: true
     },
     testDetails: [
         {
-            testId: { type: mongoose.Schema.Types.ObjectId, ref: 'Test' },
+            testId: { type: String, ref: 'Test' },
             testName: String,
             price: Number
         }

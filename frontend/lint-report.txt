@@ -1,0 +1,285 @@
+﻿
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\AIChatBot.jsx
+   2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  55:18  error  'err' is defined but never used                                                no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\ChatBot.jsx
+    9:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  150:13  error  'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+  324:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  322 |
+  323 |             const botMsg = {
+> 324 |                 id: Date.now() + 1,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  325 |                 text: cleanedText,
+  326 |                 sender: 'bot',
+  327 |                 recommendations,                                                                                                                      react-hooks/purity
+  343:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  341 |             const errMsg = err.response?.data?.details || 'Unable to reach the clinical AI. Please try again.';
+  342 |             const errBotMsg = {
+> 343 |                 id: Date.now() + 2,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  344 |                 text: `ΓÜá∩╕Å ${errMsg}`,
+  345 |                 sender: 'bot',
+  346 |                 isError: true,  react-hooks/purity
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\Navbar.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\admin\EmployeeManagement.jsx
+   4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+  47:9   error  Error: Cannot access variable before it is declared
+
+`fetchEmployees` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  45 |
+  46 |     useEffect(() => {
+> 47 |         fetchEmployees();
+     |         ^^^^^^^^^^^^^^ `fetchEmployees` accessed before it is declared
+  48 |     }, []);
+  49 |
+  50 |     const fetchEmployees = async () => {
+
+  48 |     }, []);
+  49 |
+> 50 |     const fetchEmployees = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 51 |         try {
+     | ^^^^^^^^^^^^^
+> 52 |             const res = await axios.get(`${API_BASE_URL}/api/admin/employees`);
+     | ^^^^^^^^^^^^^
+> 53 |             setEmployees(res.data);
+     | ^^^^^^^^^^^^^
+> 54 |         } catch (err) {
+     | ^^^^^^^^^^^^^
+> 55 |             console.error("Error fetching employees:", err);
+     | ^^^^^^^^^^^^^
+> 56 |         } finally {
+     | ^^^^^^^^^^^^^
+> 57 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 58 |         }
+     | ^^^^^^^^^^^^^
+> 59 |     };
+     | ^^^^^^^ `fetchEmployees` is declared here
+  60 |
+  61 |     const handleInputChange = (e) => {
+  62 |         setFormData({ ...formData, [e.target.name]: e.target.value });  react-hooks/immutability
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\components\admin\LabVerification.jsx
+    4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+   16:39  error  Error: Cannot access variable before it is declared
+
+`fetchPendingLabs` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  14 |
+  15 |     useEffect(() => {
+> 16 |         if (viewMode === 'discovery') fetchPendingLabs();
+     |                                       ^^^^^^^^^^^^^^^^ `fetchPendingLabs` accessed before it is declared
+  17 |         else fetchVerifiedLabs();
+  18 |     }, [viewMode]);
+  19 |
+
+  18 |     }, [viewMode]);
+  19 |
+> 20 |     const fetchPendingLabs = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 21 |         try {
+     | ^^^^^^^^^^^^^
+> 22 |             setLoading(true);
+     ΓÇª
+     | ^^^^^^^^^^^^^
+> 29 |         }
+     | ^^^^^^^^^^^^^
+> 30 |     };
+     | ^^^^^^^ `fetchPendingLabs` is declared here
+  31 |
+  32 |     const fetchVerifiedLabs = async () => {
+  33 |         try {             react-hooks/immutability
+   17:14  error  Error: Cannot access variable before it is declared
+
+`fetchVerifiedLabs` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  15 |     useEffect(() => {
+  16 |         if (viewMode === 'discovery') fetchPendingLabs();
+> 17 |         else fetchVerifiedLabs();
+     |              ^^^^^^^^^^^^^^^^^ `fetchVerifiedLabs` accessed before it is declared
+  18 |     }, [viewMode]);
+  19 |
+  20 |     const fetchPendingLabs = async () => {
+
+  30 |     };
+  31 |
+> 32 |     const fetchVerifiedLabs = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |         try {
+     | ^^^^^^^^^^^^^
+> 34 |             setLoading(true);
+     ΓÇª
+     | ^^^^^^^^^^^^^
+> 41 |         }
+     | ^^^^^^^^^^^^^
+> 42 |     };
+     | ^^^^^^^ `fetchVerifiedLabs` is declared here
+  43 |
+  44 |     const handleVerify = async (labId) => {
+  45 |         try {  react-hooks/immutability
+   22:13  error  'setLoading' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-undef
+   24:13  error  'setLabs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+   28:13  error  'setLoading' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-undef
+   34:13  error  'setLoading' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-undef
+   36:13  error  'setLabs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+   40:13  error  'setLoading' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-undef
+   46:13  error  'setProcessingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-undef
+   48:13  error  'setLabs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+   52:13  error  'setProcessingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-undef
+   73:13  error  'setLabs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+   84:17  error  'setProcessingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-undef
+   86:17  error  'setLabs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+   90:17  error  'setProcessingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-undef
+   95:26  error  'labs' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-undef
+   96:41  error  'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+   97:42  error  'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+  125:36  error  'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+  126:46  error  'setSearchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-undef
+  135:14  error  'loading' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-undef
+  145:25  error  'searchQuery' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+  196:55  error  'processingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-undef
+  210:51  error  'processingId' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-undef
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\context\AuthContext.jsx
+   5:14  error  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-refresh/only-export-components
+  27:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |         if (storedUser && token) {
+  26 |             const parsedUser = JSON.parse(storedUser);
+> 27 |             setUser(parsedUser);
+     |             ^^^^^^^ Avoid calling setState() directly within an effect
+  28 |             setAuthHeader(token);
+  29 |
+  30 |             // Sync with backend to get latest details  react-hooks/set-state-in-effect
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\AdminDashboard.jsx
+   9:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  61:9   error  Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  59 |
+  60 |     useEffect(() => {
+> 61 |         fetchData();
+     |         ^^^^^^^^^ `fetchData` accessed before it is declared
+  62 |         const interval = setInterval(fetchData, 30000);
+  63 |         return () => clearInterval(interval);
+  64 |     }, []);
+
+  64 |     }, []);
+  65 |
+> 66 |     const fetchData = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 67 |         try {
+     | ^^^^^^^^^^^^^
+> 68 |             const res = await axios.get(`${API_BASE_URL}/api/bookings/all`);
+     | ^^^^^^^^^^^^^
+> 69 |             setBookings(res.data);
+     | ^^^^^^^^^^^^^
+> 70 |         } catch (err) {
+     | ^^^^^^^^^^^^^
+> 71 |             console.error("Error fetching admin data:", err);
+     | ^^^^^^^^^^^^^
+> 72 |         } finally {
+     | ^^^^^^^^^^^^^
+> 73 |             setLoading(false);
+     | ^^^^^^^^^^^^^
+> 74 |         }
+     | ^^^^^^^^^^^^^
+> 75 |     };
+     | ^^^^^^^ `fetchData` is declared here
+  76 |
+  77 |     const handleLogout = () => {
+  78 |         logout();  react-hooks/immutability
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\Checkout.jsx
+   20:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  18 |     useEffect(() => {
+  19 |         if (user?.address?.street) {
+> 20 |             setAddress(user.address.street);
+     |             ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  21 |             setIsEditing(false);
+  22 |         }
+  23 |     }, [user]);  react-hooks/set-state-in-effect
+  102:30  error  'verifyErr' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\IndiaLabsFinder.jsx
+  59:14  error  'e' is defined but never used  no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\LabDetails.jsx
+  160:59  error  'index' is defined but never used  no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\Labs.jsx
+  23:10  error    'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  30:25  error    'setSearchQuery' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+  31:24  error    'setCityFilter' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  32:26  error    'setStatusFilter' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  38:9   error    Error: Cannot access variable before it is declared
+
+`fetchLabs` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  36 |
+  37 |     useEffect(() => {
+> 38 |         fetchLabs();
+     |         ^^^^^^^^^ `fetchLabs` accessed before it is declared
+  39 |     }, [urlPincode]);
+  40 |
+  41 |     const fetchLabs = async () => {
+
+  39 |     }, [urlPincode]);
+  40 |
+> 41 |     const fetchLabs = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |         try {
+     | ^^^^^^^^^^^^^
+> 43 |             setLoading(true);
+     ΓÇª
+     | ^^^^^^^^^^^^^
+> 60 |         }
+     | ^^^^^^^^^^^^^
+> 61 |     };
+     | ^^^^^^^ `fetchLabs` is declared here
+  62 |
+  63 |     const isLabOpen = (openingTime, closingTime) => {
+  64 |         if (!openingTime || !closingTime) return false;  react-hooks/immutability
+  39:8   warning  React Hook useEffect has a missing dependency: 'fetchLabs'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\NearbySearch.jsx
+  28:12  error  'sortBy' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u         no-unused-vars
+  28:20  error  'setSortBy' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  29:12  error  'openOnly' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+  29:22  error  'setOpenOnly' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u    no-unused-vars
+  30:12  error  'homeSample' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  30:24  error  'setHomeSample' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\frontend\src\pages\SearchResults.jsx
+  37:12  error  'error' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+Γ£û 55 problems (54 errors, 1 warning)
+

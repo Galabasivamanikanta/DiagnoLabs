@@ -20,6 +20,7 @@ import {
     Zap,
     TrendingUp
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Labs = () => {
@@ -27,16 +28,12 @@ const Labs = () => {
     const urlPincode = searchParams.get('pincode');
     const [labs, setLabs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [cityFilter, setCityFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all'); 
+    const [searchQuery, _setSearchQuery] = useState('');
+    const [cityFilter, _setCityFilter] = useState('');
+    const [statusFilter, _setStatusFilter] = useState('all'); 
     const [activeCategory, setActiveCategory] = useState('All');
     
     const categories = ['All', 'Pathology', 'Diagnostics', 'X-Ray', 'Blood Collection', 'Radiology', 'Clinic'];
-
-    useEffect(() => {
-        fetchLabs();
-    }, [urlPincode]);
 
     const fetchLabs = async () => {
         try {
@@ -52,7 +49,14 @@ const Labs = () => {
             }
             
             const res = await axios.get(url);
-            setLabs(res.data);
+            const tieredLabs = (res.data || []).map(lab => {
+                const r = lab.rating || 3.5;
+                if (r >= 4.5 || lab.isVerified) lab.category = "Premium";
+                else if (r >= 4.2) lab.category = "Scalable";
+                else lab.category = "Standard";
+                return lab;
+            });
+            setLabs(tieredLabs);
         } catch (err) {
             console.error('Error fetching labs:', err);
         } finally {
@@ -60,8 +64,13 @@ const Labs = () => {
         }
     };
 
+    useEffect(() => {
+        fetchLabs();
+        // eslint-disable-next-line
+    }, [searchParams]);
+
     const isLabOpen = (openingTime, closingTime) => {
-        if (!openingTime || !closingTime) return false;
+        if (!openingTime || !closingTime) return true;
 
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -90,7 +99,8 @@ const Labs = () => {
         const matchesCity = cityFilter === '' || (lab.city || '').toLowerCase().includes(cityFilter.toLowerCase());
         
         const labTags = lab.tags || [];
-        const matchesCategory = activeCategory === 'All' || labTags.includes(activeCategory);
+        const labTypeCased = lab.labType ? lab.labType.charAt(0).toUpperCase() + lab.labType.slice(1) : '';
+        const matchesCategory = activeCategory === 'All' || labTags.includes(activeCategory) || labTypeCased === activeCategory;
         
         const isOpen = lab.isOpenNow || isLabOpen(lab.openingTime, lab.closingTime);
         const matchesStatus = statusFilter === 'all' || (statusFilter === 'open' && isOpen);
@@ -106,74 +116,64 @@ const Labs = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                     <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.6rem',
-                                padding: '0.5rem 1.2rem',
-                                background: 'white',
-                                borderRadius: '100px',
-                                border: '1px solid var(--border)',
-                                color: 'var(--primary)',
-                                fontWeight: '800',
-                                fontSize: '0.85rem',
-                                marginBottom: '1.5rem',
-                                boxShadow: 'var(--shadow-sm)'
-                            }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'white', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}
                         >
-                            <Building2 size={16} /> NABL ACCREDITED NETWORK
+                            <ShieldCheck size={16} style={{ color: 'var(--primary)' }} />
+                            <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Clinical Discovery Network</span>
                         </motion.div>
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            style={{ fontSize: '3.5rem', marginBottom: '1.5rem', lineHeight: '1.1' }}
-                        >
-                            {urlPincode ? (
-                                <span>Labs in <span className="text-gradient">
-                                    {/^\d+$/.test(urlPincode) ? `#${urlPincode}` : urlPincode.charAt(0).toUpperCase() + urlPincode.slice(1).toLowerCase()}
-                                </span></span>
-                            ) : (
-                                <span>Partner <span className="text-gradient">Laboratories</span></span>
-                            )}
-                        </motion.h1>
-                        {urlPincode && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.6rem 1.5rem',
-                                    background: 'var(--primary-light)',
-                                    color: 'var(--primary)',
-                                    borderRadius: '100px',
-                                    fontWeight: '900',
-                                    fontSize: '0.9rem',
-                                    marginBottom: '2rem',
-                                    border: '2px solid hsla(var(--primary-hsl), 0.2)'
-                                }}
-                            >
-                                <LocateFixed size={18} /> REGIONAL DISCOVERY ACTIVE
-                            </motion.div>
-                        )}
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: '500' }}
-                        >
-                            {urlPincode 
-                                ? `Showing premium clinical facilities providing NABL-verified coverage for the "${urlPincode}" regional network.`
-                                : "Access our exclusive network of premium NABL-accredited clinical laboratories for high-precision diagnostic services."
-                            }
-                        </motion.p>
+                        <h1 style={{ fontSize: '3.5rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '1.5rem', lineHeight: '1.1', letterSpacing: '-0.03em' }}>
+                            India's Most Advanced <br />
+                            <span style={{ color: 'var(--accent-gold)' }}>Medical Partners</span>
+                        </h1>
+                        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', lineHeight: '1.6', fontWeight: '500' }}>
+                            Discover NABL-certified laboratories, precision diagnostic centers, and specialized clinical hubs mapped across India through our dynamic spatial algorithms.
+                        </p>
                     </div>
 
-                    {/* Quick Category Bubbles */}
+                    {/* Search & Filter Command Center */}
+                    <div className="glass-card shadow-premium" style={{ background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', flex: 1 }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <Search size={20} style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by lab name, test, or specialty..."
+                                    value={searchQuery}
+                                    onChange={(e) => _setSearchQuery(e.target.value)}
+                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '16px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none' }}
+                                />
+                            </div>
+                            <div style={{ position: 'relative', width: '250px' }}>
+                                <MapPin size={20} style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Filter by City..."
+                                    value={cityFilter}
+                                    onChange={(e) => _setCityFilter(e.target.value)}
+                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '16px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+                            <button
+                                onClick={() => _setStatusFilter('all')}
+                                style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', border: 'none', background: statusFilter === 'all' ? 'white' : 'transparent', color: statusFilter === 'all' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: statusFilter === 'all' ? '700' : '600', boxShadow: statusFilter === 'all' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                            >
+                                All Partners
+                            </button>
+                            <button
+                                onClick={() => _setStatusFilter('open')}
+                                style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', border: 'none', background: statusFilter === 'open' ? 'white' : 'transparent', color: statusFilter === 'open' ? 'var(--success)' : 'var(--text-muted)', fontWeight: statusFilter === 'open' ? '700' : '600', boxShadow: statusFilter === 'open' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                            >
+                                Open Now
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Specialized Categories */}
                     <div style={{ 
                         display: 'flex', 
                         gap: '0.8rem', 
@@ -231,12 +231,12 @@ const Labs = () => {
                                         transition={{ delay: index * 0.05 }}
                                         className="glass-card test-result-card premium-card"
                                         style={{
-                                            background: 'white',
+                                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
                                             padding: '2rem',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             position: 'relative',
-                                            border: '1px solid var(--border)',
+                                            border: lab.category === 'Premium' ? '1px solid rgba(245, 158, 11, 0.4)' : (lab.category === 'Scalable' ? '1px solid rgba(148, 163, 184, 0.4)' : '1px solid rgba(194, 65, 12, 0.3)'),
                                             borderRadius: '28px',
                                             overflow: 'hidden'
                                         }}

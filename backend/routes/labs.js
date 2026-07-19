@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
             ];
         }
         
-        let labs = await Lab.find(query).populate('ownerId', 'name email');
+        let labs = await Lab.find(query).populate('ownerId', 'name email').limit(100);
         
         if (pincode && (labs.length < 15 || !labs.some(l => l.isVerified))) {
             return labController.searchNearbyLabsWithGoogle(req, res);

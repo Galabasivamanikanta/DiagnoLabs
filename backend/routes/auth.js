@@ -4,6 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../middleware/auth');
+const { sendCustomerIdNotification } = require('../services/customerIdNotification');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const { sendVerificationOTP, verifyOTP } = require('../services/otpService');
@@ -20,12 +21,31 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
+        // GENERATE UNIQUE CUSTOMER ID: DL-[YEAR][MONTH]-[2 CHARS]
+        // Pattern: DL-202607-Ab  (Reg Year + Reg Month + 2 random characters)
+        const generateCustomerId = async () => {
+            const now = new Date();
+            const year = now.getFullYear().toString();          // e.g. 2026
+            const month = String(now.getMonth() + 1).padStart(2, '0'); // e.g. 07
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()';
+            let id, existing;
+            do {
+                const rnd = chars.charAt(Math.floor(Math.random() * chars.length))
+                           + chars.charAt(Math.floor(Math.random() * chars.length));
+                id = `DL-${year}${month}-${rnd}`;
+                existing = await User.findOne({ customerId: id });
+            } while (existing);
+            return id;
+        };
+        const customerId = await generateCustomerId();
+
         const newUser = new User({
             name: req.body.name,
             email: req.body.email,
             password: hashedPassword,
             phone: req.body.phone,
-            role: role
+            role: role,
+            customerId
         });
         const savedUser = await newUser.save();
         
@@ -94,14 +114,46 @@ router.post('/google', async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), salt);
 
+            // GENERATE UNIQUE CUSTOMER ID: DL-[YEAR][MONTH]-[2 CHARS]
+            const genId = async () => {
+                const now = new Date();
+                const year = now.getFullYear().toString();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()';
+                let id, existing;
+                do {
+                    const rnd = chars.charAt(Math.floor(Math.random() * chars.length))
+                               + chars.charAt(Math.floor(Math.random() * chars.length));
+                    id = `DL-${year}${month}-${rnd}`;
+                    existing = await User.findOne({ customerId: id });
+                } while (existing);
+                return id;
+            };
+            const customerId = await genId();
+
             user = new User({
                 name: name,
                 email: email,
                 password: hashedPassword,
                 phone: "Not Provided",
-                role: role
+                role: role,
+                customerId
             });
             await user.save();
+        } else if (!user.customerId) {
+            // Backfill: generate new-style ID for existing users who don't have one
+            const now = new Date();
+            const year = now.getFullYear().toString();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()';
+            let customerId, existing;
+            do {
+                const rnd = chars.charAt(Math.floor(Math.random() * chars.length))
+                           + chars.charAt(Math.floor(Math.random() * chars.length));
+                customerId = `DL-${year}${month}-${rnd}`;
+                existing = await User.findOne({ customerId });
+            } while (existing);
+            user = await User.findByIdAndUpdate(user._id, { customerId }, { new: true });
         }
 
         // GENERATE JWT TOKEN
@@ -136,6 +188,25 @@ router.get('/users', verifyTokenAndAdmin, async (req, res) => {
         res.status(200).json(users);
     } catch (err) {
         res.status(500).json(err);
+    }
+});
+
+// CUSTOMER ID LOOKUP (Admin only) — find full user + bookings by customerId
+router.get('/lookup/:customerId', verifyTokenAndAdmin, async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        const user = await User.findOne({ customerId: customerId.toUpperCase() }).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: `No customer found with ID: ${customerId}` });
+        }
+        const Booking = require('../models/Booking');
+        const bookings = await Booking.find({ patient: user._id })
+            .populate('lab', 'name city')
+            .sort({ createdAt: -1 });
+        res.status(200).json({ user, bookings });
+    } catch (err) {
+        console.error('Customer Lookup Error:', err);
+        res.status(500).json({ message: 'Lookup failed', error: err.message });
     }
 });
 
@@ -208,6 +279,8 @@ router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
         // Prevent password and role update via this route
         delete updateData.password;
         delete updateData.role;
+
+        // (Removed DOB-based Customer ID generation)
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,

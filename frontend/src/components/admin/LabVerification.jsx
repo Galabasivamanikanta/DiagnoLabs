@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Search, CheckCircle, XCircle, MapPin, 
@@ -11,11 +12,10 @@ const LabVerification = () => {
     const [viewMode, setViewMode] = useState('discovery'); // 'discovery' or 'network'
     const [editingLab, setEditingLab] = useState(null);
     const [editForm, setEditForm] = useState({ name: '', city: '', servicePincodes: '' });
-
-    useEffect(() => {
-        if (viewMode === 'discovery') fetchPendingLabs();
-        else fetchVerifiedLabs();
-    }, [viewMode]);
+    const [labs, setLabs] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [processingId, setProcessingId] = useState(null);
 
     const fetchPendingLabs = async () => {
         try {
@@ -40,6 +40,11 @@ const LabVerification = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (viewMode === 'discovery') fetchPendingLabs();
+        else fetchVerifiedLabs();
+    }, [viewMode]);
 
     const handleVerify = async (labId) => {
         try {

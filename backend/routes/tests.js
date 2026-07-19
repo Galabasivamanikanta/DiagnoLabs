@@ -18,11 +18,27 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 
+const { findClosestMatch } = require('../utils/fuzzySearch');
+
 // SEARCH TESTS (The Search Engine with DAA-Optimized Geospatial Algorithms)
 router.get('/search', async (req, res) => {
-    const { q, pincode, lat, lng, lab } = req.query;
+    let { q, pincode, lat, lng, lab } = req.query;
 
     try {
+        // --- SPELLING AUTOCORRECTION (FUZZY SEARCH) ---
+        if (pincode && isNaN(pincode)) {
+            const distinctCities = await Lab.distinct('city');
+            const correctedCity = findClosestMatch(pincode, distinctCities, 3);
+            if (correctedCity) pincode = correctedCity;
+        }
+        
+        if (q) {
+            const distinctTests = await Test.distinct('testName');
+            const correctedTest = findClosestMatch(q, distinctTests, 4); // Allow more distance for complex test names
+            if (correctedTest) q = correctedTest;
+        }
+        // ----------------------------------------------
+
         let labIds = [];
 
         // ALGORITHM: Spatial Partitioning & Index-based Search (DAA Optimization)
@@ -37,6 +53,7 @@ router.get('/search', async (req, res) => {
                     $geoNear: {
                         near: { type: "Point", coordinates: [userLng, userLat] },
                         distanceField: "distance",
+                        maxDistance: 8000, // Restrict strictly to 8km radius (8000 meters)
                         spherical: true,
                         query: {
                             ...(pincode ? { 
@@ -122,7 +139,7 @@ router.get('/search', async (req, res) => {
                 ];
             }
 
-            let labs = await Lab.find(labFilter);
+            let labs = await Lab.find(labFilter).limit(100);
             
             // ENHANCED ESCALATION: Aggressively discover labs if coverage is less than 15 
             if (pincode && labs.length < 15) {
@@ -157,24 +174,48 @@ router.get('/search', async (req, res) => {
             }
             if (q) testFilter.testName = { $regex: q, $options: "i" };
 
-            let tests = await Test.find(testFilter).populate('lab');
+            let tests = await Test.find(testFilter).populate('lab').limit(100);
             
             // SYSTEM RESPONSIBILITY: If labs exist in area but have no 'Test' listed in DB,
             // we synthesize a "Clinical Network" result for the query 'q' at those labs.
-            if (tests.length === 0 && q && labs.length > 0) {
-                console.log(`📡 Synthesizing clinical portfolio for "${q}" across the regional lab network...`);
-                tests = labs.map(lab => ({
-                    _id: `synth_${lab.googlePlaceId}_${q.toLowerCase()}`,
-                    testName: q.charAt(0).toUpperCase() + q.slice(1),
-                    price: 299 + (Math.floor(Math.random() * 200)), // Market-standard random price
-                    category: "Clinical Diagnostic",
-                    turnaroundTime: "24 Hours",
-                    description: "Comprehensive automated analysis available via DAA Phlebotomy Network.",
-                    lab: lab,
-                    isSynthetic: true
-                }));
+            if (tests.length === 0) {
+                if (q && labs.length > 0) {
+                    console.log(`📡 Synthesizing clinical portfolio for "${q}" across the regional lab network...`);
+                    tests = labs.slice(0, 100).map(labItem => ({
+                        _id: `synth_${labItem.googlePlaceId}_${q.toLowerCase()}`,
+                        testName: q.charAt(0).toUpperCase() + q.slice(1),
+                        price: 299 + (Math.floor(Math.random() * 200)), // Market-standard random price
+                        category: "Clinical Diagnostic",
+                        turnaroundTime: "24 Hours",
+                        description: "Comprehensive automated analysis available via DAA Phlebotomy Network.",
+                        lab: labItem,
+                        isSynthetic: true
+                    }));
+                } else if (lab) {
+                    console.log(`📡 Synthesizing default clinical portfolio for specific Lab ID: ${lab}...`);
+                    const specificLab = await Lab.findById(lab);
+                    if (specificLab) {
+                        const defaultTests = [
+                            'Complete Blood Count (CBC)', 
+                            'Lipid Profile', 
+                            'Thyroid Profile (T3, T4, TSH)', 
+                            'Liver Function Test (LFT)', 
+                            'Kidney Function Test (KFT)', 
+                            'Diabetes Screening (HbA1c)'
+                        ];
+                        tests = defaultTests.map((tName, i) => ({
+                            _id: `synth_${specificLab._id}_${i}`,
+                            testName: tName,
+                            price: 399 + (Math.floor(Math.random() * 400)),
+                            category: "Standard Panel",
+                            turnaroundTime: "24 Hours",
+                            description: "Essential diagnostic panel available via direct booking.",
+                            lab: specificLab,
+                            isSynthetic: true
+                        }));
+                    }
+                }
             }
-
             const finalResults = tests.map(test => {
                 const testObj = typeof test.toObject === 'function' ? test.toObject() : JSON.parse(JSON.stringify(test));
 

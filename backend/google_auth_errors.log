@@ -1,0 +1,7 @@
+
+[2026-07-14T10:36:32.169Z] Error: invalid_client
+Stack: Error: invalid_client
+    at Gaxios._request (C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\backend\node_modules\gaxios\build\cjs\src\gaxios.js:155:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async OAuth2Client.getTokenAsync (C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\backend\node_modules\google-auth-library\build\src\auth\oauth2client.js:205:21)
+    at async C:\Users\sivam\OneDrive\Documents\Desktop\MYProjects\DiagnoLabs\backend\routes\auth.js:125:32

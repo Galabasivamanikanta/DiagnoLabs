@@ -1,9 +1,8 @@
-/* ═══════════════════════════════════════════════════════════════
-   DiagnoLabs Universal Design System — Light Premium Official UI
-   Inspired by Tesla & National Medical Gateways
-   ═══════════════════════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   /* Official Medical Blue */
@@ -116,6 +115,30 @@ h1, h2, h3, h4, .font-heading {
   background: var(--accent-gold-hover);
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(197, 160, 89, 0.3);
+}
+
+.btn-silver {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: white;
+  box-shadow: 0 8px 24px rgba(100, 116, 139, 0.2);
+  border: none;
+}
+.btn-silver:hover {
+  background: linear-gradient(135deg, #64748b, #475569);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(100, 116, 139, 0.3);
+}
+
+.btn-bronze {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: white;
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.2);
+  border: none;
+}
+.btn-bronze:hover {
+  background: linear-gradient(135deg, #b45309, #92400e);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(180, 83, 9, 0.3);
 }
 
 .btn-outline {
@@ -292,5 +315,27 @@ h1, h2, h3, h4, .font-heading {
 @media (min-width: 769px) {
   .mobile-stack {
     flex-direction: row !important;
+  }
+}
+/* -- Print Styles for Receipt Modal ------------------------- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-modal-container, .receipt-modal-container * {
+    visibility: visible;
+  }
+  .receipt-modal-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
   }
 }
