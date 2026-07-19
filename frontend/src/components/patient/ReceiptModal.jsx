@@ -204,13 +204,14 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                                             fontWeight: '700', 
                                             color: highlight ? '#059669' : '#0f172a',
                                             fontFamily: mono ? 'monospace' : 'inherit',
-                                            wordBreak: 'break-all'
+                                            textAlign: 'left',
+                                            wordBreak: 'break-word'
                                         }}>{value}</span>
                                     </div>
                                 ))}
                                 <div style={{ marginTop: '0.4rem' }}>
                                     <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Collection Address:</span>
-                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: 'rgba(255,255,255,0.5)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e0eeff' }}>{booking.sampleCollectionAddress}</span>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: 'rgba(255,255,255,0.5)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e0eeff', textAlign: 'left' }}>{booking.sampleCollectionAddress}</span>
                                 </div>
                             </div>
                         </div>
@@ -237,13 +238,14 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                                         <span style={{ 
                                             fontWeight: '700', 
                                             color: '#0f172a',
-                                            wordBreak: 'break-all'
+                                            textAlign: 'left',
+                                            wordBreak: 'break-word'
                                         }}>{value}</span>
                                     </div>
                                 ))}
                                 <div style={{ marginTop: '0.4rem' }}>
                                     <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Lab Location:</span>
-                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'left' }}>
                                         {booking.lab?.address || 'DAA Network Hub, India'}, {booking.lab?.city || ''} {booking.lab?.pincode || ''}
                                     </span>
                                 </div>
