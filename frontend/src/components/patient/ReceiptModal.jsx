@@ -1,8 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, CheckCircle2, Clock, FlaskConical, AlertCircle, Building2, FileText, Shield, User } from 'lucide-react';
+import axios from 'axios';
 import BrandLogo from '../BrandLogo';
+import { API_BASE_URL } from '../../config';
 
 const ReceiptModal = ({ booking, onClose, user }) => {
+    const [labFullAddress, setLabFullAddress] = useState('');
+
+    useEffect(() => {
+        if (booking?.lab?.location?.coordinates) {
+            const [lng, lat] = booking.lab.location.coordinates;
+            axios.get(`${API_BASE_URL}/api/utils/geocode?lat=${lat}&lng=${lng}&zoom=18`)
+                .then(res => {
+                    if (res.data?.display_name) {
+                        setLabFullAddress(res.data.display_name);
+                    }
+                })
+                .catch(err => console.error("Error geocoding lab address in receipt:", err));
+        }
+    }, [booking]);
+
     if (!booking) return null;
 
     const getClinicalInstructions = (testName = '') => {
@@ -54,7 +71,17 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                 @media print {
                     body * { visibility: hidden !important; }
                     .receipt-print, .receipt-print * { visibility: visible !important; }
-                    .receipt-print { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+                    .receipt-print { 
+                        position: absolute !important; 
+                        left: 0 !important; 
+                        top: 0 !important; 
+                        width: 100% !important; 
+                        max-height: none !important;
+                        overflow: visible !important;
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        box-shadow: none !important;
+                    }
                     .no-print { display: none !important; }
                 }
             `}</style>
@@ -245,7 +272,7 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                                 <div style={{ marginTop: '0.3rem' }}>
                                     <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.65rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.15rem' }}>Lab Location:</span>
                                     <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.3, display: 'block', background: '#ffffff', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'left', fontSize: '0.75rem' }}>
-                                        {booking.lab?.address || 'DAA Network Hub, India'}, {booking.lab?.city || ''} {booking.lab?.pincode || ''}
+                                        {labFullAddress || booking.lab?.address || 'DAA Network Hub, India'}
                                     </span>
                                 </div>
                             </div>
