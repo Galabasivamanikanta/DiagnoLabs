@@ -42,55 +42,67 @@ const LabDashboard = () => {
     const [uploading, setUploading] = useState(null);
     const [labDetails, setLabDetails] = useState(null);
     const [newPincode, setNewPincode] = useState('');
+    const [labId, setLabId] = useState(null);
 
-    const myLabId = "6979ebd880378a61041f5cc7";
+    const getHeaders = () => {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        };
+    };
 
     useEffect(() => {
         const socket = io(API_BASE_URL.replace('/api', ''));
+        let activeLabId = null;
 
-        const fetchLabInfo = async () => {
+        const fetchLabInfoAndOrders = async () => {
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/labs/${myLabId}`);
+                const res = await axios.get(`${API_BASE_URL}/api/labs/my-lab`, getHeaders());
                 setLabDetails(res.data);
+                setLabId(res.data._id);
+                activeLabId = res.data._id;
+                
+                // Fetch bookings for this lab
+                const ordersRes = await axios.get(`${API_BASE_URL}/api/bookings/lab/${res.data._id}`, getHeaders());
+                setOrders(ordersRes.data);
             } catch (err) {
-                console.error("Error fetching lab info:", err);
+                console.error("Error fetching lab partner data:", err);
             }
         };
 
-        const fetchOrders = async () => {
-            try {
-                const res = await axios.get(`${API_BASE_URL}/api/bookings/lab/${myLabId}`);
-                setOrders(res.data);
-            } catch (err) {
-                console.error("Error fetching orders:", err);
-            }
-        };
-
-        fetchLabInfo();
-        fetchOrders();
+        fetchLabInfoAndOrders();
 
         socket.on('new_order', (data) => {
-            if (data.labId === myLabId) fetchOrders();
+            if (activeLabId && data.labId === activeLabId) {
+                // Refresh orders
+                axios.get(`${API_BASE_URL}/api/bookings/lab/${activeLabId}`, getHeaders())
+                    .then(res => setOrders(res.data))
+                    .catch(err => console.error(err));
+            }
         });
 
         return () => socket.disconnect();
     }, []);
 
     const addPincode = async () => {
-        if (!newPincode.trim()) return;
+        if (!newPincode.trim() || !labId) return;
         const updatedPincodes = [...(labDetails.servicePincodes || []), newPincode.trim()];
         updateLabData({ servicePincodes: updatedPincodes });
         setNewPincode('');
     };
 
     const removePincode = async (pin) => {
+        if (!labId) return;
         const updatedPincodes = labDetails.servicePincodes.filter(p => p !== pin);
         updateLabData({ servicePincodes: updatedPincodes });
     };
 
     const updateLabData = async (data) => {
+        if (!labId) return;
         try {
-            const res = await axios.put(`${API_BASE_URL}/api/labs/${myLabId}`, data);
+            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, data, getHeaders());
             setLabDetails(res.data);
         } catch (err) {
             console.error("Error updating lab details:", err);
@@ -101,7 +113,7 @@ const LabDashboard = () => {
 
     const updateStatus = async (bookingId, newStatus) => {
         try {
-            await axios.put(`${API_BASE_URL}/api/bookings/${bookingId}`, { status: newStatus });
+            await axios.put(`${API_BASE_URL}/api/bookings/${bookingId}`, { status: newStatus }, getHeaders());
             setOrders(prev => prev.map(order => order._id === bookingId ? { ...order, status: newStatus } : order));
         } catch (err) {
             console.error(err);
@@ -113,9 +125,16 @@ const LabDashboard = () => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('bookingId', bookingId);
+        
+        const token = localStorage.getItem('token');
         try {
             setUploading(bookingId);
-            const res = await axios.post(`${API_BASE_URL}/api/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            const res = await axios.post(`${API_BASE_URL}/api/upload`, formData, { 
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                } 
+            });
             setOrders(prev => prev.map(order => order._id === bookingId ? { ...order, status: 'Report Uploaded', reportUrl: res.data.url } : order));
             alert("Report Sent to Patient successfully!");
             setFile(null);

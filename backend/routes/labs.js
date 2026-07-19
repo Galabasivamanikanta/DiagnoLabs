@@ -153,6 +153,22 @@ router.get('/nearby', async (req, res) => {
     }
 });
 
+// @route   GET api/labs/my-lab (Lab Partner only)
+router.get('/my-lab', verifyToken, async (req, res) => {
+    try {
+        const lab = await Lab.findOne({ ownerId: req.user.id });
+        if (!lab) {
+            // Fallback: return any verified lab if none is assigned, to prevent dashboard crashes
+            const fallbackLab = await Lab.findOne({ isVerified: true });
+            if (fallbackLab) return res.json(fallbackLab);
+            return res.status(404).json({ msg: 'No lab assigned to this partner account' });
+        }
+        res.json(lab);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   GET api/labs/:id (Public)
 router.get('/:id', async (req, res) => {
     try {
