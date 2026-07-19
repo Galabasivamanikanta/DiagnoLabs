@@ -181,70 +181,69 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         {/* Patient & Booking Details */}
                         <div style={{ background: '#f0f7ff', borderRadius: '14px', padding: '1.25rem', border: '1px solid #e0eeff' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem' }}>
                                 <User size={13} color="#003366" />
                                 <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.7 }}>Patient & Schedule</span>
                             </div>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Name:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.name || booking.patient?.name}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Customer ID:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a', fontFamily: 'monospace' }}>{user?.customerId || 'DL-202607-md'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Phone:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.phone || booking.patient?.phone || 'N/A'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Email:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user?.email || booking.patient?.email || 'N/A'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Appointment:</span>
-                                    <span style={{ fontWeight: '700', color: '#059669' }}>
-                                        {new Date(booking.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} ({booking.appointmentTime})
-                                    </span>
-                                </div>
-                                <div style={{ borderTop: '1px dashed #dbeafe', marginTop: '0.4rem', paddingTop: '0.4rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.8rem' }}>
+                                {[
+                                    { label: 'Name', value: user?.name || booking.patient?.name },
+                                    { label: 'Customer ID', value: user?.customerId || 'DL-202607-md', mono: true },
+                                    { label: 'Phone', value: user?.phone || booking.patient?.phone || 'N/A' },
+                                    { label: 'Email', value: user?.email || booking.patient?.email || 'N/A' },
+                                    { 
+                                        label: 'Appointment', 
+                                        value: `${new Date(booking.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} (${booking.appointmentTime})`,
+                                        highlight: true 
+                                    },
+                                ].map(({ label, value, mono, highlight }) => (
+                                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '0.5rem', borderBottom: '1px solid #e2effe', paddingBottom: '0.4rem' }}>
+                                        <span style={{ color: '#64748b', fontWeight: '600' }}>{label}:</span>
+                                        <span style={{ 
+                                            fontWeight: '700', 
+                                            color: highlight ? '#059669' : '#0f172a',
+                                            fontFamily: mono ? 'monospace' : 'inherit',
+                                            wordBreak: 'break-all'
+                                        }}>{value}</span>
+                                    </div>
+                                ))}
+                                <div style={{ marginTop: '0.4rem' }}>
                                     <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Collection Address:</span>
-                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block' }}>{booking.sampleCollectionAddress}</span>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: 'rgba(255,255,255,0.5)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e0eeff' }}>{booking.sampleCollectionAddress}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Lab Details */}
                         <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '1.25rem', border: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem' }}>
                                 <Building2 size={13} color="#003366" />
                                 <span style={{ fontSize: '0.68rem', fontWeight: '800', color: '#003366', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.7 }}>Assigned Laboratory</span>
                             </div>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Lab Name:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.name || 'DiagnoLabs Partner'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Phone:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.phone || '1800-120-4121'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Email:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{booking.lab?.email || 'support@diagnolabs.in'}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#64748b' }}>Hours:</span>
-                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>
-                                        {booking.lab?.openingTime || '08:00 AM'} - {booking.lab?.closingTime || '08:00 PM'}
-                                    </span>
-                                </div>
-                                <div style={{ borderTop: '1px dashed #e2e8f0', marginTop: '0.4rem', paddingTop: '0.4rem' }}>
-                                    <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Lab Location:</span>
-                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.8rem' }}>
+                                {[
+                                    { label: 'Lab Name', value: booking.lab?.name || 'DiagnoLabs Partner' },
+                                    { label: 'Phone', value: booking.lab?.phone || '1800-120-4121' },
+                                    { label: 'Email', value: booking.lab?.email || 'support@diagnolabs.in' },
+                                    { 
+                                        label: 'Hours', 
+                                        value: `${booking.lab?.openingTime || '08:00 AM'} - ${booking.lab?.closingTime || '08:00 PM'}` 
+                                    },
+                                ].map(({ label, value }) => (
+                                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '0.5rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.4rem' }}>
+                                        <span style={{ color: '#94a3b8', fontWeight: '600' }}>{label}:</span>
+                                        <span style={{ 
+                                            fontWeight: '700', 
+                                            color: '#0f172a',
+                                            wordBreak: 'break-all'
+                                        }}>{value}</span>
+                                    </div>
+                                ))}
+                                <div style={{ marginTop: '0.4rem' }}>
+                                    <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Lab Location:</span>
+                                    <span style={{ fontWeight: '700', color: '#334155', lineHeight: 1.4, display: 'block', background: '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                         {booking.lab?.address || 'DAA Network Hub, India'}, {booking.lab?.city || ''} {booking.lab?.pincode || ''}
                                     </span>
                                 </div>
