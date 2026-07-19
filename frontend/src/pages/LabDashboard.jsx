@@ -4,6 +4,13 @@ import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import {
+    X,
+    FileUp,
+    ChevronRight,
+    Search,
+    Clock,
+    User,
+    ClipboardList,
     Activity,
     CheckCircle,
     Building2,
@@ -12,27 +19,25 @@ import {
     Loader2,
     Settings,
     MapPin,
+    Navigation,
     Plus,
     Save,
     Phone,
     Mail,
-    Search,
-    Clock,
-    User,
-    ClipboardList,
     DollarSign,
     Users,
     FileText,
     TrendingUp,
     ShieldCheck,
-    Bell,
-    Check,
-    Trash2,
-    Edit2,
-    AlertCircle,
-    Download,
     Award,
-    X
+    ChevronDown,
+    Lock,
+    Eye,
+    EyeOff,
+    Check,
+    AlertCircle,
+    Calendar,
+    Briefcase
 } from 'lucide-react';
 import {
     AreaChart,
@@ -67,14 +72,20 @@ const LabDashboard = () => {
     // Tab switching state
     const [activeTab, setActiveTab] = useState('workbench'); // 'workbench', 'catalog', 'reports', 'analytics', 'billing', 'profile'
 
-    // Draft / Final report creator state
-    const [reportForm, setReportForm] = useState({
-        bookingId: '',
-        glucose: '90',
-        cholesterol: '180',
-        hb: '14.2',
-        isDraft: true,
-        notes: ''
+    // Accordion active section
+    const [openSection, setOpenSection] = useState('basic'); // basic, contact, compliance, ops, tests, banking, staff, security, status
+
+    // Mask toggle states
+    const [showBankingDetails, setShowBankingDetails] = useState(false);
+
+    // Simulated file upload states
+    const [uploadProgress, setUploadProgress] = useState({});
+
+    // Password reset form
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
     });
 
     // Test Catalog Form
@@ -90,14 +101,45 @@ const LabDashboard = () => {
     const [showCatalogModal, setShowCatalogModal] = useState(false);
     const [catalogEditMode, setCatalogEditMode] = useState(false);
 
-    // Profile forms
+    // Profile & Accordion Forms
     const [labForm, setLabForm] = useState({
         name: '',
-        city: '',
+        directorName: '',
+        registrationNumber: '',
+        establishedYear: '',
+        labType: 'standalone',
+        logoUrl: '',
+        phone: '',
+        alternateContact: '',
+        email: '',
         address: '',
+        city: '',
+        state: '',
+        pincode: '',
         latitude: '',
-        longitude: ''
+        longitude: '',
+        licenseNumber: '',
+        licenseExpiry: '',
+        govRegistrationUrl: '',
+        isoCertificateUrl: '',
+        homeCollectionEnabled: false,
+        serviceRadius: 10,
+        branchCount: 1,
+        staffCount: 5,
+        equipmentList: '',
+        departments: [],
+        accountHolderName: '',
+        bankAccountNumber: '',
+        bankIfsc: '',
+        gstNumber: '',
+        panNumber: '',
+        commissionRef: '',
+        chiefPathologistName: '',
+        pathologistQualification: '',
+        pathologistRegNumber: '',
+        pathologistSignatureUrl: ''
     });
+
     const [newPincode, setNewPincode] = useState('');
     const [newAccred, setNewAccred] = useState({
         label: '',
@@ -111,13 +153,6 @@ const LabDashboard = () => {
         email: '',
         phone: ''
     });
-
-    // Notifications
-    const [notifications, setNotifications] = useState([
-        { id: 1, title: 'New Booking Assigned', desc: 'Patient John Doe - Complete Blood Count', time: '5m ago', read: false },
-        { id: 2, title: 'Accreditation Renewal', desc: 'Your NABL certification is valid for 180 days.', time: '1h ago', read: true },
-        { id: 3, title: 'Settlement Completed', desc: 'Payout of ₹14,250 processed successfully.', time: '1d ago', read: true }
-    ]);
 
     const [savingLab, setSavingLab] = useState(false);
     const [savingUser, setSavingUser] = useState(false);
@@ -147,10 +182,40 @@ const LabDashboard = () => {
             // Populate forms
             setLabForm({
                 name: res.data.name || '',
-                city: res.data.city || '',
+                directorName: res.data.directorName || '',
+                registrationNumber: res.data.registrationNumber || '',
+                establishedYear: res.data.establishedYear || '',
+                labType: res.data.labType || 'standalone',
+                logoUrl: res.data.logoUrl || '',
+                phone: res.data.phone || '',
+                alternateContact: res.data.alternateContact || '',
+                email: res.data.email || '',
                 address: res.data.address || '',
+                city: res.data.city || '',
+                state: res.data.state || '',
+                pincode: res.data.pincode || '',
                 latitude: res.data.location?.coordinates?.[1] || '',
-                longitude: res.data.location?.coordinates?.[0] || ''
+                longitude: res.data.location?.coordinates?.[0] || '',
+                licenseNumber: res.data.licenseNumber || '',
+                licenseExpiry: res.data.licenseExpiry || '',
+                govRegistrationUrl: res.data.govRegistrationUrl || '',
+                isoCertificateUrl: res.data.isoCertificateUrl || '',
+                homeCollectionEnabled: res.data.homeCollectionEnabled || false,
+                serviceRadius: res.data.serviceRadius || 10,
+                branchCount: res.data.branchCount || 1,
+                staffCount: res.data.staffCount || 5,
+                equipmentList: res.data.equipmentList?.join(', ') || '',
+                departments: res.data.departments || [],
+                accountHolderName: res.data.accountHolderName || '',
+                bankAccountNumber: res.data.bankAccountNumber || '',
+                bankIfsc: res.data.bankIfsc || '',
+                gstNumber: res.data.gstNumber || '',
+                panNumber: res.data.panNumber || '',
+                commissionRef: res.data.commissionRef || '',
+                chiefPathologistName: res.data.chiefPathologistName || '',
+                pathologistQualification: res.data.pathologistQualification || '',
+                pathologistRegNumber: res.data.pathologistRegNumber || '',
+                pathologistSignatureUrl: res.data.pathologistSignatureUrl || ''
             });
 
             // Fetch bookings
@@ -181,17 +246,11 @@ const LabDashboard = () => {
         socket.on('new_order', (data) => {
             if (labId && data.labId === labId) {
                 fetchLabInfoAndOrders();
-                setNotifications(prev => [
-                    { id: Date.now(), title: 'Emergency booking assigned', desc: 'New sample collection request routing now.', time: 'Just now', read: false },
-                    ...prev
-                ]);
             }
         });
 
         return () => socket.disconnect();
     }, [user, labId]);
-
-    const handleFileChange = (e) => setFile(e.target.files[0]);
 
     const updateStatus = async (bookingId, newStatus) => {
         try {
@@ -299,15 +358,59 @@ const LabDashboard = () => {
         setShowCatalogModal(true);
     };
 
-    // Profile & Accreditation Saving
+    // General Profile & Forms Value Changes
+    const handleLabFormChange = (e) => {
+        const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setLabForm({ ...labForm, [e.target.name]: val });
+    };
+
+    const handleUserFormChange = (e) => {
+        setUserForm({ ...userForm, [e.target.name]: e.target.value });
+    };
+
+    const handleUserFormSubmit = async (e) => {
+        e.preventDefault();
+        setSavingUser(true);
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, userForm, getHeaders());
+            setUser(res.data);
+            alert("Representative credentials updated!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update representative info.");
+        } finally {
+            setSavingUser(false);
+        }
+    };
+
+    // Simulated Accredited File uploader
+    const handleProfileFileUpload = (field, e) => {
+        const selectedFile = e.target.files[0];
+        if (!selectedFile) return;
+
+        setUploadProgress(prev => ({ ...prev, [field]: 0 }));
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            setUploadProgress(prev => ({ ...prev, [field]: progress }));
+            if (progress >= 100) {
+                clearInterval(interval);
+                // Set mock saved url values
+                setLabForm(prev => ({ ...prev, [field]: `https://diagnolabs-accredited-bucket.s3.amazonaws.com/${field}/${selectedFile.name}` }));
+                alert(`${selectedFile.name} securely uploaded & verified!`);
+            }
+        }, 100);
+    };
+
+    // Save Unified Lab profile
     const saveLabProfile = async (e) => {
         e.preventDefault();
         setSavingLab(true);
         try {
             const payload = {
-                name: labForm.name,
-                city: labForm.city,
-                address: labForm.address,
+                ...labForm,
+                equipmentList: labForm.equipmentList.split(',').map(eq => eq.trim()).filter(Boolean),
                 location: {
                     type: 'Point',
                     coordinates: [parseFloat(labForm.longitude) || 0, parseFloat(labForm.latitude) || 0]
@@ -315,11 +418,35 @@ const LabDashboard = () => {
             };
             const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, payload, getHeaders());
             setLabDetails(res.data);
-            alert("Facility compliance info updated successfully!");
+            alert("Laboratory Clinical profile updated successfully!");
         } catch (err) {
             console.error(err);
+            alert("Failed to save facility details.");
         } finally {
             setSavingLab(false);
+        }
+    };
+
+    const addPincode = async () => {
+        if (!newPincode.trim() || !labId) return;
+        const updatedPincodes = [...(labDetails.servicePincodes || []), newPincode.trim()];
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { servicePincodes: updatedPincodes }, getHeaders());
+            setLabDetails(res.data);
+            setNewPincode('');
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const removePincode = async (pin) => {
+        if (!labId) return;
+        const updatedPincodes = labDetails.servicePincodes.filter(p => p !== pin);
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { servicePincodes: updatedPincodes }, getHeaders());
+            setLabDetails(res.data);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -352,26 +479,19 @@ const LabDashboard = () => {
         }
     };
 
-    const addPincode = async () => {
-        if (!newPincode.trim() || !labId) return;
-        const updatedPincodes = [...(labDetails.servicePincodes || []), newPincode.trim()];
-        try {
-            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { servicePincodes: updatedPincodes }, getHeaders());
-            setLabDetails(res.data);
-            setNewPincode('');
-        } catch (err) {
-            console.error(err);
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
         }
-    };
-
-    const removePincode = async (pin) => {
-        if (!labId) return;
-        const updatedPincodes = labDetails.servicePincodes.filter(p => p !== pin);
         try {
-            const res = await axios.put(`${API_BASE_URL}/api/labs/${labId}`, { servicePincodes: updatedPincodes }, getHeaders());
-            setLabDetails(res.data);
+            await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, { password: passwordData.newPassword }, getHeaders());
+            alert("Security password changed successfully!");
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {
             console.error(err);
+            alert("Failed to change password.");
         }
     };
 
@@ -399,26 +519,6 @@ const LabDashboard = () => {
 
     const { weeklyCases, monthlyRevenue } = getAnalyticsData();
 
-    const handleUserFormChange = (e) => {
-        setUserForm({ ...userForm, [e.target.name]: e.target.value });
-    };
-
-    const saveUserProfile = async (e) => {
-        e.preventDefault();
-        if (!user) return;
-        setSavingUser(true);
-        try {
-            const res = await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, userForm, getHeaders());
-            setUser(res.data);
-            alert("Profile details updated successfully!");
-        } catch (err) {
-            console.error("Error saving user credentials:", err);
-            alert(err.response?.data?.message || "Failed to update profile details.");
-        } finally {
-            setSavingUser(false);
-        }
-    };
-
     // Filters
     const filteredOrders = orders.filter(order => {
         const matchesSearch = !searchQuery || (
@@ -445,7 +545,7 @@ const LabDashboard = () => {
         <div className="bg-slate-50 min-h-screen pt-28 pb-16 font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                {/* ── HEADER ACCREDITATION ROW ── */}
+                {/* ── HEADER ROW ── */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl bg-navy flex items-center justify-center text-gold">
@@ -467,9 +567,7 @@ const LabDashboard = () => {
                         {[
                             { id: 'workbench', label: 'Samples Queue', icon: <ClipboardList size={14} /> },
                             { id: 'catalog', label: 'Test Catalog', icon: <FlaskConical size={14} /> },
-                            { id: 'reports', label: 'Report Desk', icon: <FileText size={14} /> },
                             { id: 'analytics', label: 'Clinical TAT', icon: <Activity size={14} /> },
-                            { id: 'billing', label: 'Billing Ledger', icon: <DollarSign size={14} /> },
                             { id: 'profile', label: 'Profile & Settings', icon: <User size={14} /> }
                         ].map(t => (
                             <button
@@ -483,32 +581,32 @@ const LabDashboard = () => {
                     </div>
                 </div>
 
-                {/* ── STATS ROW ── */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    {[
-                        { label: 'Active Specimen Queue', value: orders.filter(o => o.status !== 'Report Uploaded').length, desc: 'Samples awaiting report', icon: <Activity className="text-navy" />, bg: 'bg-blue-50' },
-                        { label: 'Pending Processing', value: orders.filter(o => o.status === 'Sample Processing').length, desc: 'Analyzing in pathology', icon: <FlaskConical className="text-purple-600" />, bg: 'bg-purple-50' },
-                        { label: 'Reports Transmitted', value: orders.filter(o => o.status === 'Report Uploaded').length, desc: 'Digitally verified PDFs', icon: <CheckCircle className="text-emerald-600" />, bg: 'bg-emerald-50' },
-                        { label: 'Average Turnaround (TAT)', value: '14.2h', desc: 'Target TAT compliance: 98%', icon: <Clock className="text-amber-600" />, bg: 'bg-amber-50' }
-                    ].map((s, i) => (
-                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
-                            <div>
-                                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">{s.label}</span>
-                                <span className="text-2xl font-black text-slate-800 block mt-1 leading-none">{s.value}</span>
-                                <span className="text-[10px] font-semibold text-slate-400 block mt-1">{s.desc}</span>
-                            </div>
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.bg}`}>
-                                {s.icon}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* ── MAIN WORKSPACE CONTENT ── */}
+                {/* ── WORKSPACE CONTENT ── */}
                 
                 {/* Tab 1: Workbench Queue */}
                 {activeTab === 'workbench' && (
                     <div className="space-y-6">
+                        {/* Stats Summary Panel */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Active Specimen Queue', value: orders.filter(o => o.status !== 'Report Uploaded').length, desc: 'Samples awaiting report', icon: <Activity className="text-navy" />, bg: 'bg-blue-50' },
+                                { label: 'Pending Processing', value: orders.filter(o => o.status === 'Sample Processing').length, desc: 'Analyzing in pathology', icon: <FlaskConical className="text-purple-600" />, bg: 'bg-purple-50' },
+                                { label: 'Reports Transmitted', value: orders.filter(o => o.status === 'Report Uploaded').length, desc: 'Digitally verified PDFs', icon: <CheckCircle className="text-emerald-600" />, bg: 'bg-emerald-50' },
+                                { label: 'Average Turnaround (TAT)', value: '14.2h', desc: 'Target TAT compliance: 98%', icon: <Clock className="text-amber-600" />, bg: 'bg-amber-50' }
+                            ].map((s, i) => (
+                                <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">{s.label}</span>
+                                        <span className="text-2xl font-black text-slate-800 block mt-1 leading-none">{s.value}</span>
+                                        <span className="text-[10px] font-semibold text-slate-400 block mt-1">{s.desc}</span>
+                                    </div>
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.bg}`}>
+                                        {s.icon}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         {/* Search & Filter Header */}
                         <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                             <div className="flex flex-wrap gap-1">
@@ -738,93 +836,7 @@ const LabDashboard = () => {
                     </div>
                 )}
 
-                {/* Tab 3: Report Desk (Draft / Final states) */}
-                {activeTab === 'reports' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        {/* Queue selector */}
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-                            <h3 className="text-sm font-black text-slate-800">Pending Pathology Reports</h3>
-                            <div className="space-y-2 max-h-[480px] overflow-y-auto">
-                                {orders.filter(o => o.status !== 'Report Uploaded').map(o => (
-                                    <div
-                                        key={o._id}
-                                        onClick={() => setReportForm({ ...reportForm, bookingId: o._id })}
-                                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${reportForm.bookingId === o._id ? 'border-navy bg-slate-50' : 'border-slate-200 hover:border-slate-300'}`}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <span className="text-xs font-bold text-slate-800">{o.patient?.name}</span>
-                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">{o.status}</span>
-                                        </div>
-                                        <span className="text-[10px] text-navy font-bold block mt-1">{o.testDetails.map(t => t.testName).join(', ')}</span>
-                                    </div>
-                                ))}
-                                {orders.filter(o => o.status !== 'Report Uploaded').length === 0 && (
-                                    <div className="text-center text-slate-400 py-6 text-xs italic">All reports processed!</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Interactive Parameters compiler */}
-                        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                            <h3 className="text-sm font-black text-slate-800 mb-4">Pathology Parameter Verification</h3>
-                            
-                            {reportForm.bookingId ? (
-                                <form onSubmit={(e) => { e.preventDefault(); alert("Report Draft Saved locally. Complete file attach and click Transmit to finalize."); }} className="space-y-4">
-                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold flex items-center justify-between text-slate-600">
-                                        <span>Patient Case: DL-{reportForm.bookingId.slice(-6).toUpperCase()}</span>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] ${reportForm.isDraft ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                                            {reportForm.isDraft ? 'Draft Stage' : 'Approved State'}
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Glucose Level (mg/dL)</label>
-                                            <input type="number" value={reportForm.glucose} onChange={(e) => setReportForm({ ...reportForm, glucose: e.target.value })} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                            <span className="text-[9px] text-slate-400 block mt-1">Normal: 70 - 100 mg/dL</span>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Total Cholesterol (mg/dL)</label>
-                                            <input type="number" value={reportForm.cholesterol} onChange={(e) => setReportForm({ ...reportForm, cholesterol: e.target.value })} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                            <span className="text-[9px] text-slate-400 block mt-1">Normal: &lt; 200 mg/dL</span>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Hemoglobin (g/dL)</label>
-                                            <input type="number" step="any" value={reportForm.hb} onChange={(e) => setReportForm({ ...reportForm, hb: e.target.value })} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
-                                            <span className="text-[9px] text-slate-400 block mt-1">Normal: 12.0 - 16.0 g/dL</span>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Clinical Remarks</label>
-                                        <textarea rows="3" value={reportForm.notes} onChange={(e) => setReportForm({ ...reportForm, notes: e.target.value })} placeholder="Enter comments, critical values alerts, or diagnostic observations here..." className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold resize-none" />
-                                    </div>
-
-                                    <div className="border-t border-slate-200 pt-4 flex justify-between items-center">
-                                        <div className="flex gap-2">
-                                            <label className="h-9 px-3 bg-white border border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-600 hover:bg-slate-50">
-                                                <FileUp size={14} className="mr-1 text-gold" /> {file ? file.name.slice(0, 15) : 'Attach PDF Report'}
-                                                <input type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg" className="hidden" />
-                                            </label>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button type="submit" className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold">Save Draft</button>
-                                            <button type="button" onClick={() => uploadReport(reportForm.bookingId)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1">
-                                                <CheckCircle size={13} /> Finalize & Transmit
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            ) : (
-                                <div className="text-center text-slate-400 py-16 text-xs italic">Select a pending pathology request from the sidebar queue.</div>
-                            )}
-
-                        </div>
-                    </div>
-                )}
-
-                {/* Tab 4: Analytics Dashboard (TAT / Revenue Trends) */}
+                {/* Tab 3: Analytics Dashboard (TAT / Revenue Trends) */}
                 {activeTab === 'analytics' && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -886,150 +898,569 @@ const LabDashboard = () => {
                     </div>
                 )}
 
-                {/* Tab 5: Billing & Settlement Ledger */}
-                {activeTab === 'billing' && (
-                    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-6">
-                        <div>
-                            <h2 className="text-lg font-black text-slate-900">Billing & Settlement Console</h2>
-                            <p className="text-xs text-slate-500 font-semibold mt-0.5">Track payout logs, payouts cycles, and partner revenue collection details.</p>
-                        </div>
-
-                        {/* Settlement metrics */}
-                        <div className="grid grid-cols-3 gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Unsettled Balance</span>
-                                <span className="text-xl font-extrabold text-slate-700 block mt-1">₹4,250</span>
-                                <span className="text-[9px] text-slate-400 block mt-0.5">Cycle: 20 Jul - 27 Jul</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Processing Settlements</span>
-                                <span className="text-xl font-extrabold text-amber-600 block mt-1">₹6,800</span>
-                                <span className="text-[9px] text-slate-400 block mt-0.5">Disbursal in 24 hours</span>
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Total Settled (Lifetime)</span>
-                                <span className="text-xl font-extrabold text-emerald-600 block mt-1">₹1,84,350</span>
-                                <span className="text-[9px] text-slate-400 block mt-0.5">Direct Deposit to Bank Account</span>
-                            </div>
-                        </div>
-
-                        {/* Settlement Ledger Table */}
-                        <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50 text-left">
-                                        <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Disbursal Date</th>
-                                        <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Cycle Reference</th>
-                                        <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Accrued Volume</th>
-                                        <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Payout Total</th>
-                                        <th className="p-3 text-[10px] font-bold text-slate-500 uppercase text-right">Receipt</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-xs font-bold text-slate-700">
-                                    {[
-                                        { date: '12 Jul 2026', ref: 'DL-SETT-0042', vol: 24, pay: '₹14,250', status: 'Completed' },
-                                        { date: '05 Jul 2026', ref: 'DL-SETT-0041', vol: 30, pay: '₹18,900', status: 'Completed' },
-                                        { date: '28 Jun 2026', ref: 'DL-SETT-0040', vol: 18, pay: '₹11,100', status: 'Completed' },
-                                    ].map((s, idx) => (
-                                        <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                                            <td className="p-3">{s.date}</td>
-                                            <td className="p-3 text-navy">{s.ref}</td>
-                                            <td className="p-3 text-slate-400">{s.vol} specimens</td>
-                                            <td className="p-3 text-emerald-600">{s.pay}</td>
-                                            <td className="p-3 text-right">
-                                                <button className="p-1 border border-slate-200 rounded text-slate-600 hover:bg-slate-100">
-                                                    <Download size={13} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tab 6: Profile & Accreditation Compliance */}
+                {/* Tab 4: Profile & Accreditation Compliance (Accordion-style layout) */}
                 {activeTab === 'profile' && (
-                    <div className="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center gap-4 border-b border-slate-155 pb-6 mb-6">
-                            <div className="w-16 h-16 rounded-2xl bg-navy text-gold text-2xl font-black flex items-center justify-center">
-                                {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-slate-900">{user?.name || 'Authorized Staff'}</h3>
-                                <div className="flex gap-1.5 items-center mt-1">
-                                    <span className="bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase border border-blue-200">
-                                        Role: {user?.role === 'lab_partner' ? 'Lab Partner' : user?.role || 'Staff'}
-                                    </span>
-                                    <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase border border-emerald-200">
-                                        Status: ACTIVE
-                                    </span>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                        
+                        {/* LEFT COLUMN: ACCREDITATION & PERFORMANCE SNAPSHOT (READ ONLY) */}
+                        <div className="space-y-6">
+                            {/* Performance Snapshot */}
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Performance Snapshot</h3>
+                                <div className="space-y-3.5">
+                                    <div className="flex justify-between items-center text-xs font-bold">
+                                        <span className="text-slate-500">Total Cases Resolved</span>
+                                        <span className="text-slate-800">{orders.filter(o => o.status === 'Report Uploaded').length} Cases</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs font-bold">
+                                        <span className="text-slate-500">SLA TAT Compliance</span>
+                                        <span className="text-emerald-600">96.4% on-time</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs font-bold">
+                                        <span className="text-slate-500">Patient Satisfaction</span>
+                                        <span className="text-gold">★ {labDetails?.rating || '4.2'} / 5.0</span>
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Verification status / Badge */}
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Verification Audit</h3>
+                                
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-3 py-1.5 rounded-lg text-xs font-extrabold border ${labDetails?.verificationStatus === 'Verified' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                        {labDetails?.verificationStatus || 'Pending Audit'}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-semibold">Document Review Stage</span>
+                                </div>
+
+                                <div className="border-t border-slate-100 pt-3 space-y-2 text-[10px] font-bold text-slate-500">
+                                    <div className="flex justify-between">
+                                        <span>NABL Certificate ID</span>
+                                        <span className="text-emerald-600">PASSED</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Pathologist Signature</span>
+                                        <span className="text-emerald-600">PASSED</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Government Registration</span>
+                                        <span className="text-slate-400">AWAITING REVIEW</span>
+                                    </div>
+                                </div>
+
+                                {labDetails?.adminRemarks && (
+                                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-[10px] font-bold text-red-800">
+                                        Remarks: {labDetails.adminRemarks}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <form onSubmit={saveUserProfile} className="space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Full Representative Name</label>
-                                <div className="relative">
-                                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input 
-                                        type="text" 
-                                        name="name"
-                                        value={userForm.name} 
-                                        onChange={handleUserFormChange} 
-                                        required 
-                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
-                                    />
-                                </div>
-                            </div>
+                        {/* MIDDLE & RIGHT COLUMN: THE CLINICAL ACCORDION PROFILE FORM */}
+                        <div className="lg:col-span-2 space-y-4">
+                            <form onSubmit={saveLabProfile} className="space-y-4">
+                                
+                                {/* ── Accordion Section 1: Basic Info ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'basic' ? '' : 'basic')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Building2 size={16} className="text-navy" /> Basic Laboratory Info</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'basic' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'basic' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Clinical Lab Name*</label>
+                                                    <input type="text" required name="name" value={labForm.name} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Accredited Owner / Director Name*</label>
+                                                    <input type="text" required name="directorName" value={labForm.directorName} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Registered Login Email</label>
-                                <div className="relative">
-                                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input 
-                                        type="email" 
-                                        name="email"
-                                        value={userForm.email} 
-                                        onChange={handleUserFormChange} 
-                                        required 
-                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
-                                    />
-                                </div>
-                            </div>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Registration No.*</label>
+                                                    <input type="text" required name="registrationNumber" value={labForm.registrationNumber} onChange={handleLabFormChange} className="w-full border border-slate-355 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Year Established</label>
+                                                    <input type="number" name="establishedYear" value={labForm.establishedYear} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Lab Facility Type</label>
+                                                    <select name="labType" value={labForm.labType} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold bg-white">
+                                                        <option value="standalone">Standalone Pathology</option>
+                                                        <option value="hospital">Hospital Diagnostics</option>
+                                                        <option value="chain">Diagnostic Chain Branch</option>
+                                                        <option value="govt">Government Lab</option>
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Contact Mobile Number</label>
-                                <div className="relative">
-                                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input 
-                                        type="text" 
-                                        name="phone"
-                                        value={userForm.phone} 
-                                        onChange={handleUserFormChange} 
-                                        required 
-                                        className="w-full border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:border-navy" 
-                                    />
+                                            <div>
+                                                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Upload Brand Logo</label>
+                                                <div className="flex items-center gap-3">
+                                                    {labForm.logoUrl && (
+                                                        <img src={labForm.logoUrl} alt="Logo" className="w-10 h-10 rounded-lg border object-cover" />
+                                                    )}
+                                                    <label className="h-9 px-3 bg-white border border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-650 hover:bg-slate-50">
+                                                        <FileUp size={13} className="mr-1 text-gold" /> Upload File
+                                                        <input type="file" onChange={(e) => handleProfileFileUpload('logoUrl', e)} className="hidden" />
+                                                    </label>
+                                                    {uploadProgress.logoUrl !== undefined && uploadProgress.logoUrl < 100 && (
+                                                        <span className="text-[10px] text-slate-400 font-bold">Uploading: {uploadProgress.logoUrl}%</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
 
-                            <div className="border-t border-slate-200 pt-5 flex justify-end">
-                                <button 
-                                    type="submit" 
-                                    disabled={savingUser}
-                                    className="px-4 py-2 bg-navy hover:bg-navy-deep text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition-all"
+                                {/* ── Accordion Section 2: Contact Details ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'contact' ? '' : 'contact')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Phone size={16} className="text-navy" /> Contact & Geolocation Setup</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'contact' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'contact' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Primary Hotline</label>
+                                                    <input type="text" name="phone" value={labForm.phone} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Alternate Contact</label>
+                                                    <input type="text" name="alternateContact" value={labForm.alternateContact} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Email Address</label>
+                                                    <input type="email" name="email" value={labForm.email} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-4 gap-4">
+                                                <div className="col-span-2">
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Physical Address*</label>
+                                                    <input type="text" required name="address" value={labForm.address} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">City*</label>
+                                                    <input type="text" required name="city" value={labForm.city} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Postal Pincode*</label>
+                                                    <input type="text" required name="pincode" value={labForm.pincode} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Latitude</label>
+                                                    <input type="number" step="any" name="latitude" value={labForm.latitude} onChange={handleLabFormChange} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Longitude</label>
+                                                    <input type="number" step="any" name="longitude" value={labForm.longitude} onChange={handleLabFormChange} className="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                type="button" 
+                                                onClick={() => navigator.geolocation.getCurrentPosition(pos => setLabForm(prev => ({ ...prev, latitude: pos.coords.latitude, longitude: pos.coords.longitude })))}
+                                                className="w-full bg-slate-50 border border-slate-200 text-slate-700 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-slate-100"
+                                            >
+                                                <Navigation size={12} className="text-gold" /> Sync Location pin to device GPS
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Accordion Section 3: Accreditation & Compliance ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'compliance' ? '' : 'compliance')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Award size={16} className="text-navy" /> Certification & Compliance</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'compliance' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'compliance' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Government License Number</label>
+                                                    <input type="text" name="licenseNumber" value={labForm.licenseNumber} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">License Expiry Date</label>
+                                                    <input type="date" name="licenseExpiry" value={labForm.licenseExpiry} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold text-slate-600" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Accredited ISO Certificate Upload</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="h-8 px-2.5 bg-white border border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-600 hover:bg-slate-50">
+                                                            <FileUp size={13} className="mr-1 text-gold" /> Upload ISO File
+                                                            <input type="file" onChange={(e) => handleProfileFileUpload('isoCertificateUrl', e)} className="hidden" />
+                                                        </label>
+                                                        {labForm.isoCertificateUrl && <span className="text-[10px] text-emerald-600 font-bold">Uploaded ✓</span>}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Accredited Gov Registration Upload</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="h-8 px-2.5 bg-white border border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-600 hover:bg-slate-50">
+                                                            <FileUp size={13} className="mr-1 text-gold" /> Upload Gov Reg
+                                                            <input type="file" onChange={(e) => handleProfileFileUpload('govRegistrationUrl', e)} className="hidden" />
+                                                        </label>
+                                                        {labForm.govRegistrationUrl && <span className="text-[10px] text-emerald-600 font-bold">Uploaded ✓</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* NABL accreditations subform list */}
+                                            <div className="border-t border-slate-100 pt-4">
+                                                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">NABL Accreditation Registry</span>
+                                                <div className="grid grid-cols-3 gap-2 items-end bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+                                                    <div>
+                                                        <label className="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Accreditation Label</label>
+                                                        <input type="text" placeholder="e.g. NABL Clinical" value={newAccred.label} onChange={(e) => setNewAccred({ ...newAccred, label: e.target.value })} className="w-full border border-slate-300 rounded p-1 text-[11px] font-bold" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[8px] font-bold text-slate-400 uppercase mb-0.5">Certificate ID</label>
+                                                        <input type="text" placeholder="UID-8902" value={newAccred.certificateId} onChange={(e) => setNewAccred({ ...newAccred, certificateId: e.target.value })} className="w-full border border-slate-300 rounded p-1 text-[11px] font-bold" />
+                                                    </div>
+                                                    <button type="button" onClick={addAccreditation} className="bg-navy text-white text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1"><Plus size={11} /> Register</button>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    {labDetails?.accreditations?.map((ac, idx) => (
+                                                        <div key={idx} className="flex justify-between items-center text-[11px] bg-slate-50 border border-slate-100 p-2 rounded-lg font-bold">
+                                                            <span>{ac.label} (#{ac.certificateId})</span>
+                                                            <button type="button" onClick={() => removeAccreditation(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={13} /></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Accordion Section 4: Operational Details ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'ops' ? '' : 'ops')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Clock size={16} className="text-navy" /> Operational Details</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'ops' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'ops' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Clinical Working Hours (e.g. 08:00 AM - 08:00 PM)</label>
+                                                    <input type="text" name="openingHours" placeholder="Mon - Sat: 08:00 AM to 08:00 PM" className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div className="flex items-center gap-4 mt-4">
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" name="homeCollectionEnabled" checked={labForm.homeCollectionEnabled} onChange={handleLabFormChange} className="w-4 h-4 text-navy border-slate-300 rounded" />
+                                                        <span className="text-xs font-bold text-slate-700">Home collection service active</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Service Dispatch Radius (KM)</label>
+                                                    <input type="number" name="serviceRadius" value={labForm.serviceRadius} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Accredited Branches Count</label>
+                                                    <input type="number" name="branchCount" value={labForm.branchCount} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Staff / Lab Tech count</label>
+                                                    <input type="number" name="staffCount" value={labForm.staffCount} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Clinical Machinery / Equipment list (Comma-separated)</label>
+                                                <input type="text" name="equipmentList" value={labForm.equipmentList} onChange={handleLabFormChange} placeholder="Centrifuge, Spectrophotometer, Hematology Analyzer" className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Accordion Section 5: Test Capabilities ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'tests' ? '' : 'tests')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><FlaskConical size={16} className="text-navy" /> Pathology Capabilities</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'tests' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'tests' && (
+                                        <div className="p-5 space-y-4">
+                                            <div>
+                                                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-2">Offered pathology departments</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {['Hematology', 'Biochemistry', 'Microbiology', 'Immunology', 'Serology', 'Histopathology', 'Molecular Biology'].map(dept => {
+                                                        const isChecked = labForm.departments.includes(dept);
+                                                        return (
+                                                            <label key={dept} className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-150 p-2.5 rounded-xl hover:bg-slate-100 transition-all text-xs font-bold text-slate-700">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    checked={isChecked} 
+                                                                    onChange={() => {
+                                                                        const updated = isChecked ? labForm.departments.filter(d => d !== dept) : [...labForm.departments, dept];
+                                                                        setLabForm({ ...labForm, departments: updated });
+                                                                    }}
+                                                                    className="w-4 h-4 text-navy rounded border-slate-350" 
+                                                                />
+                                                                {dept}
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Accordion Section 6: Banking & Payout (Masked details) ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'banking' ? '' : 'banking')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><DollarSign size={16} className="text-navy" /> Banking & Payout Ledger</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'banking' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'banking' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowBankingDetails(!showBankingDetails)}
+                                                    className="text-xs font-extrabold text-navy flex items-center gap-1 hover:text-navy-deep"
+                                                >
+                                                    {showBankingDetails ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                    {showBankingDetails ? 'Mask Credentials' : 'Reveal Sensitive Credentials'}
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Account Holder Name</label>
+                                                    <input type="text" name="accountHolderName" value={labForm.accountHolderName} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">IFSC Bank Code</label>
+                                                    <input type="text" name="bankIfsc" value={labForm.bankIfsc} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Bank Account Number</label>
+                                                    <input 
+                                                        type={showBankingDetails ? 'text' : 'password'} 
+                                                        name="bankAccountNumber" 
+                                                        value={labForm.bankAccountNumber} 
+                                                        onChange={handleLabFormChange} 
+                                                        className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">GST registration No.</label>
+                                                    <input 
+                                                        type={showBankingDetails ? 'text' : 'password'} 
+                                                        name="gstNumber" 
+                                                        value={labForm.gstNumber} 
+                                                        onChange={handleLabFormChange} 
+                                                        className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Accredited PAN ID</label>
+                                                    <input 
+                                                        type={showBankingDetails ? 'text' : 'password'} 
+                                                        name="panNumber" 
+                                                        value={labForm.panNumber} 
+                                                        onChange={handleLabFormChange} 
+                                                        className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" 
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Platform Commission Agreement Ref</label>
+                                                <input type="text" disabled name="commissionRef" value={labForm.commissionRef || 'DL-COMM-2026-NABL'} className="w-full border border-slate-200 bg-slate-50 text-slate-400 rounded-lg p-2 text-xs font-bold" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Accordion Section 7: Staff & Pathologist Details ── */}
+                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenSection(openSection === 'staff' ? '' : 'staff')}
+                                        className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
+                                    >
+                                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Briefcase size={16} className="text-navy" /> Pathologist & Staff Records</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'staff' ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    
+                                    {openSection === 'staff' && (
+                                        <div className="p-5 space-y-4">
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Chief Pathologist Name</label>
+                                                    <input type="text" name="chiefPathologistName" value={labForm.chiefPathologistName} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Professional Qualification</label>
+                                                    <input type="text" name="pathologistQualification" value={labForm.pathologistQualification} onChange={handleLabFormChange} placeholder="MD, Pathology" className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Medical Council Reg No.</label>
+                                                    <input type="text" name="pathologistRegNumber" value={labForm.pathologistRegNumber} onChange={handleLabFormChange} className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Digital Signature upload</label>
+                                                <div className="flex items-center gap-2">
+                                                    <label className="h-8 px-2.5 bg-white border border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-655 hover:bg-slate-50">
+                                                        <FileUp size={13} className="mr-1 text-gold" /> Upload Signature
+                                                        <input type="file" onChange={(e) => handleProfileFileUpload('pathologistSignatureUrl', e)} className="hidden" />
+                                                    </label>
+                                                    {labForm.pathologistSignatureUrl && <span className="text-[10px] text-emerald-600 font-bold">Uploaded ✓</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Save Button for Unified Lab Form */}
+                                <div className="flex justify-end p-2">
+                                    <button
+                                        type="submit"
+                                        disabled={savingLab}
+                                        className="px-4 py-2 bg-navy text-white text-xs font-bold rounded-lg flex items-center gap-1 hover:bg-navy-deep transition-all shadow"
+                                    >
+                                        {savingLab ? <Loader2 size={13} className="animate-spin" /> : <Save size={14} />}
+                                        Save Profile Records
+                                    </button>
+                                </div>
+                            </form>
+
+                            {/* ── Accordion Section 8: Account Security (Representative edit) ── */}
+                            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenSection(openSection === 'security' ? '' : 'security')}
+                                    className="w-full px-5 py-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100/60 transition-all border-b border-slate-100"
                                 >
-                                    {savingUser ? <Loader2 size={13} className="animate-spin" /> : <Save size={14} />}
-                                    Save Personal Profile
+                                    <span className="text-xs font-black text-slate-800 flex items-center gap-1.5"><Lock size={16} className="text-navy" /> Login Credentials & Security</span>
+                                    <ChevronDown size={14} className={`text-slate-400 transition-transform ${openSection === 'security' ? 'rotate-180' : ''}`} />
                                 </button>
+                                
+                                {openSection === 'security' && (
+                                    <div className="p-5 space-y-6">
+                                        
+                                        {/* Representative details */}
+                                        <form onSubmit={handleUserFormSubmit} className="space-y-4">
+                                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Representative metadata</span>
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Rep. Full Name</label>
+                                                    <input type="text" name="name" value={userForm.name} onChange={handleUserFormChange} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Login Email</label>
+                                                    <input type="email" name="email" value={userForm.email} onChange={handleUserFormChange} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Rep. Contact Hotline</label>
+                                                    <input type="text" name="phone" value={userForm.phone} onChange={handleUserFormChange} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-end border-t border-slate-100 pt-3">
+                                                <button type="submit" disabled={savingUser} className="px-3 py-1.5 bg-navy text-white text-[11px] font-bold rounded flex items-center gap-1">
+                                                    {savingUser && <Loader2 size={12} className="animate-spin" />}
+                                                    Update Representative
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        {/* Password reset */}
+                                        <form onSubmit={handlePasswordChange} className="space-y-4 border-t border-slate-100 pt-5">
+                                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Modify Security Password</span>
+                                            
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Current Password</label>
+                                                    <input type="password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">New Password</label>
+                                                    <input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Confirm New Password</label>
+                                                    <input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} required className="w-full border border-slate-350 rounded-lg p-2 text-xs font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-end border-t border-slate-100 pt-3">
+                                                <button type="submit" className="px-3 py-1.5 bg-navy text-white text-[11px] font-bold rounded">Change Password</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
                             </div>
-                        </form>
+                        </div>
+
                     </div>
                 )}
-
             </div>
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}</style>
         </div>
     );
 };
