@@ -92,7 +92,11 @@ const MainLayout = () => {
         {/* Admin Portal - Protected */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute roles={['admin', 'employee']}>
+          <ProtectedRoute roles={[
+            'admin', 'employee', 'doctor', 'phlebotomist', 'nurse', 'receptionist', 
+            'inventory_manager', 'finance_manager', 'marketing_head', 'support_staff', 
+            'delivery_partner', 'quality_auditor', 'it_specialist'
+          ]}>
             <AdminDashboard />
           </ProtectedRoute>
         } />

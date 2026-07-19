@@ -98,7 +98,7 @@ const Login = () => {
     const handleSuccessRedirect = (resUser) => {
         if (from) {
             navigate(from, { state: fromState, replace: true });
-        } else if (resUser.role === 'admin' || resUser.role === 'employee') {
+        } else if (resUser.role !== 'patient' && resUser.role !== 'lab_partner') {
             navigate('/admin/dashboard');
         } else if (resUser.role === 'lab_partner') {
             navigate('/partner/dashboard');
