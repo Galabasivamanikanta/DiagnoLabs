@@ -19,7 +19,7 @@ import IndiaLabsFinder from './pages/IndiaLabsFinder';
 import { AuthProvider } from './context/AuthContext';
 import DemoGuard from './components/DemoGuard';
 import Demo from './pages/Demo';
-
+import { useLocation } from 'react-router-dom';
 
 // Utility Portals (Admin & Lab)
 const SpecializedLogin = ({ title }) => {
@@ -43,62 +43,73 @@ const SpecializedLogin = ({ title }) => {
 const LabLogin = () => <SpecializedLogin title="Lab Partner Portal" />;
 const AdminLogin = () => <SpecializedLogin title="DAA Administration" />;
 
+const MainLayout = () => {
+  const location = useLocation();
+  const isDemoRoute = location.pathname === '/demo';
+
+  return (
+    <>
+      {!isDemoRoute && <Navbar />}
+      {!isDemoRoute && <ChatBot />}
+      <Routes>
+        <Route path="/demo" element={<Demo />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<SearchResults />} />
+        <Route path="/labs" element={<Labs />} />
+        <Route path="/lab/:id" element={<LabDetails />} />
+        <Route path="/nearby-search" element={<NearbySearch />} />
+        <Route path="/india-labs-finder" element={<IndiaLabsFinder />} />
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+        {/* Patient Portal - Protected */}
+        <Route path="/patient/dashboard" element={<Navigate to="/patient/history" replace />} />
+        
+        <Route path="/patient/profile" element={
+          <ProtectedRoute roles={['patient']}>
+            <UserProfile />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/patient/history" element={
+          <ProtectedRoute roles={['patient']}>
+            <BookingHistory />
+          </ProtectedRoute>
+        } />
+
+        {/* Checkout - Protected for Patients */}
+        <Route path="/checkout" element={
+          <ProtectedRoute roles={['patient']}>
+            <Checkout />
+          </ProtectedRoute>
+        } />
+
+        {/* Lab Portal */}
+        <Route path="/partner/login" element={<LabLogin />} />
+        <Route path="/partner/dashboard" element={<LabDashboard />} />
+
+        {/* Admin Portal - Protected */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute roles={['admin', 'employee']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <DemoGuard>
-          <Navbar />
-          <ChatBot />
-          <Routes>
-            <Route path="/demo" element={<Demo />} />
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/search" element={<SearchResults />} />
-          <Route path="/labs" element={<Labs />} />
-          <Route path="/lab/:id" element={<LabDetails />} />
-          <Route path="/nearby-search" element={<NearbySearch />} />
-          <Route path="/india-labs-finder" element={<IndiaLabsFinder />} />
-          <Route path="/login" element={<Login />} />
-
-          <Route path="/register" element={<Register />} />
-          {/* Patient Portal - Protected */}
-          <Route path="/patient/dashboard" element={<Navigate to="/patient/history" replace />} />
-          
-          <Route path="/patient/profile" element={
-            <ProtectedRoute roles={['patient']}>
-              <UserProfile />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/patient/history" element={
-            <ProtectedRoute roles={['patient']}>
-              <BookingHistory />
-            </ProtectedRoute>
-          } />
-
-          {/* Checkout - Protected for Patients */}
-          <Route path="/checkout" element={
-            <ProtectedRoute roles={['patient']}>
-              <Checkout />
-            </ProtectedRoute>
-          } />
-
-          {/* Lab Portal */}
-          <Route path="/partner/login" element={<LabLogin />} />
-          <Route path="/partner/dashboard" element={<LabDashboard />} />
-
-          {/* Admin Portal - Protected */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={
-            <ProtectedRoute roles={['admin', 'employee']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-
-          {/* 404 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          <MainLayout />
         </DemoGuard>
       </BrowserRouter>
     </AuthProvider>
