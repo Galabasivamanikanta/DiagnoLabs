@@ -221,11 +221,14 @@ const BookingHistory = () => {
                                                     )}
                                                 </td>
 
-                                                {/* Lab */}
+                                                {/* Lab & Lab ID */}
                                                 <td style={{ padding: '1.1rem 1.25rem' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
                                                         <Building2 size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                                                        {b.lab?.name || 'Authorized Lab'}
+                                                        {b.lab?.name || 'DAA Accredited Lab'}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '800', marginTop: '0.2rem', paddingLeft: '1.3rem' }}>
+                                                        Lab ID: {b.lab?.registrationNumber || (b.lab?._id ? `LAB-${String(b.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
                                                     </div>
                                                 </td>
 
@@ -246,7 +249,7 @@ const BookingHistory = () => {
 
                                                 {/* Action */}
                                                 <td style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'nowrap' }}>
                                                         <button
                                                             onClick={() => setSelectedBooking(b)}
                                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#f1f5f9', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
@@ -254,14 +257,21 @@ const BookingHistory = () => {
                                                             <FileText size={14} /> Receipt
                                                         </button>
 
-                                                        {b.status === 'Report Uploaded' && b.reportUrl && (
+                                                        <button
+                                                            onClick={() => setTrackingBooking(b)}
+                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                                        >
+                                                            <Clock size={14} /> Track Process
+                                                        </button>
+
+                                                        {(b.status === 'Report Uploaded' || b.reportUrl) && (
                                                             <a
-                                                                href={`${API_BASE_URL.replace('/api', '')}${b.reportUrl}`}
+                                                                href={b.reportUrl?.startsWith('http') ? b.reportUrl : `${API_BASE_URL.replace('/api', '')}${b.reportUrl?.startsWith('/') ? '' : '/'}${b.reportUrl}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'var(--primary)', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#166534', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
                                                             >
-                                                                <Download size={14} /> Report
+                                                                <Download size={14} /> View Report
                                                             </a>
                                                         )}
                                                     </div>
@@ -290,6 +300,69 @@ const BookingHistory = () => {
             
             {selectedBooking && (
                 <ReceiptModal booking={selectedBooking} user={user} onClose={() => setSelectedBooking(null)} />
+            )}
+
+            {/* TRACK PROCESS MODAL */}
+            {trackingBooking && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyCenter: 'center', zIndex: 999, padding: '1rem' }}>
+                    <div className="animate-scale-up" style={{ background: 'white', borderRadius: '24px', maxWidth: '560px', width: '100%', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', position: 'relative' }}>
+                        <button
+                            onClick={() => setTrackingBooking(null)}
+                            style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
+                        >
+                            ✕
+                        </button>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#e0f2fe', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <FlaskConical size={22} />
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                                    Diagnostic Live Tracking
+                                </h3>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>
+                                    Booking ID: DH-{trackingBooking._id.slice(-8).toUpperCase()} | Lab ID: {trackingBooking.lab?.registrationNumber || (trackingBooking.lab?._id ? `LAB-${String(trackingBooking.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Steps */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', margin: '1.5rem 0' }}>
+                            {[
+                                { title: 'Order Confirmed', desc: 'Appointment scheduled with accredited laboratory', statusKey: 'Confirmed', isDone: true },
+                                { title: 'Sample Collection', desc: 'Certified phlebotomist collected specimen', statusKey: 'Sample Collected', isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) },
+                                { title: 'Pathology Processing', desc: 'Specimen under automated clinical analysis', statusKey: 'Sample Processing', isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) },
+                                { title: 'Report Verified & Ready', desc: 'Pathologist verified PDF transmitted', statusKey: 'Report Uploaded', isDone: trackingBooking.status === 'Report Uploaded' }
+                            ].map((step, idx) => (
+                                <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: step.isDone ? '#166534' : '#f1f5f9', color: step.isDone ? 'white' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0 }}>
+                                        {step.isDone ? '✓' : idx + 1}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: '800', color: step.isDone ? '#0f172a' : '#94a3b8' }}>
+                                            {step.title}
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                                            {step.desc}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {(trackingBooking.status === 'Report Uploaded' || trackingBooking.reportUrl) && (
+                            <a
+                                href={trackingBooking.reportUrl?.startsWith('http') ? trackingBooking.reportUrl : `${API_BASE_URL.replace('/api', '')}${trackingBooking.reportUrl?.startsWith('/') ? '' : '/'}${trackingBooking.reportUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', padding: '0.85rem', background: '#166534', color: 'white', borderRadius: '12px', fontWeight: '800', fontSize: '0.95rem', textDecoration: 'none', marginTop: '1rem' }}
+                            >
+                                <Download size={18} /> View Accredited Clinical Report (PDF)
+                            </a>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );
