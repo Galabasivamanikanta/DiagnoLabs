@@ -67,6 +67,8 @@ const connectDB = async () => {
             serverSelectionTimeoutMS: 5000
         });
         console.log('[DB-SUCCESS] MongoDB Connected Successfully');
+        // Auto seed initial labs and tests if DB is empty
+        seedInitialData();
     } catch (err) {
         console.error('[DB-ERROR] MongoDB Connection Error:', err.message);
         console.log('Attempting connection to local MongoDB fallback...');
@@ -75,12 +77,83 @@ const connectDB = async () => {
                 serverSelectionTimeoutMS: 3000
             });
             console.log('[DB-SUCCESS] Connected to Local MongoDB Fallback');
+            seedInitialData();
         } catch (localErr) {
             console.error('[DB-FATAL] Local MongoDB connection also failed:', localErr.message);
             console.log('Keeping server alive in offline/unconnected mode.');
         }
     }
 };
+
+const seedInitialData = async () => {
+    try {
+        const Lab = require('./models/Lab');
+        const Test = require('./models/Test');
+        const labCount = await Lab.countDocuments();
+        if (labCount === 0) {
+            console.log('[AUTO-SEED] Seeding initial sample labs and diagnostic tests into MongoDB Atlas...');
+            const sampleLabs = [
+                {
+                    name: "Apollo Diagnostics Main Center",
+                    address: "Road No 36, Jubilee Hills, Hyderabad",
+                    city: "Hyderabad",
+                    servicePincodes: ["500033", "500001", "500081", "500032"],
+                    phone: "+91 40 2360 7777",
+                    rating: 4.8,
+                    totalReviews: 240,
+                    location: { type: "Point", coordinates: [78.4071, 17.4325] },
+                    isVerified: true
+                },
+                {
+                    name: "Dr. Lal PathLabs Clinical Center",
+                    address: "Banjara Hills Main Road, Hyderabad",
+                    city: "Hyderabad",
+                    servicePincodes: ["500034", "500001", "500081"],
+                    phone: "+91 40 2335 8888",
+                    rating: 4.7,
+                    totalReviews: 180,
+                    location: { type: "Point", coordinates: [78.4483, 17.4156] },
+                    isVerified: true
+                },
+                {
+                    name: "Metropolis Healthcare Diagnostics",
+                    address: "Hitec City, Madhapur, Hyderabad",
+                    city: "Hyderabad",
+                    servicePincodes: ["500081", "500032", "500033"],
+                    phone: "+91 40 4444 9999",
+                    rating: 4.6,
+                    totalReviews: 155,
+                    location: { type: "Point", coordinates: [78.3813, 17.4435] },
+                    isVerified: true
+                }
+            ];
+            const insertedLabs = await Lab.insertMany(sampleLabs);
+            
+            const standardTests = [
+                { testName: "Complete Blood Count (CBC)", price: 350, category: "Blood", description: "Assesses overall health and detects anemia and infections.", turnaroundTime: "12 Hours" },
+                { testName: "Thyroid Profile (T3, T4, TSH)", price: 600, category: "Blood", description: "Evaluates thyroid gland function.", turnaroundTime: "24 Hours" },
+                { testName: "Lipid Profile (Cholesterol)", price: 500, category: "Blood", description: "Measures cholesterol and lipid levels for heart health.", turnaroundTime: "12 Hours" },
+                { testName: "Diabetes Screening (HbA1c & Fasting)", price: 450, category: "Blood", description: "Monitors long-term blood sugar levels.", turnaroundTime: "12 Hours" },
+                { testName: "Kidney Function Test (KFT)", price: 700, category: "Urine", description: "Evaluates kidney performance.", turnaroundTime: "24 Hours" },
+                { testName: "Liver Function Test (LFT)", price: 800, category: "Blood", description: "Measures liver enzymes and health.", turnaroundTime: "24 Hours" },
+                { testName: "Vitamin D3 (25-Hydroxy)", price: 1200, category: "Blood", description: "Measures vitamin D for bone and immune health.", turnaroundTime: "24 Hours" },
+                { testName: "Vitamin B12", price: 900, category: "Blood", description: "Assesses Vitamin B12 levels for nerve health.", turnaroundTime: "24 Hours" }
+            ];
+
+            const testsToInsert = [];
+            insertedLabs.forEach(lab => {
+                standardTests.forEach(test => {
+                    testsToInsert.push({ ...test, lab: lab._id });
+                });
+            });
+            await Test.insertMany(testsToInsert);
+            console.log('[AUTO-SEED SUCCESS] Initial labs & diagnostic tests seeded successfully!');
+        }
+    } catch (e) {
+        console.error('[AUTO-SEED ERROR]', e.message);
+    }
+};
+
 connectDB();
 
 // WEBSOCKETS (SOCKET.IO)
