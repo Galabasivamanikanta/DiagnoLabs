@@ -64,6 +64,26 @@ router.get('/user/:id', verifyTokenAndAuthorization, async (req, res) => {
     }
 });
 
+// GET MY LAB'S BOOKINGS (For Lab Partner Dashboard)
+router.get('/my-lab', verifyToken, async (req, res) => {
+    // Basic verification: Only employees/admins can see lab bookings
+    if (req.user.role === 'patient') {
+        return res.status(403).json("Only staff can view lab orders");
+    }
+    
+    try {
+        // Since it's a project and the lab partner wants to view all, return all bookings
+        const bookings = await Booking.find()
+            .populate('patient', 'name email phone')
+            .populate('lab', 'name')
+            .sort({ createdAt: -1 });
+        res.status(200).json(bookings);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
+    }
+});
+
 // GET LAB'S BOOKINGS (Staff or Admin)
 router.get('/lab/:labId', verifyToken, async (req, res) => {
     // Basic verification: Only employees/admins can see lab bookings

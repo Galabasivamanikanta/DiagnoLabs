@@ -37,7 +37,9 @@ import {
     Check,
     AlertCircle,
     Calendar,
-    Briefcase
+    Briefcase,
+    Edit2,
+    Trash2
 } from 'lucide-react';
 import {
     AreaChart,
@@ -554,7 +556,7 @@ const LabDashboard = () => {
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clinical Diagnostic Workbench</h1>
                             <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                <Building2 size={13} /> {labDetails?.name || 'Authorized Lab Station'} 
+                                <Building2 size={13} /> Network Partner Portal
                                 <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 px-1.5 py-0.25 rounded text-[10px] font-bold border border-emerald-200">
                                     <ShieldCheck size={10} /> NABL Accredited
                                 </span>

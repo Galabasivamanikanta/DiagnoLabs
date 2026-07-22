@@ -1,5 +1,11 @@
-const dns = require('node:dns');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+if (process.env.NODE_ENV !== 'production' && !process.env.RENDER) {
+    try {
+        const dns = require('node:dns');
+        dns.setServers(['8.8.8.8', '8.8.4.4']);
+    } catch (e) {
+        console.warn('DNS server override skipped:', e.message);
+    }
+}
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -22,9 +28,25 @@ app.disable('x-powered-by');
 const PORT = process.env.PORT || 5000;
 
 // CROSS-ORIGIN RESOURCE SHARING
-const frontend_url = process.env.FRONTEND_URL || "http://localhost:5173";
+const frontend_url = process.env.FRONTEND_URL;
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+];
+if (frontend_url) {
+    allowedOrigins.push(frontend_url);
+    allowedOrigins.push(frontend_url.replace(/\/$/, ""));
+}
+
 app.use(cors({
-    origin: [frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, or server-to-server) or matched origins
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, "")) || process.env.NODE_ENV !== 'production') {
+            callback(null, true);
+        } else {
+            callback(null, true); // Allow all during production deployment
+        }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]

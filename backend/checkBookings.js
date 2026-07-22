@@ -1,12 +1,22 @@
-const dns = require('node:dns');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
-require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
+const dotenv = require('dotenv');
+const path = require('path');
+dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/diagnolabs')
-  .then(async () => {
-    const users = await User.find({});
-    console.log('Users:', users.map(u => ({id: u._id, email: u.email})));
-    process.exit(0);
-  });
+const checkBookings = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        const Booking = require('./models/Booking');
+        const bookings = await Booking.find({});
+        console.log(`Found ${bookings.length} bookings total:`);
+        bookings.forEach(b => {
+            console.log(`Booking ID: ${b._id}, Lab ID: ${b.lab}, Status: ${b.status}`);
+        });
+        process.exit(0);
+    } catch (err) {
+        console.error("Error:", err.message);
+        process.exit(1);
+    }
+};
+
+checkBookings();

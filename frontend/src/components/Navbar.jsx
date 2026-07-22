@@ -56,12 +56,22 @@ const Navbar = () => {
                 {/* Unified Gateway Menu */}
                 <div className="desktop-menu" style={{ display: 'flex', gap: '3rem', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                        <Link to="/" className="nav-link">Home</Link>
-                        <Link to="/labs" className="nav-link">Medical Partners</Link>
-                        {(!user || user.role === 'patient') && (
-                            <Link to="/nearby-search" className="nav-link-special">
-                                <MapPin size={16} /> Near Me
-                            </Link>
+                        {(!user || (user.role !== 'lab_partner' && user.role !== 'admin' && user.role !== 'employee')) ? (
+                            <>
+                                <Link to="/" className="nav-link">Home</Link>
+                                <Link to="/labs" className="nav-link">Medical Partners</Link>
+                                <Link to="/nearby-search" className="nav-link-special">
+                                    <MapPin size={16} /> Near Me
+                                </Link>
+                            </>
+                        ) : user.role === 'lab_partner' ? (
+                            <span style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary)' }}>
+                                Pathology Lab Workbench
+                            </span>
+                        ) : (
+                            <span style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary)' }}>
+                                System Control Console
+                            </span>
                         )}
                     </div>
 
@@ -117,9 +127,14 @@ const Navbar = () => {
                                             <LayoutDashboard size={18} /> Admin Dashboard
                                         </Link>
                                     ) : user.role === 'lab_partner' ? (
-                                        <Link to="/partner/dashboard" className="dropdown-item">
-                                            <LayoutDashboard size={18} /> Partner Dashboard
-                                        </Link>
+                                        <>
+                                            <Link to="/partner/dashboard" className="dropdown-item">
+                                                <LayoutDashboard size={18} /> Partner Workbench
+                                            </Link>
+                                            <button onClick={() => navigate('/partner/dashboard', { state: { tab: 'profile' } })} className="dropdown-item">
+                                                <User size={18} /> Profile & Settings
+                                            </button>
+                                        </>
                                     ) : (
                                         <>
                                             <Link to="/patient/profile" className="dropdown-item">
