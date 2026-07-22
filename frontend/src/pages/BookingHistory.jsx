@@ -327,20 +327,59 @@ const BookingHistory = () => {
                             </div>
                         </div>
 
-                        {/* Interactive Steps */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', margin: '1.5rem 0' }}>
+                        {/* Interactive Pin-to-Pin Steps */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', margin: '1.5rem 0' }}>
                             {[
-                                { title: 'Order Confirmed', desc: 'Appointment scheduled with accredited laboratory', statusKey: 'Confirmed', isDone: true },
-                                { title: 'Sample Collection', desc: 'Certified phlebotomist collected specimen', statusKey: 'Sample Collected', isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) },
-                                { title: 'Pathology Processing', desc: 'Specimen under automated clinical analysis', statusKey: 'Sample Processing', isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) },
-                                { title: 'Report Verified & Ready', desc: 'Pathologist verified PDF transmitted', statusKey: 'Report Uploaded', isDone: trackingBooking.status === 'Report Uploaded' }
+                                { 
+                                    title: '1. Booked Test', 
+                                    desc: 'Diagnostic test booked & appointment confirmed with lab partner', 
+                                    isDone: true 
+                                },
+                                { 
+                                    title: '2. Take to Collect Sample', 
+                                    desc: 'Certified phlebotomist dispatched for doorstep/at-center collection', 
+                                    isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
+                                },
+                                { 
+                                    title: '3. Sample Collected', 
+                                    desc: 'Specimen successfully collected in temperature-controlled tube', 
+                                    isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
+                                },
+                                { 
+                                    title: '4. Retrieved to Lab Partner', 
+                                    desc: 'Specimen safely received at accredited pathology lab center', 
+                                    isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
+                                },
+                                { 
+                                    title: trackingBooking.status === 'Cancelled' ? '5. Case Void / Cancelled' : '5. Processing & Analysis', 
+                                    desc: trackingBooking.status === 'Cancelled' ? 'Diagnostic test order was voided' : 'Specimen under automated analyzer testing in laboratory', 
+                                    isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) || trackingBooking.status === 'Cancelled',
+                                    isVoid: trackingBooking.status === 'Cancelled'
+                                },
+                                { 
+                                    title: '6. Reports Done', 
+                                    desc: 'Pathologist-verified digital PDF report generated & ready', 
+                                    isDone: trackingBooking.status === 'Report Uploaded' 
+                                }
                             ].map((step, idx) => (
                                 <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: step.isDone ? '#166534' : '#f1f5f9', color: step.isDone ? 'white' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0 }}>
-                                        {step.isDone ? '✓' : idx + 1}
+                                    <div style={{ 
+                                        width: '28px', 
+                                        height: '28px', 
+                                        borderRadius: '50%', 
+                                        background: step.isVoid ? '#991b1b' : (step.isDone ? '#166534' : '#f1f5f9'), 
+                                        color: (step.isDone || step.isVoid) ? 'white' : '#94a3b8', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        fontWeight: 'bold', 
+                                        fontSize: '0.85rem', 
+                                        flexShrink: 0 
+                                    }}>
+                                        {step.isVoid ? '✕' : (step.isDone ? '✓' : idx + 1)}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.95rem', fontWeight: '800', color: step.isDone ? '#0f172a' : '#94a3b8' }}>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: '800', color: step.isVoid ? '#991b1b' : (step.isDone ? '#0f172a' : '#94a3b8') }}>
                                             {step.title}
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
