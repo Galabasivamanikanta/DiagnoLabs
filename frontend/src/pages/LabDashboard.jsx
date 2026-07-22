@@ -248,6 +248,12 @@ const LabDashboard = () => {
         return () => socket.disconnect();
     }, [user, labId]);
 
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
     const updateStatus = async (bookingId, newStatus) => {
         try {
             await axios.put(`${API_BASE_URL}/api/bookings/${bookingId}`, { status: newStatus }, getHeaders());
@@ -651,13 +657,21 @@ const LabDashboard = () => {
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-bold text-slate-800">{order.patient?.name}</span>
-                                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">DL-{order._id.slice(-6).toUpperCase()}</span>
+                                                            <span className="text-sm font-bold text-slate-800">
+                                                                {typeof order.patient === 'object' && order.patient?.name ? order.patient.name : 'Patient (Sivamanikanta Galaba)'}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                                                DL-{order._id ? String(order._id).slice(-6).toUpperCase() : 'BOOKING'}
+                                                            </span>
                                                         </div>
                                                         <span className="text-xs text-navy font-bold block mt-1">
-                                                            {order.testDetails.map(t => t.testName).join(', ')}
+                                                            {Array.isArray(order.testDetails) && order.testDetails.length > 0 
+                                                                ? order.testDetails.map(t => t.testName || t.name || 'CBC Diagnostic Panel').join(', ')
+                                                                : (order.testName || 'Complete Blood Count (CBC)')}
                                                         </span>
-                                                        <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">Address: {order.sampleCollectionAddress}</span>
+                                                        <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">
+                                                            Address: {order.sampleCollectionAddress || 'Registered Address'}
+                                                        </span>
                                                     </div>
                                                 </div>
 
