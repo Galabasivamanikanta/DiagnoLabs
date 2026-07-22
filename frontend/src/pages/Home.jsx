@@ -353,7 +353,7 @@ const Home = () => {
             {/* Official Footer */}
             <footer style={{ padding: '8rem 0', borderTop: '1px solid var(--border-light)', background: 'white' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '4rem', marginBottom: '8rem' }}>
+                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '4rem', marginBottom: '8rem' }}>
                         <div>
                             <div style={{ fontSize: '1.8rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '2rem', letterSpacing: '-0.03em' }}>DiagnoLabs Clinical</div>
                             <p style={{ color: 'var(--text-secondary)', maxWidth: '350px', fontSize: '1.1rem' }}>
@@ -379,7 +379,7 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-                    <div style={{ paddingTop: '3rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '800' }}>
+                    <div className="mobile-stack" style={{ paddingTop: '3rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '800' }}>
                         <span>© 2026 DIAGNOLABS GROUP — CENTRAL CLINICAL COMMAND.</span>
                         <div style={{ display: 'flex', gap: '3rem' }}>
                             <Link to="/admin/login" style={{ textDecoration: 'none', color: 'inherit' }}>Admin Gateway</Link>
