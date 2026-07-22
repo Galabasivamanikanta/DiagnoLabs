@@ -6,6 +6,8 @@ const envUrl = import.meta.env.VITE_API_URL;
 let baseUrl;
 if (envUrl) {
     baseUrl = envUrl;
+} else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    baseUrl = window.location.origin;
 } else {
     const hostname = window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname;
     const protocol = window.location.protocol;

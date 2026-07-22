@@ -162,6 +162,57 @@ const Navbar = () => {
                 </div>
             </div>
 
+            {/* Mobile Menu Content */}
+            {mobileMenuOpen && (
+                <div className="mobile-menu-content" style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    background: 'white',
+                    padding: '1rem',
+                    borderBottom: '1px solid var(--border-light)',
+                    boxShadow: 'var(--shadow-premium)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    animation: 'slideUp 0.3s ease'
+                }}>
+                    <Link to="/" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                    <Link to="/labs" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Medical Partners</Link>
+                    <Link to="/nearby-search" className="nav-link-special" style={{ width: 'fit-content' }} onClick={() => setMobileMenuOpen(false)}>
+                        <MapPin size={16} /> Near Me
+                    </Link>
+                    {user ? (
+                        <>
+                            <div style={{ height: '1px', background: 'var(--border-light)', margin: '0.5rem 0' }}></div>
+                            <div style={{ fontWeight: '800', color: 'var(--text-main)' }}>{user.name}</div>
+                            {user.role === 'admin' ? (
+                                <Link to="/admin/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <LayoutDashboard size={18} /> Admin Dashboard
+                                </Link>
+                            ) : user.role === 'lab_partner' ? (
+                                <Link to="/partner/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <LayoutDashboard size={18} /> Partner Workbench
+                                </Link>
+                            ) : (
+                                <Link to="/patient/profile" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <User size={18} /> Profile
+                                </Link>
+                            )}
+                            <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="dropdown-item text-danger">
+                                <LogOut size={18} /> Logout
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div style={{ height: '1px', background: 'var(--border-light)', margin: '0.5rem 0' }}></div>
+                            <Link to="/login" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>Login / Register</Link>
+                        </>
+                    )}
+                </div>
+            )}
+
             <style>{`
                 .nav-link {
                     text-decoration: none;

@@ -6,6 +6,11 @@ import { API_BASE_URL } from '../config';
 import EmployeeManagement from '../components/admin/EmployeeManagement';
 import LabVerification from '../components/admin/LabVerification';
 import AdminProfile from '../components/admin/AdminProfile';
+import MasterControl from '../components/admin/MasterControl';
+import MasterTestCatalog from '../components/admin/MasterTestCatalog';
+import FinanceAnalytics from '../components/admin/FinanceAnalytics';
+import BroadcastEngine from '../components/admin/BroadcastEngine';
+import AuditConsole from '../components/admin/AuditConsole';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import BrandLogo from '../components/BrandLogo';
@@ -14,7 +19,8 @@ import {
     Bell, Search, Filter, ArrowUpRight, ArrowDownRight,
     Activity, TrendingUp, Calendar, FileText, Microscope,
     ChevronRight, ExternalLink, Clock, Zap, Menu, X,
-    IdCard, Phone, Mail, MapPin, Droplets, CalendarDays, Building2, BadgeIndianRupee, CheckCircle2, XCircle, FlaskConical
+    IdCard, Phone, Mail, MapPin, Droplets, CalendarDays, Building2, BadgeIndianRupee, CheckCircle2, XCircle, FlaskConical,
+    Megaphone, PieChart, ShieldCheck, Database
 } from 'lucide-react';
 import '../styles/AdminDashboard.css';
 
@@ -73,12 +79,13 @@ const CustomerLookupPanel = ({ user: adminUser }) => {
         setResult(null);
         try {
             const res = await axios.get(
-                `${API_BASE_URL}/api/auth/lookup/${query.trim().toUpperCase()}`,
-                { headers: { token: `Bearer ${adminUser?.accessToken}` } }
+                `${API_BASE_URL}/api/auth/lookup/${query.trim()}?_t=${Date.now()}`,
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
             );
             setResult(res.data);
         } catch (err) {
-            setError(err.response?.data?.message || 'Customer not found. Please check the ID and try again.');
+            console.error("Lookup API Error:", err, err.response);
+            setError(err.response?.data?.message || err.message || 'Customer not found. Please check the ID and try again.');
         } finally {
             setLookupLoading(false);
         }
@@ -111,7 +118,7 @@ const CustomerLookupPanel = ({ user: adminUser }) => {
                         <input
                             type="text"
                             value={query}
-                            onChange={e => setQuery(e.target.value.toUpperCase())}
+                            onChange={e => setQuery(e.target.value)}
                             placeholder="e.g. DL-AB3K7XQ2"
                             style={{ width: '100%', padding: '1rem 1rem 1rem 3rem', borderRadius: '12px', border: '1.5px solid var(--border)', fontWeight: '700', fontSize: '1.05rem', outline: 'none', letterSpacing: '1px', fontFamily: 'monospace' }}
                         />
@@ -280,10 +287,14 @@ const AdminDashboard = () => {
 
     const sidebarItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'telemetry', label: 'Live Telemetry', icon: Database },
+        { id: 'master-tests', label: 'Test Catalog', icon: FlaskConical },
         { id: 'bookings', label: 'Bookings', icon: ClipboardList, badge: pendingBookings > 0 ? pendingBookings : null },
+        { id: 'finance', label: 'Financials', icon: PieChart },
         { id: 'network', label: 'Network', icon: Microscope },
+        { id: 'broadcast', label: 'Broadcast', icon: Megaphone },
+        { id: 'audit', label: 'Audit Logs', icon: ShieldCheck },
         { id: 'employees', label: 'Employees', icon: Users },
-        { id: 'analytics', label: 'Analytics', icon: TrendingUp },
         { id: 'lookup', label: 'Customer Lookup', icon: IdCard },
         { id: 'profile', label: 'My Identity', icon: UserCircle },
     ];
@@ -350,19 +361,29 @@ const AdminDashboard = () => {
                     <div className="admin-topbar-left">
                         <h1>
                             {activeTab === 'overview' && 'Dashboard Overview'}
+                            {activeTab === 'telemetry' && 'Live Telemetry & Master Control'}
+                            {activeTab === 'master-tests' && 'Master Test Catalog'}
                             {activeTab === 'bookings' && 'Booking Management'}
+                            {activeTab === 'finance' && 'Financial Analytics'}
                             {activeTab === 'network' && 'Network Discovery'}
+                            {activeTab === 'broadcast' && 'Broadcast Engine'}
+                            {activeTab === 'audit' && 'System Audit Logs'}
                             {activeTab === 'employees' && 'Employee Directory'}
-                            {activeTab === 'analytics' && 'Analytics & Insights'}
                             {activeTab === 'lookup' && 'Customer Lookup'}
+                            {activeTab === 'profile' && 'My Identity'}
                         </h1>
                         <p>
                             {activeTab === 'overview' && 'Real-time laboratory network monitoring & coordination'}
+                            {activeTab === 'telemetry' && 'Monitor system health and toggle emergency platform controls'}
+                            {activeTab === 'master-tests' && 'Manage platform-wide standard diagnostic tests and pricing'}
                             {activeTab === 'bookings' && 'Track, manage, and coordinate all patient bookings'}
+                            {activeTab === 'finance' && 'View platform revenue, lab payouts, and export financial statements'}
                             {activeTab === 'network' && 'Audit and authorize newly discovered clinical facilities'}
+                            {activeTab === 'broadcast' && 'Transmit announcements across the DiagnoLabs network'}
+                            {activeTab === 'audit' && 'Immutable ledger of all administrative system actions'}
                             {activeTab === 'employees' && 'Manage team members and access permissions'}
-                            {activeTab === 'analytics' && 'Performance metrics and operational insights'}
                             {activeTab === 'lookup' && 'Find any customer instantly using their unique Customer ID'}
+                            {activeTab === 'profile' && 'Manage your administrative identity and security'}
                         </p>
                     </div>
                     <div className="admin-topbar-actions">
@@ -786,119 +807,33 @@ const AdminDashboard = () => {
                         </motion.div>
                     )}
 
-                    {/* ═══ Analytics Tab ═══ */}
-                    {activeTab === 'analytics' && (
-                        <motion.div
-                            key="analytics"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -12 }}
-                            transition={{ duration: 0.25 }}
-                        >
-                            {/* Stats Grid for analytics */}
-                            <div className="admin-stats-grid">
-                                <div className="admin-stat-card card-primary">
-                                    <div className="stat-card-glow"></div>
-                                    <div className="stat-card-header">
-                                        <div className="stat-card-icon"><TrendingUp size={22} /></div>
-                                    </div>
-                                    <h2 className="stat-card-value">{totalBookings > 0 ? Math.round((completedBookings / totalBookings) * 100) : 0}%</h2>
-                                    <p className="stat-card-label">Completion Rate</p>
-                                </div>
-                                <div className="admin-stat-card card-success">
-                                    <div className="stat-card-glow"></div>
-                                    <div className="stat-card-header">
-                                        <div className="stat-card-icon"><Zap size={22} /></div>
-                                    </div>
-                                    <h2 className="stat-card-value">₹{totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0}</h2>
-                                    <p className="stat-card-label">Avg. Order Value</p>
-                                </div>
-                                <div className="admin-stat-card card-warning">
-                                    <div className="stat-card-glow"></div>
-                                    <div className="stat-card-header">
-                                        <div className="stat-card-icon"><Calendar size={22} /></div>
-                                    </div>
-                                    <h2 className="stat-card-value">{bookings.reduce((sum, b) => sum + (b.testDetails?.length || 0), 0)}</h2>
-                                    <p className="stat-card-label">Total Tests</p>
-                                </div>
-                                <div className="admin-stat-card card-info">
-                                    <div className="stat-card-glow"></div>
-                                    <div className="stat-card-header">
-                                        <div className="stat-card-icon"><Users size={22} /></div>
-                                    </div>
-                                    <h2 className="stat-card-value">{new Set(bookings.map(b => b.patient?.name)).size}</h2>
-                                    <p className="stat-card-label">Unique Patients</p>
-                                </div>
-                            </div>
-
-                            {/* Revenue & Tests breakdown */}
-                            <div className="admin-insights-row">
-                                <div className="admin-insight-card">
-                                    <div className="insight-card-title">
-                                        <TrendingUp size={15} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Revenue Distribution
-                                    </div>
-                                    {(() => {
-                                        const statusMap = {};
-                                        bookings.forEach(b => {
-                                            const key = b.status || 'Other';
-                                            statusMap[key] = (statusMap[key] || 0) + (b.totalAmount || 0);
-                                        });
-                                        return Object.entries(statusMap).map(([status, amount], i) => (
-                                            <div key={status} className="insight-bar-row">
-                                                <span className="insight-bar-label">{status.length > 10 ? status.substring(0, 10) + '…' : status}</span>
-                                                <div className="insight-bar-track">
-                                                    <div
-                                                        className={`insight-bar-fill ${i === 0 ? 'purple' : i === 1 ? 'green' : 'amber'}`}
-                                                        style={{ width: `${totalRevenue ? (amount / totalRevenue * 100) : 0}%` }}
-                                                    ></div>
-                                                </div>
-                                                <span className="insight-bar-value">₹{Math.round(amount)}</span>
-                                            </div>
-                                        ));
-                                    })()}
-                                </div>
-
-                                <div className="admin-insight-card">
-                                    <div className="insight-card-title">
-                                        <FileText size={15} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Top Requested Tests
-                                    </div>
-                                    {(() => {
-                                        const testCount = {};
-                                        bookings.forEach(b => {
-                                            b.testDetails?.forEach(t => {
-                                                testCount[t.testName] = (testCount[t.testName] || 0) + 1;
-                                            });
-                                        });
-                                        const sorted = Object.entries(testCount).sort((a, b) => b[1] - a[1]).slice(0, 4);
-                                        const max = sorted.length > 0 ? sorted[0][1] : 1;
-                                        return sorted.map(([name, count], i) => (
-                                            <div key={name} className="insight-bar-row">
-                                                <span className="insight-bar-label">{name.length > 10 ? name.substring(0, 10) + '…' : name}</span>
-                                                <div className="insight-bar-track">
-                                                    <div
-                                                        className={`insight-bar-fill ${i === 0 ? 'purple' : i === 1 ? 'green' : 'amber'}`}
-                                                        style={{ width: `${(count / max) * 100}%` }}
-                                                    ></div>
-                                                </div>
-                                                <span className="insight-bar-value">{count}</span>
-                                            </div>
-                                        ));
-                                    })()}
-                                    {bookings.length === 0 && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0' }}>
-                                            <BrandLogo size={40} />
-                                            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--primary)', letterSpacing: '-0.02em', margin: 0 }}>Clinical Gateway</h2>
-                                        </div>
-                                    )}
-                                    {bookings.length === 0 && (
-                                        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.82rem', textAlign: 'center' }}>No test data available</p>
-                                    )}
-                                </div>
-                            </div>
+                    {/* ═══ Advanced Admin Modules ═══ */}
+                    {activeTab === 'telemetry' && (
+                        <motion.div key="telemetry" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <MasterControl />
                         </motion.div>
                     )}
+                    {activeTab === 'master-tests' && (
+                        <motion.div key="master-tests" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <MasterTestCatalog />
+                        </motion.div>
+                    )}
+                    {activeTab === 'finance' && (
+                        <motion.div key="finance" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <FinanceAnalytics />
+                        </motion.div>
+                    )}
+                    {activeTab === 'broadcast' && (
+                        <motion.div key="broadcast" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <BroadcastEngine />
+                        </motion.div>
+                    )}
+                    {activeTab === 'audit' && (
+                        <motion.div key="audit" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>
+                            <AuditConsole />
+                        </motion.div>
+                    )}
+
                     {/* ═══ Customer Lookup Tab ═══ */}
                     {activeTab === 'lookup' && (
                         <motion.div key="lookup" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }}>

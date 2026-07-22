@@ -40,6 +40,7 @@ const BookingHistory = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [trackingBooking, setTrackingBooking] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -202,10 +203,10 @@ const BookingHistory = () => {
                                                 <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: '700' }}>
                                                         <CalendarDays size={15} style={{ color: 'var(--text-muted)' }} />
-                                                        {new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        {b.appointmentDate ? new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                                     </div>
                                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: '600', marginTop: '0.2rem', paddingLeft: '1.3rem' }}>
-                                                        {b.appointmentTime}
+                                                        {b.appointmentTime || 'N/A'}
                                                     </div>
                                                 </td>
 

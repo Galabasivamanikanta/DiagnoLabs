@@ -195,7 +195,9 @@ router.get('/users', verifyTokenAndAdmin, async (req, res) => {
 router.get('/lookup/:customerId', verifyTokenAndAdmin, async (req, res) => {
     try {
         const { customerId } = req.params;
-        const user = await User.findOne({ customerId: customerId.toUpperCase() }).select('-password');
+        console.log(`[LOOKUP] Request received for customerId: ${customerId}`);
+        const user = await User.findOne({ customerId: new RegExp(`^${customerId}$`, 'i') }).select('-password');
+        console.log(`[LOOKUP] Found user:`, user ? user.name : 'Not Found');
         if (!user) {
             return res.status(404).json({ message: `No customer found with ID: ${customerId}` });
         }

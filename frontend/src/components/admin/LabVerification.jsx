@@ -132,7 +132,7 @@ const LabVerification = () => {
                         />
                     </div>
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)', fontWeight: '600' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
                     {filteredLabs.length} {viewMode === 'discovery' ? 'pending auditing' : 'active partners'}
                 </span>
             </div>
@@ -230,7 +230,7 @@ const LabVerification = () => {
                     <motion.div className="edit-modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <motion.div className="edit-modal-content" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}>
                             <h3>Clinical Territory Management</h3>
-                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Manual override for {editingLab.name}</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Manual override for {editingLab.name}</p>
                             
                             <div className="edit-field">
                                 <label>Clinical Name</label>
@@ -262,7 +262,7 @@ const LabVerification = () => {
             <style>{`
                 .admin-toggle-group {
                     display: flex;
-                    background: rgba(255,255,255,0.05);
+                    background: #f1f5f9;
                     padding: 0.25rem;
                     border-radius: 12px;
                 }
@@ -270,7 +270,7 @@ const LabVerification = () => {
                     padding: 0.5rem 1rem;
                     border: none;
                     background: transparent;
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-muted);
                     font-size: 0.75rem;
                     font-weight: 700;
                     border-radius: 8px;
@@ -287,15 +287,16 @@ const LabVerification = () => {
                     gap: 1.5rem;
                 }
                 .discovery-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    background: white;
+                    border: 1px solid var(--border);
                     border-radius: 20px;
                     padding: 1.5rem;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
                     transition: all 0.3s ease;
                 }
                 .discovery-card:hover {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-color: rgba(255, 255, 255, 0.15);
+                    border-color: #cbd5e1;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
                     transform: translateY(-4px);
                 }
                 .discovery-card-header {
@@ -307,7 +308,7 @@ const LabVerification = () => {
                 .discovery-icon {
                     width: 44px;
                     height: 44px;
-                    background: rgba(var(--primary-rgb), 0.1);
+                    background: #e0f2fe;
                     color: var(--primary-blue);
                     border-radius: 12px;
                     display: flex;
@@ -318,14 +319,15 @@ const LabVerification = () => {
                 .discovery-main-info h4 {
                     margin: 0 0 0.25rem 0;
                     font-size: 1rem;
-                    font-weight: 700;
-                    color: white;
+                    font-weight: 800;
+                    color: var(--text-main);
                 }
                 .discovery-meta {
                     display: flex;
                     gap: 1rem;
                     font-size: 0.75rem;
-                    color: rgba(255,255,255,0.4);
+                    color: var(--text-muted);
+                    font-weight: 600;
                 }
                 .discovery-city {
                     display: flex;
@@ -337,14 +339,14 @@ const LabVerification = () => {
                     font-size: 0.65rem;
                     font-weight: 800;
                     padding: 0.25rem 0.5rem;
-                    background: rgba(255,255,255,0.05);
+                    background: #f1f5f9;
                     border-radius: 6px;
-                    color: rgba(255,255,255,0.3);
+                    color: var(--text-muted);
                     text-transform: uppercase;
                 }
                 .discovery-address {
                     font-size: 0.85rem;
-                    color: rgba(255,255,255,0.6);
+                    color: var(--text-light);
                     line-height: 1.4;
                     margin-bottom: 1.25rem;
                     min-height: 2.4rem;
@@ -352,14 +354,16 @@ const LabVerification = () => {
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    font-weight: 500;
                 }
                 .discovery-stats {
                     display: flex;
                     justify-content: space-between;
-                    background: rgba(0,0,0,0.2);
+                    background: #f8fafc;
                     padding: 0.75rem 1rem;
                     border-radius: 12px;
                     margin-bottom: 1.5rem;
+                    border: 1px solid var(--border);
                 }
                 .discovery-stat {
                     display: flex;
@@ -368,14 +372,14 @@ const LabVerification = () => {
                 }
                 .discovery-stat .label {
                     font-size: 0.65rem;
-                    color: rgba(255,255,255,0.3);
+                    color: var(--text-muted);
                     text-transform: uppercase;
-                    font-weight: 700;
+                    font-weight: 800;
                 }
                 .discovery-stat .value {
                     font-size: 0.85rem;
-                    color: white;
-                    font-weight: 700;
+                    color: var(--text-main);
+                    font-weight: 800;
                 }
                 .discovery-card-actions {
                     display: flex;
@@ -399,9 +403,9 @@ const LabVerification = () => {
                 .edit-mini-btn {
                     flex: 1;
                     padding: 0.75rem;
-                    background: rgba(255,255,255,0.05);
-                    color: white;
-                    border: 1px solid rgba(255,255,255,0.1);
+                    background: white;
+                    color: var(--text-main);
+                    border: 1px solid var(--border);
                     border-radius: 12px;
                     font-size: 0.8rem;
                     font-weight: 700;
@@ -411,25 +415,31 @@ const LabVerification = () => {
                     gap: 0.5rem;
                     cursor: pointer;
                 }
+                .edit-mini-btn:hover {
+                    background: #f8fafc;
+                }
                 .reject-btn {
                     width: 44px;
                     height: 44px;
-                    background: rgba(244, 63, 94, 0.1);
-                    color: #fb7185;
-                    border: 1px solid rgba(244, 63, 94, 0.2);
+                    background: #fee2e2;
+                    color: #e11d48;
+                    border: 1px solid #fecdd3;
                     border-radius: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                 }
+                .reject-btn:hover {
+                    background: #fecdd3;
+                }
 
                 /* Modal Styles */
                 .edit-modal-overlay {
                     position: fixed;
                     top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(0,0,0,0.8);
-                    backdrop-filter: blur(8px);
+                    background: rgba(0,0,0,0.6);
+                    backdrop-filter: blur(4px);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -437,13 +447,13 @@ const LabVerification = () => {
                     padding: 2rem;
                 }
                 .edit-modal-content {
-                    background: #111;
-                    border: 1px solid rgba(255,255,255,0.1);
+                    background: white;
+                    border: 1px solid var(--border);
                     width: 100%;
                     max-width: 500px;
                     padding: 2.5rem;
                     border-radius: 28px;
-                    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
                 }
                 .edit-field {
                     margin-bottom: 1.5rem;
@@ -453,19 +463,54 @@ const LabVerification = () => {
                     font-size: 0.7rem;
                     text-transform: uppercase;
                     font-weight: 800;
-                    color: rgba(255,255,255,0.3);
+                    color: var(--text-muted);
                     margin-bottom: 0.5rem;
                     letter-spacing: 0.5px;
                 }
                 .edit-field input, .edit-field textarea {
                     width: 100%;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
+                    background: white;
+                    border: 1.5px solid var(--border);
                     border-radius: 12px;
-                    padding: 0.75rem 1rem;
-                    color: white;
+                    padding: 0.85rem 1rem;
+                    color: var(--text-main);
                     font-size: 0.9rem;
                     outline: none;
+                    font-weight: 600;
+                }
+                .admin-empty-state {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 4rem 2rem;
+                    background: white;
+                    border: 1px dashed var(--border);
+                    border-radius: 20px;
+                    text-align: center;
+                    color: var(--text-muted);
+                }
+                .admin-empty-state h4 {
+                    margin: 1rem 0 0.5rem 0;
+                    color: var(--text-main);
+                    font-size: 1.25rem;
+                }
+                .admin-empty-state p {
+                    margin: 0;
+                    font-size: 0.9rem;
+                }
+                .admin-empty-icon {
+                    width: 64px;
+                    height: 64px;
+                    background: #f1f5f9;
+                    color: var(--primary-blue);
+                    border-radius: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .edit-field input:focus, .edit-field textarea:focus {
+                    border-color: var(--primary-blue);
                 }
                 .edit-modal-actions {
                     display: flex;
@@ -475,9 +520,9 @@ const LabVerification = () => {
                 .cancel-btn {
                     flex: 1;
                     padding: 0.85rem;
-                    background: transparent;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    color: white;
+                    background: #f8fafc;
+                    border: 1px solid var(--border);
+                    color: var(--text-main);
                     border-radius: 12px;
                     font-weight: 700;
                     cursor: pointer;
