@@ -5,8 +5,8 @@ import './index.css'
 import App from './App.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// Use environment variable or placeholder
-const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID || "622141511684-oo8so5ee5i1k7hch7d1633fovmqui23t.apps.googleusercontent.com";
+// Use environment variable or default project Google Client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "194235670787-fsmgv6gqkm7hu6upn7qk79kcph7iu5p6.apps.googleusercontent.com";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
