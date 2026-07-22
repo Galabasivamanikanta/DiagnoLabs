@@ -131,7 +131,7 @@ const NearbySearch = () => {
                             </button>
                         </div>
                     </div>
-                    <div style={{
+                    <div className="mobile-stack" style={{
                         maxWidth: '1000px',
                         margin: '0 auto',
                         display: 'flex',
@@ -221,7 +221,7 @@ const NearbySearch = () => {
 
 
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem' }}>
                     {filteredResults.slice(0, visibleCount).map((lab, index) => (
                         <div key={lab._id || lab.googlePlaceId} className="glass-card premium-card animate-fade-in" style={{
                             padding: '2rem',

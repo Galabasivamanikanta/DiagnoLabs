@@ -227,7 +227,7 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
+                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem' }}>
                         {[
                             { title: 'Executive Wellness', query: 'Full Body', icon: <Stethoscope size={32} />, desc: 'Comprehensive physiological screening for all age groups.' },
                             { title: 'Metabolic Health', query: 'Diabetes', icon: <Zap size={32} />, desc: 'Glucose monitoring and clinical endocrinology insights.' },
