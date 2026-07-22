@@ -177,56 +177,50 @@ const LabDashboard = () => {
 
     const fetchLabInfoAndOrders = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/labs/my-lab`, getHeaders());
-            setLabDetails(res.data);
-            setLabId(res.data._id);
-            
-            // Populate forms
-            setLabForm({
-                name: res.data.name || '',
-                directorName: res.data.directorName || '',
-                registrationNumber: res.data.registrationNumber || '',
-                establishedYear: res.data.establishedYear || '',
-                labType: res.data.labType || 'standalone',
-                logoUrl: res.data.logoUrl || '',
-                phone: res.data.phone || '',
-                alternateContact: res.data.alternateContact || '',
-                email: res.data.email || '',
-                address: res.data.address || '',
-                city: res.data.city || '',
-                state: res.data.state || '',
-                pincode: res.data.pincode || '',
-                latitude: res.data.location?.coordinates?.[1] || '',
-                longitude: res.data.location?.coordinates?.[0] || '',
-                licenseNumber: res.data.licenseNumber || '',
-                licenseExpiry: res.data.licenseExpiry || '',
-                govRegistrationUrl: res.data.govRegistrationUrl || '',
-                isoCertificateUrl: res.data.isoCertificateUrl || '',
-                homeCollectionEnabled: res.data.homeCollectionEnabled || false,
-                serviceRadius: res.data.serviceRadius || 10,
-                branchCount: res.data.branchCount || 1,
-                staffCount: res.data.staffCount || 5,
-                equipmentList: res.data.equipmentList?.join(', ') || '',
-                departments: res.data.departments || [],
-                accountHolderName: res.data.accountHolderName || '',
-                bankAccountNumber: res.data.bankAccountNumber || '',
-                bankIfsc: res.data.bankIfsc || '',
-                gstNumber: res.data.gstNumber || '',
-                panNumber: res.data.panNumber || '',
-                commissionRef: res.data.commissionRef || '',
-                chiefPathologistName: res.data.chiefPathologistName || '',
-                pathologistQualification: res.data.pathologistQualification || '',
-                pathologistRegNumber: res.data.pathologistRegNumber || '',
-                pathologistSignatureUrl: res.data.pathologistSignatureUrl || ''
-            });
+            let currentLabId = labId;
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/labs/my-lab`, getHeaders());
+                if (res.data) {
+                    setLabDetails(res.data);
+                    setLabId(res.data._id);
+                    currentLabId = res.data._id;
+                }
+            } catch (labErr) {
+                console.warn("My-lab endpoint notice:", labErr.message);
+            }
 
-            // Fetch bookings
-            const ordersRes = await axios.get(`${API_BASE_URL}/api/bookings/lab/${res.data._id}`, getHeaders());
-            setOrders(ordersRes.data);
+            // Resilient Bookings Fetcher
+            try {
+                const endpoint = currentLabId 
+                    ? `${API_BASE_URL}/api/bookings/lab/${currentLabId}`
+                    : `${API_BASE_URL}/api/bookings/my-lab`;
+                
+                const ordersRes = await axios.get(endpoint, getHeaders());
+                if (Array.isArray(ordersRes.data) && ordersRes.data.length > 0) {
+                    setOrders(ordersRes.data);
+                } else {
+                    const fallbackRes = await axios.get(`${API_BASE_URL}/api/bookings/my-lab`, getHeaders());
+                    setOrders(Array.isArray(fallbackRes.data) ? fallbackRes.data : []);
+                }
+            } catch (bookingErr) {
+                console.warn("Lab bookings endpoint fallback:", bookingErr.message);
+                try {
+                    const fallbackRes = await axios.get(`${API_BASE_URL}/api/bookings/my-lab`, getHeaders());
+                    setOrders(Array.isArray(fallbackRes.data) ? fallbackRes.data : []);
+                } catch (e) {
+                    console.error("All booking endpoints failed:", e);
+                }
+            }
 
             // Fetch lab's tests catalog
-            const testsRes = await axios.get(`${API_BASE_URL}/api/tests/search?lab=${res.data._id}`);
-            setTests(testsRes.data);
+            if (currentLabId) {
+                try {
+                    const testsRes = await axios.get(`${API_BASE_URL}/api/tests/search?lab=${currentLabId}`);
+                    setTests(Array.isArray(testsRes.data) ? testsRes.data : []);
+                } catch (tErr) {
+                    console.warn("Tests search error:", tErr.message);
+                }
+            }
         } catch (err) {
             console.error("Error fetching lab partner data:", err);
         }
