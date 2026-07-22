@@ -318,6 +318,23 @@ h1, h2, h3, h4, .font-heading {
     flex-direction: row !important;
   }
 }
+
+/* Table wrapper to prevent horizontal scroll breaking the page */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe padding for mobile cards */
+.p-mobile-safe {
+  padding: 2rem;
+}
+@media (max-width: 768px) {
+  .p-mobile-safe {
+    padding: 1.25rem !important;
+  }
+}
 /* -- Print Styles for Receipt Modal ------------------------- */
 @media print {
   body * {

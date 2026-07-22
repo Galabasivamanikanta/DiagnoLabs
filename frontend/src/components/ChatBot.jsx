@@ -422,7 +422,7 @@ const ChatBot = () => {
                         transition={{ type: 'spring', damping: 22, stiffness: 280 }}
                         style={{
                             position: 'fixed', bottom: '7.5rem', right: '2rem',
-                            width: '430px', height: '680px',
+                            width: '100%', maxWidth: '430px', height: '90vh', maxHeight: '680px',
                             background: 'rgba(255,255,255,0.98)',
                             backdropFilter: 'blur(24px)',
                             borderRadius: '32px',

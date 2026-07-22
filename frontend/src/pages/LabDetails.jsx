@@ -92,7 +92,7 @@ const LabDetails = () => {
                     <ChevronLeft size={18} /> BACK TO PREVIOUS VIEW
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '3rem', alignItems: 'start' }}>
+                <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '3rem', alignItems: 'start' }}>
                     {/* Left Column: Profile & Info */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         <div className="glass-card" style={{ padding: '3.5rem', background: 'white', borderRadius: '40px', border: '1px solid #e2e8f0', boxShadow: '0 20px 50px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden' }}>
@@ -156,7 +156,7 @@ const LabDetails = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
                                 {filteredTests.map((test) => (
                                     <div key={test._id} className="glass-card premium-card" style={{ padding: '2rem', background: 'white', borderRadius: '28px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>

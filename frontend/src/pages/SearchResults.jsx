@@ -211,7 +211,7 @@ const SearchResults = () => {
                             filteredTests.map((test, index) => {
                                 const theme = getIconColor(test.testName);
                                 return (
-                                    <div key={test._id} className="glass-card premium-card animate-fade-in" style={{
+                                    <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack" style={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',

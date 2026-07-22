@@ -239,7 +239,7 @@ const Checkout = () => {
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Syringe size={20} style={{ color: '#7c3aed' }} /> How would you like your sample collected?
                         </h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                             {/* Home Collection Card */}
                             <div
                                 onClick={() => setCollectionType('home')}
@@ -384,7 +384,7 @@ const Checkout = () => {
                     )}
 
                     {/* Date & Time Selection */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
+                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
                         <div>
                             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Calendar size={18} style={{ color: '#0369a1' }} /> Preferred Date
@@ -419,7 +419,7 @@ const Checkout = () => {
                     </div>
 
                     {/* Patient Details & Preparation */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
+                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
                         
                         {/* Patient Details */}
                         <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '1.5rem' }}>
