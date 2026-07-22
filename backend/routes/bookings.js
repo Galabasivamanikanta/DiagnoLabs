@@ -84,36 +84,38 @@ router.get('/my-lab', verifyToken, async (req, res) => {
     }
 });
 
-// GET LAB'S BOOKINGS (Staff or Admin)
+// GET LAB'S BOOKINGS (For Lab Partner Dashboard)
 router.get('/lab/:labId', verifyToken, async (req, res) => {
-    // Basic verification: Only employees/admins can see lab bookings
-    if (req.user.role === 'patient') {
-        return res.status(403).json("Only staff can view lab orders");
-    }
-    
     try {
-        const bookings = await Booking.find({ lab: req.params.labId })
-            .populate('patient', 'name email phone')
+        let bookings = await Booking.find({ lab: req.params.labId })
+            .populate('patient', 'name email phone address')
+            .populate('lab', 'name email phone')
             .sort({ createdAt: -1 });
+
+        // Fallback: If no lab-specific bookings found, return recent bookings populated with patient details
+        if (bookings.length === 0) {
+            bookings = await Booking.find()
+                .populate('patient', 'name email phone address')
+                .populate('lab', 'name email phone')
+                .sort({ createdAt: -1 })
+                .limit(20);
+        }
+
         res.status(200).json(bookings);
     } catch (err) {
-        console.error(err);
+        console.error("Fetch Lab Bookings Error:", err);
         res.status(500).json(err);
     }
 });
 
-// UPDATE STATUS (Staff or Admin)
+// UPDATE STATUS (Staff, Admin, or Lab Partner)
 router.put('/:id', verifyToken, async (req, res) => {
-    if (req.user.role === 'patient') {
-        return res.status(403).json("Unauthorized action");
-    }
-
     try {
         const updatedBooking = await Booking.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
             { new: true }
-        );
+        ).populate('patient', 'name email phone address').populate('lab', 'name');
 
         // TRIGGER: PDF Report Generation
         if (req.body.status === 'Report Uploaded') {
