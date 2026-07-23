@@ -133,7 +133,7 @@ const Labs = () => {
                     </div>
 
                     {/* Search & Filter Command Center */}
-                    <div className="glass-card shadow-premium" style={{ background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'center' }}>
+                    <div className="glass-card shadow-premium grid-responsive" style={{ background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'center' }}>
                         <div style={{ display: 'flex', gap: '1.5rem', flex: 1 }}>
                             <div style={{ position: 'relative', flex: 1 }}>
                                 <Search size={20} style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -219,7 +219,7 @@ const Labs = () => {
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Synchronizing real-time data from OpenStreetMap & Pincode Registry</p>
                     </div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }} className="grid-responsive footer-stack">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '2.5rem' }} className="grid-responsive footer-stack">
                         {filteredLabs.length > 0 ? (
                             filteredLabs.map((lab, index) => {
                                 const isOpen = lab.isOpenNow || isLabOpen(lab.openingTime, lab.closingTime);

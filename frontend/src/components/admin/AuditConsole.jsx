@@ -27,7 +27,7 @@ const AuditConsole = () => {
 
     return (
         <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+            <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                 <div>
                     <h3 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: '800' }}>
                         <ShieldCheck size={26} color="#0f172a" /> System Audit & Security Trail
@@ -36,7 +36,7 @@ const AuditConsole = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="mobile-stack" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
                     <input type="text" placeholder="Search logs..." style={{ width: '100%', padding: '0.85rem 1rem 0.85rem 3rem', borderRadius: '12px', border: '1px solid var(--border)', outline: 'none', fontWeight: '600' }} />

@@ -49,7 +49,7 @@ const FinanceAnalytics = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ background: 'white', borderRadius: '20px', padding: '2.5rem', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
+                <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
                     <div>
                         <h3 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: '800' }}>
                             <PieChart size={24} color="#0369a1" /> Financial Settlements & Analytics
@@ -61,7 +61,7 @@ const FinanceAnalytics = () => {
                     </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                <div className="grid-responsive-auto" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '1.5rem' }}>
                     <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid var(--border)' }}>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.5rem' }}>Gross Revenue (Total)</div>
                         <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a' }}>₹{totalRevenue.toLocaleString('en-IN')}</div>

@@ -168,7 +168,7 @@ const UserProfile = () => {
 
                 <div className="glass-card" style={{ padding: '3rem', background: 'white' }}>
                     {/* Header Area */}
-                    <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '2.5rem', marginBottom: '2.5rem' }}>
+                    <div className="mobile-stack" style={{ display: 'flex', gap: '2rem', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '2.5rem', marginBottom: '2.5rem' }}>
                         <div style={{ position: 'relative', width: '130px', height: '130px' }}>
                             <div style={{ 
                                 width: '100%', height: '100%', 
@@ -227,7 +227,7 @@ const UserProfile = () => {
 
                     {isEditing ? (
                         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
                                 <div className="form-group">
                                     <label style={{ fontWeight: '700', color: 'var(--text-main)', marginBottom: '0.5rem', display: 'block' }}>Full Name</label>
                                     <div style={{ position: 'relative' }}>

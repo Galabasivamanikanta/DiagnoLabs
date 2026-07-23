@@ -91,7 +91,7 @@ const PatientProfile = ({ bookings, onDownloadInvoice }) => {
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem' }}>
+            <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem' }}>
                 
                 {/* Left Column: Patient Overview */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

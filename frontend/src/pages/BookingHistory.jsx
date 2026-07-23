@@ -97,7 +97,7 @@ const BookingHistory = () => {
                 </div>
 
                 {/* Customer ID + Stats Card */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(3, auto)', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem', background: 'white', padding: '1.5rem 2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="grid-responsive-auto" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem', background: 'white', padding: '1.5rem 2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{ padding: '0.6rem', background: '#f0f9ff', borderRadius: '10px', color: '#0369a1' }}>
                                     <IdCard size={22} />

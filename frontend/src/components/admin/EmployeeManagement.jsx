@@ -227,7 +227,7 @@ const EmployeeManagement = () => {
     return (
         <div>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div className="panel-search-wrapper">
                         <Search size={15} />
@@ -263,7 +263,7 @@ const EmployeeManagement = () => {
                     <p>{searchQuery ? 'Try a different search term' : 'Add your first team member to get started'}</p>
                 </div>
             ) : (
-                <div className="employee-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', padding: 0 }}>
+                <div className="employee-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.5rem', padding: 0 }}>
                     <AnimatePresence>
                         {filteredEmployees.map((emp, index) => (
                             <motion.div

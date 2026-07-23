@@ -87,7 +87,7 @@ const IndiaLabsFinder = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="mobile-stack" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', padding: '0.6rem 1.2rem', borderRadius: 999, border: '1px solid var(--border)', background: 'white' }}>
               <TrendingUp size={18} /> <span style={{ fontWeight: 900 }}>{results.length}</span> labs
             </div>
@@ -95,7 +95,7 @@ const IndiaLabsFinder = () => {
         </div>
 
         <div style={{ marginTop: '2.5rem', background: 'white', border: '1px solid var(--border)', borderRadius: 28, padding: '1.8rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>State</label>
               <input value={state} onChange={(e) => setState(e.target.value)} placeholder="e.g. Andhra Pradesh" style={inputStyle} />
@@ -126,7 +126,7 @@ const IndiaLabsFinder = () => {
           </div>
         </div>
 
-        <div style={{ marginTop: '2.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.8rem' }}>
+        <div style={{ marginTop: '2.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1.8rem' }}>
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 28, padding: '1.8rem', minHeight: 220 }} />

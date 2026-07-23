@@ -330,9 +330,24 @@ h1, h2, h3, h4, .font-heading {
 .p-mobile-safe {
   padding: 2rem;
 }
+
+/* Safe container for admin pages */
+.admin-mobile-safe {
+  padding: 2rem;
+  width: 100%;
+}
+
+/* Fully dynamic auto-filling grid */
+.grid-responsive-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1.5rem;
+}
+
 @media (max-width: 768px) {
-  .p-mobile-safe {
-    padding: 1.25rem !important;
+  .p-mobile-safe,
+  .admin-mobile-safe {
+    padding: 1rem !important;
   }
 }
 /* -- Print Styles for Receipt Modal ------------------------- */
