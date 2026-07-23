@@ -196,9 +196,14 @@ const Navbar = () => {
                                     <LayoutDashboard size={18} /> Partner Workbench
                                 </Link>
                             ) : (
-                                <Link to="/patient/profile" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
-                                    <User size={18} /> Profile
-                                </Link>
+                                <>
+                                    <Link to="/patient/profile" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                        <User size={18} /> Profile
+                                    </Link>
+                                    <Link to="/patient/history" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                        <Clock size={18} /> History
+                                    </Link>
+                                </>
                             )}
                             <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="dropdown-item text-danger">
                                 <LogOut size={18} /> Logout

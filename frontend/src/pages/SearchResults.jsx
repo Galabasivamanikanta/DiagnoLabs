@@ -213,9 +213,11 @@ const SearchResults = () => {
                                 return (
                                     <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack" style={{
                                         display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: '2rem',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        padding: '2rem 2.5rem',
+                                        padding: '1.2rem 1.5rem',
                                         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                         animationDelay: `${index * 0.1}s`,
                                         background: test.lab?.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (test.lab?.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
@@ -228,20 +230,24 @@ const SearchResults = () => {
                                         {test.lab?.accuracyScore && (
                                             <div style={{
                                                 position: 'absolute',
-                                                top: '12px', right: '-35px',
+                                                top: '20px', right: '20px',
                                                 background: test.lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : '#ea580c',
                                                 color: 'white',
-                                                padding: '5px 40px',
-                                                transform: 'rotate(45deg)',
-                                                fontSize: '0.65rem',
+                                                padding: '4px 0',
+                                                width: '130px',
+                                                textAlign: 'center',
+                                                whiteSpace: 'nowrap',
+                                                borderRadius: '100px',
+                                                fontSize: '0.75rem',
                                                 fontWeight: '900',
-                                                zIndex: 5
+                                                zIndex: 5,
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                             }}>
                                                 {test.lab.accuracyScore}% ACCURATE
                                             </div>
                                         )}
 
-                                        <div style={{ flex: 1 }}>
+                                        <div style={{ flex: 1, minWidth: '300px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
                                                 <div style={{
                                                     width: '64px',
@@ -258,7 +264,7 @@ const SearchResults = () => {
                                                 </div>
                                                 <div>
                                                     <h3 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', fontWeight: '900', letterSpacing: '-0.5px' }}>{test.testName}</h3>
-                                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                                             <span style={{ padding: '0.2rem 0.8rem', background: test.lab.isVerified ? 'rgba(30, 64, 175, 0.1)' : 'rgba(234, 179, 8, 0.1)', color: test.lab.isVerified ? '#1e40af' : '#ca8a04', borderRadius: '100px', fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                                 {test.lab.isVerified ? 'Premium NABL' : 'Community Discovery'}
@@ -277,7 +283,7 @@ const SearchResults = () => {
                                                 </div>
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center', marginLeft: '5.4rem', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '1rem', marginLeft: '5.2rem' }}>
                                                 <div 
                                                     onClick={() => navigate(`/lab/${test.lab._id}`)}
                                                     style={{ 
@@ -340,7 +346,7 @@ const SearchResults = () => {
                                             </div>
                                         </div>
 
-                                        <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '4rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
                                                     <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--text-main)' }}>₹</span>

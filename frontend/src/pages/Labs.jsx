@@ -232,7 +232,7 @@ const Labs = () => {
                                         className="glass-card test-result-card premium-card"
                                         style={{
                                             background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
-                                            padding: '2rem',
+                                            padding: '1.2rem 1.5rem',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             position: 'relative',
@@ -244,15 +244,18 @@ const Labs = () => {
                                         {/* Trust Badge Ribbon */}
                                         <div style={{
                                             position: 'absolute',
-                                            top: '12px', right: '-35px',
+                                            top: '20px', right: '20px',
                                             background: lab.isVerified ? 'linear-gradient(90deg, #0ea5e9, #2563eb)' : '#64748b',
                                             color: 'white',
-                                            padding: '4px 45px',
-                                            transform: 'rotate(45deg)',
-                                            fontSize: '0.65rem',
+                                            padding: '4px 0',
+                                            width: '130px',
+                                            textAlign: 'center',
+                                            whiteSpace: 'nowrap',
+                                            borderRadius: '100px',
+                                            fontSize: '0.75rem',
                                             fontWeight: '900',
                                             zIndex: 10,
-                                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                         }}>
                                             {lab.isVerified ? 'VERIFIED' : 'COMMUNITY'}
                                         </div>

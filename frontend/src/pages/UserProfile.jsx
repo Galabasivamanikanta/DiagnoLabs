@@ -294,7 +294,7 @@ const UserProfile = () => {
                                         <Map size={16} /> Auto-Detect Area
                                     </button>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div style={{ position: 'relative', gridColumn: '1 / -1' }}>
                                         <MapPin size={20} style={{ position: 'absolute', left: '1rem', top: '1.5rem', color: 'var(--text-light)' }} />
                                         <textarea name="address_street" value={formData.address_street} onChange={handleChange} className="form-control" placeholder="House / Flat No., Building Name, Street, Landmark" rows="3" style={{ border: '1px solid var(--border)', padding: '1rem 1rem 1rem 3rem', borderRadius: '12px', width: '100%', background: '#f8fafc', fontWeight: '600', outline: 'none', resize: 'vertical' }}></textarea>
@@ -308,7 +308,7 @@ const UserProfile = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <div className="mobile-stack" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                                 <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '1rem 2.5rem', borderRadius: '12px', display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '1.1rem', cursor: 'pointer', border: 'none' }}>
                                     {loading ? 'Saving...' : <><Check size={20} /> Save Changes</>}
                                 </button>
@@ -318,7 +318,7 @@ const UserProfile = () => {
                             </div>
                         </form>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2.5rem' }}>
+                        <div className="grid-responsive-auto" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '2.5rem' }}>
                             <div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: '600' }}>Email Address</div>
                                 <div style={{ fontWeight: '800', fontSize: '1.15rem', color: 'var(--text-main)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

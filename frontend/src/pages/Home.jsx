@@ -4,6 +4,7 @@ import {
     MapPin,
     Search,
     Target,
+    LocateFixed,
     ShieldCheck,
     Zap,
     Home as HomeIcon,
@@ -175,7 +176,7 @@ const Home = () => {
                                     {locLoading ? (
                                         <Activity size={24} style={{ animation: 'pulse 1s infinite' }} />
                                     ) : (
-                                        <Target size={24} style={{ color: coords ? 'var(--success)' : 'var(--text-muted)' }} />
+                                        <LocateFixed size={24} style={{ color: coords ? 'var(--success)' : 'var(--text-muted)' }} />
                                     )}
                                 </button>
 

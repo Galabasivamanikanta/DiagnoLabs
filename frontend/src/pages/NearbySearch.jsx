@@ -224,7 +224,7 @@ const NearbySearch = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem' }}>
                     {filteredResults.slice(0, visibleCount).map((lab, index) => (
                         <div key={lab._id || lab.googlePlaceId} className="glass-card premium-card animate-fade-in" style={{
-                            padding: '2rem',
+                            padding: '1.2rem 1.5rem',
                             borderRadius: '28px',
                             display: 'flex',
                             flexDirection: 'column',
@@ -239,15 +239,18 @@ const NearbySearch = () => {
                             {/* High-Accuracy Label Overlay */}
                             <div style={{
                                 position: 'absolute',
-                                top: '15px', right: '-35px',
+                                top: '20px', right: '20px',
                                 background: lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (lab.accuracyScore >= 75 ? '#ca8a04' : '#ea580c'),
                                 color: 'white',
-                                padding: '6px 45px',
-                                transform: 'rotate(45deg)',
-                                fontSize: '0.7rem',
+                                padding: '4px 0',
+                                width: '130px',
+                                textAlign: 'center',
+                                whiteSpace: 'nowrap',
+                                borderRadius: '100px',
+                                fontSize: '0.75rem',
                                 fontWeight: '900',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                zIndex: 10
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                zIndex: 1010
                             }}>
                                 {lab.accuracyScore}% ACCURATE
                             </div>
