@@ -64,7 +64,7 @@ const AdminProfile = () => {
 
     return (
         <div className="animate-fade-in" style={{ padding: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+            <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
                 <div>
                     <h2 style={{ fontSize: '2rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: '800' }}>Administrative Identity</h2>
                     <p style={{ color: 'var(--text-muted)' }}>Manage your personal, professional, and contact parameters.</p>
@@ -89,7 +89,7 @@ const AdminProfile = () => {
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem' }}>
+            <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem' }}>
                 
                 {/* Left Column: Organization & Identity */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
