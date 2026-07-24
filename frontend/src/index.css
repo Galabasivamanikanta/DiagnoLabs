@@ -372,3 +372,55 @@ h1, h2, h3, h4, .font-heading {
     display: none !important;
   }
 }
+
+/* Responsive Table */
+@media (max-width: 768px) {
+  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table tr {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    background: white;
+  }
+  .responsive-table td {
+    text-align: right;
+    padding-left: 40% !important;
+    position: relative;
+    border: none !important;
+    border-bottom: 1px dashed var(--border) !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 0.8rem !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .responsive-table td:last-child {
+    border-bottom: none !important;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 35%;
+    text-align: left;
+    font-weight: 800;
+    color: var(--text-light);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .responsive-table td > div {
+    text-align: right;
+    justify-content: flex-end;
+  }
+}

@@ -3,6 +3,9 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { verifyToken } = require('../middleware/auth');
 const aiSentinel = require('../middleware/aiSentinel');
+const Booking = require('../models/Booking');
+const fs = require('fs');
+const path = require('path');
 
 // ─────────────────────────────────────────────────────────────
 // Gemini Initialization
@@ -105,11 +108,13 @@ When the user uploads a prescription image:
 ═══════════════════════════════════════════════════════════════
 GENERAL RULES
 ═══════════════════════════════════════════════════════════════
+- CRITICAL: You are strictly restricted to discussing the user's DiagnoLabs data, bookings, test results, and relevant clinical/medical information. Do NOT provide outside details or non-medical information.
 - Always end with safety disclaimer: "⚕️ This is AI-generated health information. Please consult a qualified doctor for professional medical advice."
 - Use Markdown formatting (bold, bullet points) for readability.
 - Do NOT recommend controlled substances or prescription drugs by name unless explaining them educationally.
 - Control tokens must appear at the very END of your response on their own lines. Never inside paragraphs.
 - Only append tokens that are relevant to the current message.
+- Rely heavily on [USER DATABASE CONTEXT] if provided, to answer queries about bookings and reports.
 `;
 
 // ─────────────────────────────────────────────────────────────
@@ -158,9 +163,65 @@ router.post('/', verifyToken, aiSentinel, async (req, res) => {
         if (context) {
             fullPrompt = `[APP CONTEXT: ${context}]\n\n${fullPrompt}`;
         }
+
+        // Fetch User Database Context
+        let dbContext = '';
+        let latestReportPath = null;
+        let latestReportMimeType = null;
+        
+        if (req.user && req.user.id) {
+            try {
+                const recentBookings = await Booking.find({ patient: req.user.id }).sort({ createdAt: -1 }).limit(3);
+                if (recentBookings.length > 0) {
+                    dbContext = `[USER DATABASE CONTEXT]: The user's recent bookings are:\n`;
+                    recentBookings.forEach(b => {
+                        dbContext += `- Booking ID: ${b._id}, Date: ${b.appointmentDate?.toISOString().split('T')[0]}, Tests: ${b.testDetails.map(t => t.testName).join(', ')}, Status: ${b.status}, Has Report: ${!!b.reportUrl}\n`;
+                        
+                        // Identify latest report for direct analysis
+                        if (!latestReportPath && b.reportUrl) {
+                            // Extract filename from URL (e.g. http://localhost:5000/uploads/123.pdf -> 123.pdf)
+                            const fileName = b.reportUrl.split('/uploads/').pop();
+                            if (fileName) {
+                                const filePath = path.join(__dirname, '../uploads', fileName);
+                                if (fs.existsSync(filePath)) {
+                                    latestReportPath = filePath;
+                                    const ext = path.extname(fileName).toLowerCase();
+                                    if (ext === '.pdf') latestReportMimeType = 'application/pdf';
+                                    else if (ext === '.png') latestReportMimeType = 'image/png';
+                                    else if (ext === '.jpg' || ext === '.jpeg') latestReportMimeType = 'image/jpeg';
+                                }
+                            }
+                        }
+                    });
+                    fullPrompt = `${dbContext}\n\n${fullPrompt}`;
+                }
+            } catch (err) {
+                console.error("Failed to fetch user bookings for context", err);
+            }
+        }
+
         // Add user name to personalise
         if (fullPrompt) {
             currentParts.push({ text: `[User name: ${userName}]\n${fullPrompt}` });
+        }
+
+        // Auto-attach latest report if intent implies analysis and no manual file was attached
+        if (!fileData && latestReportPath && prompt) {
+            const p = prompt.toLowerCase();
+            if (p.includes('analyze') || p.includes('report') || p.includes('result') || p.includes('check my last')) {
+                try {
+                    const fileBuffer = fs.readFileSync(latestReportPath);
+                    currentParts.push({
+                        inlineData: {
+                            data: fileBuffer.toString('base64'),
+                            mimeType: latestReportMimeType
+                        }
+                    });
+                    console.log(`[AI-CLINICAL] Auto-attached report: ${latestReportPath}`);
+                } catch (e) {
+                    console.error("Failed to auto-attach local report file", e);
+                }
+            }
         }
 
         // Attach uploaded file (prescription / report image or PDF)

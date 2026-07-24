@@ -60,6 +60,22 @@ import io from 'socket.io-client';
 const LabDashboard = () => {
     const { user, setUser } = useContext(AuthContext);
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const getReportUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http')) {
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+                    const apiOrigin = new URL(API_BASE_URL).origin;
+                    return `${apiOrigin}${urlObj.pathname}${urlObj.search}`;
+                }
+            } catch (e) { /* ignore */ }
+            return url;
+        }
+        return `${API_BASE_URL.replace('/api', '')}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
 
     // Core States
     const [orders, setOrders] = useState([]);
@@ -696,7 +712,7 @@ const LabDashboard = () => {
                                                 {/* Operations Action Desk */}
                                                 <div className="flex items-center justify-end gap-2 border-t lg:border-t-0 pt-3 lg:pt-0">
                                                     {order.status === 'Report Uploaded' ? (
-                                                        <a href={order.reportUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-slate-200 text-navy bg-slate-50 text-[11px] font-bold flex items-center gap-1 hover:bg-slate-100">
+                                                        <a href={getReportUrl(order.reportUrl)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-slate-200 text-navy bg-slate-50 text-[11px] font-bold flex items-center gap-1 hover:bg-slate-100">
                                                             View Report <ChevronRight size={14} />
                                                         </a>
                                                     ) : (

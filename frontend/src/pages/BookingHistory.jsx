@@ -43,6 +43,21 @@ const BookingHistory = () => {
     const [trackingBooking, setTrackingBooking] = useState(null);
     const navigate = useNavigate();
 
+    const getReportUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http')) {
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+                    const apiOrigin = new URL(API_BASE_URL).origin;
+                    return `${apiOrigin}${urlObj.pathname}${urlObj.search}`;
+                }
+            } catch (e) { /* ignore */ }
+            return url;
+        }
+        return `${API_BASE_URL.replace('/api', '')}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
         const fetchBookings = async () => {
@@ -166,8 +181,8 @@ const BookingHistory = () => {
                             <div style={{ color: 'var(--text-light)', marginTop: '0.5rem' }}>Try adjusting your search or filter.</div>
                         </div>
                     ) : (
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                        <div style={{ overflowX: 'auto', padding: '0.5rem' }}>
+                            <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
                                 <thead>
                                     <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
                                         {['S.No', 'Booking ID', 'Date', 'Test(s)', 'Lab', 'Amount', 'Status', 'Action'].map(h => (
@@ -186,12 +201,12 @@ const BookingHistory = () => {
                                                 onMouseLeave={e => e.currentTarget.style.background = 'white'}
                                             >
                                                 {/* S.No */}
-                                                <td style={{ padding: '1.1rem 1.25rem', fontWeight: '800', color: 'var(--text-muted)', width: '60px' }}>
+                                                <td data-label="S.No" style={{ padding: '1.1rem 1.25rem', fontWeight: '800', color: 'var(--text-light)' }}>
                                                     {idx + 1}
                                                 </td>
 
                                                 {/* Booking ID */}
-                                                <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
+                                                <td data-label="Booking ID" style={{ padding: '1.1rem 1.25rem' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                         <span style={{ fontFamily: 'monospace', fontWeight: '800', color: 'var(--primary)', fontSize: '0.9rem' }}>
                                                             DH-{b._id.slice(-8).toUpperCase()}
@@ -200,7 +215,7 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {/* Date */}
-                                                <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
+                                                <td data-label="Date" style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: '700' }}>
                                                         <CalendarDays size={15} style={{ color: 'var(--text-muted)' }} />
                                                         {b.appointmentDate ? new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
@@ -211,7 +226,7 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {/* Test(s) */}
-                                                <td style={{ padding: '1.1rem 1.25rem', maxWidth: '220px' }}>
+                                                <td data-label="Test(s)" style={{ padding: '1.1rem 1.25rem', maxWidth: '220px' }}>
                                                     <div style={{ fontWeight: '800', color: 'var(--text-main)' }}>
                                                         {b.testDetails?.[0]?.testName || 'N/A'}
                                                     </div>
@@ -223,8 +238,8 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {/* Lab & Lab ID */}
-                                                <td style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                                                <td data-label="Lab & ID" style={{ padding: '1.1rem 1.25rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: 'var(--text-main)' }}>
                                                         <Building2 size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                                                         {b.lab?.name || 'DAA Accredited Lab'}
                                                     </div>
@@ -234,7 +249,7 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {/* Amount */}
-                                                <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
+                                                <td data-label="Amount" style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: '800', color: 'var(--text-main)' }}>
                                                         <BadgeIndianRupee size={16} style={{ color: '#166534' }} />
                                                         {b.totalAmount?.toLocaleString('en-IN')}
@@ -242,15 +257,15 @@ const BookingHistory = () => {
                                                 </td>
 
                                                 {/* Status */}
-                                                <td style={{ padding: '1.1rem 1.25rem' }}>
+                                                <td data-label="Status" style={{ padding: '1.1rem 1.25rem' }}>
                                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                                                         {cfg.icon} {b.status}
                                                     </span>
                                                 </td>
 
                                                 {/* Action */}
-                                                <td style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'nowrap' }}>
+                                                <td data-label="Action" style={{ padding: '1.1rem 1.25rem' }}>
+                                                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                         <button
                                                             onClick={() => setSelectedBooking(b)}
                                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#f1f5f9', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
@@ -267,7 +282,7 @@ const BookingHistory = () => {
 
                                                         {(b.status === 'Report Uploaded' || b.reportUrl) && (
                                                             <a
-                                                                href={b.reportUrl?.startsWith('http') ? b.reportUrl : `${API_BASE_URL.replace('/api', '')}${b.reportUrl?.startsWith('/') ? '' : '/'}${b.reportUrl}`}
+                                                                href={getReportUrl(b.reportUrl)}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#166534', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
@@ -297,6 +312,12 @@ const BookingHistory = () => {
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
                 tr { background: white; }
+                @media (max-width: 768px) {
+                    .responsive-table thead { display: none; }
+                    .responsive-table tr { display: block; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 12px; }
+                    .responsive-table td { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem !important; border-bottom: 1px solid #f1f5f9; }
+                    .responsive-table td::before { content: attr(data-label); font-weight: 800; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+                }
             `}</style>
             
             {selectedBooking && (
@@ -393,7 +414,7 @@ const BookingHistory = () => {
 
                         {(trackingBooking.status === 'Report Uploaded' || trackingBooking.reportUrl) && (
                             <a
-                                href={trackingBooking.reportUrl?.startsWith('http') ? trackingBooking.reportUrl : `${API_BASE_URL.replace('/api', '')}${trackingBooking.reportUrl?.startsWith('/') ? '' : '/'}${trackingBooking.reportUrl}`}
+                                href={getReportUrl(trackingBooking.reportUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', padding: '0.85rem', background: '#166534', color: 'white', borderRadius: '12px', fontWeight: '800', fontSize: '0.95rem', textDecoration: 'none', marginTop: '1rem' }}
