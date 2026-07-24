@@ -64,7 +64,7 @@ const LabDashboard = () => {
     // Core States
     const [orders, setOrders] = useState([]);
     const [tests, setTests] = useState([]);
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState({});
     const [uploading, setUploading] = useState(null);
     const [labDetails, setLabDetails] = useState(null);
     const [labId, setLabId] = useState(null);
@@ -248,9 +248,9 @@ const LabDashboard = () => {
         return () => socket.disconnect();
     }, [user, labId]);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (orderId, e) => {
         if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+            setFiles(prev => ({ ...prev, [orderId]: e.target.files[0] }));
         }
     };
 
@@ -264,9 +264,10 @@ const LabDashboard = () => {
     };
 
     const uploadReport = async (bookingId) => {
-        if (!file) { alert("Please select a report file (PDF/Image) first!"); return; }
+        const fileToUpload = files[bookingId];
+        if (!fileToUpload) { alert("Please select a report file (PDF/Image) first!"); return; }
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', fileToUpload);
         formData.append('bookingId', bookingId);
         
         const token = localStorage.getItem('token');
@@ -280,7 +281,7 @@ const LabDashboard = () => {
             });
             setOrders(prev => prev.map(order => order._id === bookingId ? { ...order, status: 'Report Uploaded', reportUrl: res.data.url } : order));
             alert("Accredited Report transmitted successfully!");
-            setFile(null);
+            setFiles(prev => ({ ...prev, [bookingId]: null }));
         } catch (err) {
             console.error(err);
             alert("Failed to upload report.");
@@ -712,8 +713,8 @@ const LabDashboard = () => {
                                                             </select>
                                                             
                                                             <label className="h-8 px-2.5 bg-white border border-dashed border-slate-300 rounded-lg flex items-center cursor-pointer text-xs font-bold text-slate-600 hover:bg-slate-50">
-                                                                <FileUp size={13} className="mr-1 text-gold" /> {file ? 'Ready' : 'Attach'}
-                                                                <input type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg" className="hidden" />
+                                                                <FileUp size={13} className="mr-1 text-gold" /> {files[order._id] ? 'Ready' : 'Attach'}
+                                                                <input type="file" onChange={(e) => handleFileChange(order._id, e)} accept=".pdf,.png,.jpg" className="hidden" />
                                                             </label>
 
                                                             <button
