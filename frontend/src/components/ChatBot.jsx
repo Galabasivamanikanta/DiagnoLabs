@@ -157,6 +157,7 @@ const ChatBot = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);   // TTS toggle
+    const [isSpeaking, setIsSpeaking] = useState(false); // speaking state
     const [isListening, setIsListening] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -185,7 +186,7 @@ const ChatBot = () => {
 
     // Stop speech when chat closes
     useEffect(() => {
-        if (!isOpen) synthRef.current?.cancel();
+        if (!isOpen) stopSpeaking();
     }, [isOpen]);
 
     // ── Speech Recognition setup ──────────────────────────────
@@ -214,7 +215,7 @@ const ChatBot = () => {
         if (isListening) {
             recognitionRef.current.stop();
         } else {
-            synthRef.current?.cancel();  // stop any speaking before listening
+            stopSpeaking();
             recognitionRef.current.start();
             setIsListening(true);
         }
@@ -226,16 +227,31 @@ const ChatBot = () => {
         synthRef.current.cancel();
         const utterance = new SpeechSynthesisUtterance(cleanText(text));
         utterance.lang = 'en-IN';
-        utterance.rate = 0.95;
-        utterance.pitch = 1.05;
-        // Prefer a female Indian English voice if available
+        utterance.rate = 0.92;
+        utterance.pitch = 1.1;
+        // Force a female voice — try multiple strategies
         const voices = synthRef.current.getVoices();
-        const preferred = voices.find(v => v.lang === 'en-IN') ||
-            voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
+        const femaleVoice =
+            voices.find(v => v.name === 'Google UK English Female') ||
+            voices.find(v => v.name === 'Google US English Female') ||
+            voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
+            voices.find(v => v.name.toLowerCase().includes('zira')) ||  // Windows female
+            voices.find(v => v.name.toLowerCase().includes('samantha')) || // macOS female
+            voices.find(v => v.name.toLowerCase().includes('hazel')) ||
+            voices.find(v => v.name.toLowerCase().includes('aria')) ||
+            voices.find(v => v.lang === 'en-IN') ||
             voices.find(v => v.lang.startsWith('en'));
-        if (preferred) utterance.voice = preferred;
+        if (femaleVoice) utterance.voice = femaleVoice;
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
         synthRef.current.speak(utterance);
     }, [isMuted]);
+
+    const stopSpeaking = () => {
+        synthRef.current?.cancel();
+        setIsSpeaking(false);
+    };
 
     // ── File Upload ────────────────────────────────────────────
     const handleFileChange = (e) => {
@@ -290,7 +306,7 @@ const ChatBot = () => {
         setInputValue('');
         setShowQuickPrompts(false);
         setIsLoading(true);
-        synthRef.current?.cancel();
+        stopSpeaking();
 
         try {
             const chatHistory = messages
@@ -360,7 +376,7 @@ const ChatBot = () => {
     };
 
     const handleReset = () => {
-        synthRef.current?.cancel();
+        stopSpeaking();
         setMessages([{
             id: Date.now(),
             text: `Conversation reset. How can I help you today? 😊`,
@@ -449,10 +465,27 @@ const ChatBot = () => {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                                    {/* Stop Voice — only shown while speaking */}
+                                    <AnimatePresence>
+                                        {isSpeaking && (
+                                            <motion.button
+                                                key="stop-voice"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                whileTap={{ scale: 0.85 }}
+                                                onClick={stopSpeaking}
+                                                title="Stop voice"
+                                                style={{ background: 'rgba(239,68,68,0.22)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', cursor: 'pointer', borderRadius: '8px', padding: '0.35rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', fontWeight: '800' }}
+                                            >
+                                                <VolumeX size={14} /> Stop
+                                            </motion.button>
+                                        )}
+                                    </AnimatePresence>
                                     {/* Mute / Unmute TTS */}
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
-                                        onClick={() => { setIsMuted(m => !m); synthRef.current?.cancel(); }}
+                                        onClick={() => { setIsMuted(m => !m); stopSpeaking(); }}
                                         title={isMuted ? 'Unmute voice' : 'Mute voice'}
                                         style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: isMuted ? 'rgba(255,255,255,0.3)' : '#38bdf8', cursor: 'pointer', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}
                                     >
