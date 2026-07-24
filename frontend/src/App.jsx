@@ -16,6 +16,7 @@ import Labs from './pages/Labs';
 import LabDetails from './pages/LabDetails';
 import NearbySearch from './pages/NearbySearch';
 import IndiaLabsFinder from './pages/IndiaLabsFinder';
+import SampleCollectorDashboard from './pages/SampleCollectorDashboard';
 import { AuthProvider } from './context/AuthContext';
 import DemoGuard from './components/DemoGuard';
 import Demo from './pages/Demo';
@@ -88,6 +89,13 @@ const MainLayout = () => {
         {/* Lab Portal */}
         <Route path="/partner/login" element={<LabLogin />} />
         <Route path="/partner/dashboard" element={<LabDashboard />} />
+
+        {/* Sample Collector Portal */}
+        <Route path="/collector/dashboard" element={
+          <ProtectedRoute roles={['admin', 'phlebotomist', 'employee', 'nurse', 'lab_partner']}>
+            <SampleCollectorDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* Admin Portal - Protected */}
         <Route path="/admin/login" element={<AdminLogin />} />

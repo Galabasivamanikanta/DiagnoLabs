@@ -184,6 +184,7 @@ app.use('/api/india-labs', require('./routes/indiaLabs'));
 
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/collector', require('./routes/collector'));
+app.use('/api/collector-dashboard', require('./routes/collectorDashboard'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 
