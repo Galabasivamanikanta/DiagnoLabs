@@ -132,8 +132,8 @@ const Demo = () => {
         <div className="demo-custom-right">
           <div className="demo-auth-buttons">
             <button className="demo-btn demo-btn-secondary" style={{ border: '1px solid var(--demo-accent)' }} onClick={() => handleExitDemo('/')}>Explore Site</button>
-            <button className="demo-btn demo-btn-secondary" onClick={() => handleExitDemo('/login')}>Login</button>
-            <button className="demo-btn demo-btn-primary" onClick={() => handleExitDemo('/login', { state: { tab: 'citizen' } })}>Register</button>
+            <button className="demo-btn demo-btn-secondary" onClick={() => handleExitDemo('/userlogin')}>Login</button>
+            <button className="demo-btn demo-btn-primary" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>Register</button>
           </div>
         </div>
       </header>
@@ -145,7 +145,7 @@ const Demo = () => {
           <h1 className="demo-hero-title">Precision Discovery.<br /><span>Expert Diagnosis.</span></h1>
           <p className="demo-hero-subtitle">Unified gateway to India's most trusted NABL-certified clinical networks with cutting-edge technology and expert pathologists.</p>
           <div className="demo-hero-buttons">
-            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/login', { state: { tab: 'citizen' } })}>
+            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>
               Get Started <ArrowRight size={20} />
             </button>
             <button className="demo-btn demo-btn-secondary demo-btn-large" onClick={() => handleExitDemo('/')}>
@@ -306,7 +306,7 @@ const Demo = () => {
           <div className="demo-cta-content">
             <h2>Ready to Experience Better Diagnostics?</h2>
             <p>Join thousands of patients who trust DiagnoLabs for accurate, reliable, and accessible testing.</p>
-            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/login', { state: { tab: 'citizen' } })}>
+            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>
               Get Started Now <ArrowRight size={20} />
             </button>
           </div>
@@ -379,8 +379,8 @@ const Demo = () => {
               </div>
               <div className="demo-footer-col">
                 <h4>Quick Links</h4>
-                <button onClick={() => handleExitDemo('/login')} className="demo-footer-link">Login</button>
-                <button onClick={() => handleExitDemo('/login', { state: { tab: 'citizen' } })} className="demo-footer-link">Register</button>
+                <button onClick={() => handleExitDemo('/userlogin')} className="demo-footer-link">Login</button>
+                <button onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })} className="demo-footer-link">Register</button>
                 <button onClick={() => handleExitDemo('/')} className="demo-footer-link" style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left', textDecoration: 'none' }}>Home</button>
               </div>
             </div>
@@ -396,3 +396,4 @@ const Demo = () => {
 };
 
 export default Demo;
+

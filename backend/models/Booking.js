@@ -25,7 +25,7 @@ const bookingSchema = new mongoose.Schema({
     // STATUS TRACKING
     status: {
         type: String,
-        enum: ['Pending', 'Confirmed', 'Sample Collected', 'Sample Processing', 'Report Uploaded', 'Cancelled'],
+        enum: ['Pending', 'Confirmed', 'Out for Collection', 'Sample Collected', 'Sample Processing', 'Report Uploaded', 'Cancelled'],
         default: 'Pending'
     },
 
@@ -36,6 +36,11 @@ const bookingSchema = new mongoose.Schema({
     reportUrl: { type: String }, // Link to PDF (S3/Cloudinary)
     reportUploadedAt: { type: Date },
     mentorNote: { type: String },
+    
+    // COLLECTOR FEATURES
+    vialBarcode: { type: String },
+    collectionProofUrl: { type: String },
+    paymentMethod: { type: String },
 
 
     // PAYMENT LOGISTICS (Razorpay)
@@ -47,6 +52,13 @@ const bookingSchema = new mongoose.Schema({
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
+
+    // ADVANCED STAFF LOGISTICS
+    deliveryPartnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    qualityApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    qualityStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    doctorNotes: { type: String },
+    doctorPrescriptionUrl: { type: String },
 
     createdAt: { type: Date, default: Date.now }
 });

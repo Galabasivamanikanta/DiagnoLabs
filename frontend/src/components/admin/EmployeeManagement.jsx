@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../../config';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     UserPlus, Edit3, Trash2, X, Search, Shield, 
-    Phone, Mail, User, Lock, ChevronDown, CheckCircle, RefreshCw
+    Phone, Mail, User, Lock, ChevronDown, CheckCircle, RefreshCw, Eye, EyeOff
 } from 'lucide-react';
 
 const AVATAR_GRADIENTS = [
@@ -29,20 +29,20 @@ const getInitials = (name) => {
 };
 
 const ROLES = [
-    { value: 'admin', label: 'Administrator' },
-    { value: 'employee', label: 'Employee' },
+    { value: 'admin', label: 'Admin (System Manager)' },
+    { value: 'employee', label: 'General Staff' },
     { value: 'lab_partner', label: 'Lab Partner' },
     { value: 'doctor', label: 'Doctor' },
-    { value: 'phlebotomist', label: 'Phlebotomist' },
+    { value: 'phlebotomist', label: 'Sample Collector' },
     { value: 'nurse', label: 'Nurse' },
-    { value: 'receptionist', label: 'Receptionist' },
+    { value: 'receptionist', label: 'Front Desk / Reception' },
     { value: 'inventory_manager', label: 'Inventory Manager' },
-    { value: 'finance_manager', label: 'Finance Manager' },
-    { value: 'marketing_head', label: 'Marketing Head' },
+    { value: 'finance_manager', label: 'Accounts / Finance' },
+    { value: 'marketing_head', label: 'Marketing' },
     { value: 'support_staff', label: 'Support Staff' },
     { value: 'delivery_partner', label: 'Delivery Partner' },
-    { value: 'quality_auditor', label: 'Quality Auditor' },
-    { value: 'it_specialist', label: 'IT Specialist' }
+    { value: 'quality_auditor', label: 'Quality Control' },
+    { value: 'it_specialist', label: 'IT Support' }
 ];
 
 const EmployeeManagement = () => {
@@ -57,6 +57,8 @@ const EmployeeManagement = () => {
     const [step, setStep] = useState(1); // 1: Info, 2: OTP, 3: Password
     const [otp, setOtp] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [otpError, setOtpError] = useState('');
     const [otpSent, setOtpSent] = useState(false);
@@ -149,19 +151,14 @@ const EmployeeManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!editMode) {
-            if (formData.password !== confirmPassword) {
-                alert("Passwords do not match!");
-                return;
-            }
-        }
+        
 
         try {
             if (editMode) {
                 await axios.put(`${API_BASE_URL}/api/admin/employees/${currentId}`, formData, getHeaders());
                 alert("Employee updated successfully");
             } else {
-                await axios.post(`${API_BASE_URL}/api/admin/employees`, formData, getHeaders());
+                await axios.post(`${API_BASE_URL}/api/auth/admin-register`, formData, getHeaders());
                 alert("Employee created and registered successfully");
             }
             setShowModal(false);
@@ -470,28 +467,38 @@ const EmployeeManagement = () => {
                                                 <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>
                                                     {editMode ? 'New Password (optional)' : 'Password'}
                                                 </label>
-                                                <input
-                                                    type="password"
-                                                    style={{ width: '100%', padding: '0.8rem 1rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
-                                                    name="password"
-                                                    value={formData.password}
-                                                    onChange={handleInputChange}
-                                                    required={!editMode}
-                                                    placeholder={editMode ? "Leave blank to keep current password" : "Min. 6 characters"}
-                                                />
+                                                <div style={{ position: 'relative' }}>
+                                                    <input
+                                                        type={showPassword ? "text" : "password"}
+                                                        style={{ width: '100%', padding: '0.8rem 1rem', paddingRight: '2.5rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
+                                                        name="password"
+                                                        value={formData.password}
+                                                        onChange={handleInputChange}
+                                                        required={!editMode}
+                                                        placeholder={editMode ? "Leave blank to keep current password" : "Min. 6 characters"}
+                                                    />
+                                                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {!editMode && (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                                     <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Confirm Password</label>
-                                                    <input
-                                                        type="password"
-                                                        style={{ width: '100%', padding: '0.8rem 1rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
-                                                        value={confirmPassword}
-                                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                                        required
-                                                        placeholder="Confirm your password"
-                                                    />
+                                                    <div style={{ position: 'relative' }}>
+                                                        <input
+                                                            type={showConfirmPassword ? "text" : "password"}
+                                                            style={{ width: '100%', padding: '0.8rem 1rem', paddingRight: '2.5rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
+                                                            value={confirmPassword}
+                                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                                            required
+                                                            placeholder="Confirm your password"
+                                                        />
+                                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
 
@@ -549,3 +556,5 @@ const EmployeeManagement = () => {
 };
 
 export default EmployeeManagement;
+
+

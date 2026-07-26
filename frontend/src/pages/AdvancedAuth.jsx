@@ -118,7 +118,7 @@ const AdvancedAuth = () => {
 
     const response = await register(payload);
     if (response.success) {
-      navigate('/login', { state: { message: 'Account created. Please login to continue.' } });
+      navigate('/userlogin', { state: { message: 'Account created. Please login to continue.' } });
     } else {
       setRegisterErrors({ general: response.message || 'Unable to create account. Please try again.' });
       setIsLoading(false);
@@ -446,3 +446,4 @@ const AdvancedAuth = () => {
 };
 
 export default AdvancedAuth;
+

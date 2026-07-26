@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, roles }) => {
+const ProtectedRoute = ({ children, roles, fallback = "/userlogin" }) => {
     const { user, loading } = useContext(AuthContext);
     const location = useLocation();
 
@@ -11,11 +11,11 @@ const ProtectedRoute = ({ children, roles }) => {
     }
 
     if (!user) {
-        return <Navigate to="/login" replace state={{ from: location, message: "UnAuthorized User plz login in Portel" }} />;
+        return <Navigate to={fallback} replace state={{ from: location, message: "UnAuthorized User plz login in Portel" }} />;
     }
 
     if (roles && !roles.includes(user.role)) {
-        return <Navigate to="/login" replace state={{
+        return <Navigate to={fallback} replace state={{
             from: location,
             message: `Access Denied: You are logged in as '${user.role}' but this page is for '${roles.join(', ')}'. Please login with the correct account.`
         }} />;
@@ -25,3 +25,4 @@ const ProtectedRoute = ({ children, roles }) => {
 };
 
 export default ProtectedRoute;
+

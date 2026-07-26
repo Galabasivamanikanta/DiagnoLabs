@@ -20,29 +20,10 @@ import SampleCollectorDashboard from './pages/SampleCollectorDashboard';
 import { AuthProvider } from './context/AuthContext';
 import DemoGuard from './components/DemoGuard';
 import Demo from './pages/Demo';
+import AdminLoginForm from './pages/AdminLogin';
 import { useLocation } from 'react-router-dom';
 
-// Utility Portals (Admin & Lab)
-const SpecializedLogin = ({ title }) => {
-  const navigate = useNavigate();
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', paddingTop: '8rem' }}>
-      <div className="glass-card shadow-premium" style={{ padding: '5rem', textAlign: 'center', background: 'white', maxWidth: '500px' }}>
-        <div style={{ width: '80px', height: '80px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
-          <ShieldCheck size={40} />
-        </div>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '1rem' }}>{title}</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', fontWeight: '500' }}>Please use the centralized gateway to access the secure clinical environment.</p>
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
-          <button onClick={() => navigate('/login')} className="btn btn-primary" style={{ padding: '1.2rem', borderRadius: '14px' }}>Enter Portal Gateway</button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-const LabLogin = () => <SpecializedLogin title="Lab Partner Portal" />;
-const AdminLogin = () => <SpecializedLogin title="DAA Administration" />;
 
 const MainLayout = () => {
   const location = useLocation();
@@ -61,7 +42,7 @@ const MainLayout = () => {
         <Route path="/lab/:id" element={<LabDetails />} />
         <Route path="/nearby-search" element={<NearbySearch />} />
         <Route path="/india-labs-finder" element={<IndiaLabsFinder />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/userlogin" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
         {/* Patient Portal - Protected */}
@@ -87,20 +68,20 @@ const MainLayout = () => {
         } />
 
         {/* Lab Portal */}
-        <Route path="/partner/login" element={<LabLogin />} />
+        <Route path="/partner/login" element={<Navigate to="/adminlogin" replace />} />
         <Route path="/partner/dashboard" element={<LabDashboard />} />
 
         {/* Sample Collector Portal */}
         <Route path="/collector/dashboard" element={
-          <ProtectedRoute roles={['admin', 'phlebotomist', 'employee', 'nurse', 'lab_partner']}>
+          <ProtectedRoute fallback="/adminlogin" roles={['admin', 'phlebotomist', 'employee', 'nurse', 'lab_partner']}>
             <SampleCollectorDashboard />
           </ProtectedRoute>
         } />
 
         {/* Admin Portal - Protected */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/adminlogin" element={<AdminLoginForm />} />
         <Route path="/admin/dashboard" element={
-          <ProtectedRoute roles={[
+          <ProtectedRoute fallback="/adminlogin" roles={[
             'admin', 'employee', 'doctor', 'phlebotomist', 'nurse', 'receptionist', 
             'inventory_manager', 'finance_manager', 'marketing_head', 'support_staff', 
             'delivery_partner', 'quality_auditor', 'it_specialist'
@@ -129,3 +110,6 @@ function App() {
 }
 
 export default App;
+
+
+

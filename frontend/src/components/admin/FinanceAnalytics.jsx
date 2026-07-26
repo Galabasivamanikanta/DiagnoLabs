@@ -12,7 +12,7 @@ const FinanceAnalytics = () => {
     useEffect(() => {
         const fetchBookings = async () => {
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/bookings/all`);
+                const res = await axios.get(`${API_BASE_URL}/api/bookings/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 setBookings(res.data);
             } catch (err) {
                 console.error("Failed to fetch bookings for finance", err);
@@ -116,3 +116,4 @@ const FinanceAnalytics = () => {
 };
 
 export default FinanceAnalytics;
+

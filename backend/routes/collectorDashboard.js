@@ -16,7 +16,7 @@ router.get('/assignments', verifyToken, async (req, res) => {
         }
 
         const bookings = await Booking.find({
-            status: { $in: ['Pending', 'Confirmed', 'Sample Collected', 'Sample Processing'] }
+            status: { $in: ['Pending', 'Confirmed', 'Out for Collection', 'Sample Collected', 'Sample Processing'] }
         })
         .populate('patient', 'name phone email address')
         .sort({ appointmentDate: 1, createdAt: -1 })
@@ -104,7 +104,7 @@ router.put('/status/:bookingId', verifyToken, async (req, res) => {
         }
 
         const { status, collectorNote } = req.body;
-        const validStatuses = ['Confirmed', 'Sample Collected', 'Sample Processing'];
+        const validStatuses = ['Confirmed', 'Out for Collection', 'Sample Collected', 'Sample Processing'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: 'Invalid status. Allowed: ' + validStatuses.join(', ') });
         }
@@ -119,6 +119,60 @@ router.put('/status/:bookingId', verifyToken, async (req, res) => {
         res.status(200).json({ message: 'Status updated!', booking });
     } catch (err) {
         res.status(500).json({ message: 'Failed to update status', error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/collector-dashboard/payment/:bookingId
+// Collect Cash/UPI
+// ─────────────────────────────────────────────────────────────
+router.put('/payment/:bookingId', verifyToken, async (req, res) => {
+    try {
+        const { paymentMethod } = req.body;
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.bookingId,
+            { paymentStatus: 'Paid', paymentMethod: paymentMethod || 'Cash' },
+            { new: true }
+        );
+        res.status(200).json({ message: 'Payment collected successfully!', booking });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update payment', error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/collector-dashboard/barcode/:bookingId
+// Save Barcode
+// ─────────────────────────────────────────────────────────────
+router.put('/barcode/:bookingId', verifyToken, async (req, res) => {
+    try {
+        const { barcode } = req.body;
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.bookingId,
+            { vialBarcode: barcode },
+            { new: true }
+        );
+        res.status(200).json({ message: 'Barcode saved!', booking });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to save barcode', error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/collector-dashboard/proof/:bookingId
+// Save Collection Proof URL (Image)
+// ─────────────────────────────────────────────────────────────
+router.put('/proof/:bookingId', verifyToken, async (req, res) => {
+    try {
+        const { proofUrl } = req.body;
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.bookingId,
+            { collectionProofUrl: proofUrl },
+            { new: true }
+        );
+        res.status(200).json({ message: 'Proof uploaded!', booking });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to save proof', error: err.message });
     }
 });
 

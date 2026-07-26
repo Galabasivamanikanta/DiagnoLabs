@@ -64,6 +64,11 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (!user) return res.status(401).json("Wrong credentials!");
 
+        // BLOCK STAFF FROM REGULAR LOGIN
+        if (user.role !== 'patient') {
+            return res.status(403).json("Staff members must use the Secure Admin Portal to log in.");
+        }
+
         // CHECK PASSWORD
         const isPasswordCorrect = await bcrypt.compare(req.body.password, user.password);
         if (!isPasswordCorrect) {
@@ -301,5 +306,215 @@ router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
     }
 });
 
+
+
+// ==========================================
+// ADMIN PROVISIONING & LOGIN (MISSION SECRET)
+// ==========================================
+
+// ADMIN PROVISION NEW STAFF
+router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
+    try {
+        const { name, email, phone, role } = req.body;
+        
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json("User with this email already exists");
+
+        const empPrefix = role === 'admin' ? 'ADM' : role === 'lab_partner' ? 'LAB' : 'EMP';
+        let employeeId = generateId(empPrefix);
+        let idExists = await User.findOne({ employeeId });
+        while (idExists) {
+            employeeId = generateId(empPrefix);
+            idExists = await User.findOne({ employeeId });
+        }
+
+        const tempPassword = generatePassword();
+
+        const newUser = new User({
+            name,
+            email,
+            password: tempPassword,
+            phone,
+            role,
+            employeeId,
+            isFirstLogin: true,
+            isVerified: true
+        });
+
+        const savedUser = await newUser.save();
+
+        // Send Email
+        const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: http://localhost:5173/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
+        
+        await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+
+        res.status(201).json({ message: "Staff provisioned successfully", employeeId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
+    }
+});
+
+// STAFF / ADMIN LOGIN
+router.post('/admin-login', async (req, res) => {
+    try {
+        const { employeeId, password } = req.body;
+        
+        if (!employeeId || !password) return res.status(400).json("Missing credentials.");
+
+        const cleanEmployeeId = employeeId.trim().toUpperCase();
+        const user = await User.findOne({ employeeId: cleanEmployeeId });
+        if (!user) return res.status(401).json("Invalid Employee ID!");
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) return res.status(401).json("Invalid Password!");
+
+        const accessToken = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SEC,
+            { expiresIn: "3d" }
+        );
+
+        const { password: pw, ...info } = user._doc;
+        res.status(200).json({ ...info, accessToken });
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// ADMIN ACCOUNT RECOVERY
+router.post('/admin-recover', async (req, res) => {
+    try {
+        const { email, phone, role } = req.body;
+        
+        // Ensure all fields are provided
+        if (!email || !phone || !role) {
+            return res.status(400).json("Please provide email, phone number, and role to recover account.");
+        }
+
+        // Search for user matching all 3 exact criteria (for security)
+        const user = await User.findOne({ email, phone, role });
+        
+        if (!user) {
+            return res.status(404).json("No matching account found. Please check your details.");
+        }
+
+        // Generate temporary password
+        const tempPassword = generatePassword();
+        
+        // Update user
+        user.password = tempPassword; // Mongoose pre-save hook will hash it
+        user.isFirstLogin = true;
+        await user.save();
+
+        // Send email with recovery details
+        const emailText = `Hello ${user.name},\n\nYour DiagnoLabs Admin Portal account has been successfully recovered.\n\nYour Employee ID is: ${user.employeeId}\nYour new Temporary Password is: ${tempPassword}\n\nPlease login immediately and you will be prompted to set a new secure password.\n\nBest Regards,\nDiagnoLabs Security System`;
+        
+        await sendEmail(email, 'Account Recovery - DiagnoLabs Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+
+        res.status(200).json("Account details sent successfully. Please check your email.");
+    } catch (err) {
+        console.error("Recovery Error:", err);
+        res.status(500).json("Failed to process account recovery.");
+    }
+});
+
+// CHANGE PASSWORD (FIRST LOGIN)
+router.post('/change-password', verifyToken, async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(req.user.id);
+        
+        if (!user) return res.status(404).json("User not found");
+
+        const isPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordCorrect) return res.status(401).json("Incorrect old password");
+
+        user.password = newPassword;
+        user.isFirstLogin = false;
+        await user.save();
+
+        res.status(200).json("Password changed successfully");
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+router.get('/dev/check-users', async (req, res) => {
+    try {
+        const users = await User.find({ employeeId: { $in: ['ADM-001', 'LAB-001', 'DOC-001'] } });
+        res.json(users.map(u => ({ id: u.employeeId, role: u.role, pass: u.password })));
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
+router.get('/dev/test-pass', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const user = await User.findOne({ employeeId: 'LAB-001' });
+        const isValid = await bcrypt.compare('123456', user.password);
+        res.send('Is Valid: ' + isValid);
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
+router.get('/dev/test-login', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const user = await User.findOne({ employeeId: 'ADM-001' });
+        const isValid = await bcrypt.compare('123456', user.password);
+        res.send('ADM-001 Is Valid 123456: ' + isValid);
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
+router.get('/dev/test-admin-login-logic', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const user = await User.findOne({ employeeId: 'ADM-001' });
+        if (!user) return res.send('User not found');
+        const isPasswordCorrect = await bcrypt.compare('123456', user.password);
+        res.json({
+            isPasswordCorrect,
+            isFirstLogin: user.isFirstLogin,
+            userRole: user.role
+        });
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
+router.get('/dev/reset-users-final', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        const pass = await bcrypt.hash('123456', salt);
+        await User.updateMany(
+            { employeeId: { $in: ['COL-001', 'LAB-001', 'ADM-001'] } },
+            { $set: { password: pass, isFirstLogin: true } }
+        );
+        res.send('Reset successful');
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

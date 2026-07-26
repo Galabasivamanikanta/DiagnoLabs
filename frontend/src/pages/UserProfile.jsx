@@ -24,6 +24,18 @@ const UserProfile = () => {
     const fileInputRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(user?.profilePic || null);
 
+    const getRoleDisplay = (role) => {
+        switch(role) {
+            case 'patient': return 'Standard Care Plan';
+            case 'admin': return 'Administrator';
+            case 'phlebotomist':
+            case 'nurse': return 'Sample Collector';
+            case 'lab_partner': return 'Lab Partner';
+            default: return 'Staff';
+        }
+    };
+
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -89,7 +101,7 @@ const UserProfile = () => {
                 profilePic: formData.profilePic
             };
             
-            const res = await axios.put(`${API_BASE_URL}/api/auth/${user._id}`, updatePayload);
+            const res = await axios.put(`${API_BASE_URL}/api/auth/${user._id}`, updatePayload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
             updateUser(res.data);
             setIsEditing(false);
             setMessage({ text: 'Profile updated successfully.', type: 'success' });
@@ -208,7 +220,7 @@ const UserProfile = () => {
                                 <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '100px', fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <ShieldCheck size={16} /> Verified User
                                 </span>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>{user.role === 'patient' ? 'Standard Care Plan' : 'Admin'}</span>
+                                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>{getRoleDisplay(user.role)}</span>
                             </div>
                             {/* Customer ID — always visible */}
                             <div style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', border: '1.5px solid #bae6fd', borderRadius: '12px', padding: '0.6rem 1.2rem' }}>
@@ -372,3 +384,5 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+
+

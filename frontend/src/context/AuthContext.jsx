@@ -118,10 +118,21 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(newUser));
     };
 
+    const manualLogin = (userData) => {
+        const { accessToken, ...restUser } = userData;
+        setUser(restUser);
+        localStorage.setItem('user', JSON.stringify(restUser));
+        if (accessToken) {
+            localStorage.setItem('token', accessToken);
+            setAuthHeader(accessToken);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, googleLogin, logout, register, loading, updateUser, deleteAccount }}>
+        <AuthContext.Provider value={{ user, login, googleLogin, logout, register, loading, updateUser, deleteAccount, manualLogin }}>
             {!loading && children}
         </AuthContext.Provider>
     );
 };
+
 

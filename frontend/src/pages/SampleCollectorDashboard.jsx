@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -11,8 +11,10 @@ import {
     CheckCircle, AlertCircle, RefreshCw, ClipboardList,
     TrendingUp, Activity, Zap, Navigation, ChevronRight,
     Loader2, StickyNote, ArrowRight, IndianRupee, BadgeCheck,
-    Timer, Bike, TestTube, FileSearch, X, Map
+    Timer, Bike, TestTube, FileSearch, X, Map,
+    ScanLine, Camera, CreditCard
 } from 'lucide-react';
+import BarcodeScanner from '../components/BarcodeScanner';
 
 // Fix leaflet default icon broken in Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -42,14 +44,20 @@ export default function SampleCollectorDashboard() {
     const [noteMap, setNoteMap] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
-    const [activeTab, setActiveTab] = useState('assignments');
-    const [mapModal, setMapModal] = useState(null); // { address, lat, lng, patientName }
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'assignments');
+    const [mapModal, setMapModal] = useState(null);
+    const [scanningBookingId, setScanningBookingId] = useState(null);
+    const [paymentModal, setPaymentModal] = useState(null);
+    const [proofUploading, setProofUploading] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState('Cash');
+    const fileInputRef = useRef(null); // { address, lat, lng, patientName }
     const [geocoding, setGeocoding] = useState(false);
 
     const allowedRoles = ['admin', 'phlebotomist', 'employee', 'nurse', 'lab_partner'];
 
     useEffect(() => {
-        if (!user) { navigate('/login'); return; }
+        if (!user) { navigate('/userlogin'); return; }
         if (!allowedRoles.includes(user.role)) { navigate('/'); return; }
         fetchData();
     }, [user]);
@@ -73,6 +81,48 @@ export default function SampleCollectorDashboard() {
             setLoading(false);
         }
     };
+
+    
+    const handleBarcodeSuccess = async (barcode) => {
+        try {
+            await axios.put(`${API_BASE_URL}/api/collector-dashboard/barcode/${scanningBookingId}`, { barcode }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            setScanningBookingId(null);
+            fetchData();
+        } catch (err) { alert('Failed to save barcode'); }
+    };
+
+    const handleProofUpload = async (e, bookingId) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        setProofUploading(bookingId);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('bookingId', ''); // Don't send bookingId so it just returns URL
+            
+            const res = await axios.post(`${API_BASE_URL}/api/upload`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'multipart/form-data' } });
+            
+            await axios.put(`${API_BASE_URL}/api/collector-dashboard/proof/${bookingId}`, { proofUrl: res.data.url }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            fetchData();
+        } catch (err) {
+            console.error(err);
+            alert('Failed to upload proof');
+        } finally {
+            setProofUploading(null);
+        }
+    };
+
+    const collectPayment = async (bookingId) => {
+        setUpdatingId(bookingId);
+        try {
+            await axios.put(`${API_BASE_URL}/api/collector-dashboard/payment/${bookingId}`, { paymentMethod }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            setPaymentModal(null);
+            fetchData();
+        } catch(err) { alert('Failed to collect payment'); }
+        setUpdatingId(null);
+    };
+
+    
 
     const markCollected = async (bookingId) => {
         setUpdatingId(bookingId);
@@ -155,20 +205,20 @@ export default function SampleCollectorDashboard() {
     ];
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c1a2e 100%)', paddingTop: '5.5rem', paddingBottom: '2rem' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--surface-alt)', paddingTop: 'calc(var(--nav-height) + 2rem)', paddingBottom: '2rem' }}>
 
             {/* ── In-Site Map Modal ── */}
             {mapModal && (
-                <div onClick={() => setMapModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                    <div onClick={e => e.stopPropagation()} style={{ background: '#0f172a', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.12)', width: '100%', maxWidth: '700px', overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.6)' }}>
-                        <div style={{ padding: '1.2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div onClick={() => setMapModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '24px', border: '1px solid var(--border)', width: '100%', maxWidth: '700px', overflow: 'hidden', boxShadow: 'var(--shadow-premium)' }}>
+                        <div style={{ padding: '1.2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
                             <div>
-                                <div style={{ color: 'white', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ color: 'var(--text-main)', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <MapPin size={16} style={{ color: '#10b981' }} /> {mapModal.patientName} — Collection Point
                                 </div>
-                                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem' }}>{mapModal.address}</div>
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem' }}>{mapModal.address}</div>
                             </div>
-                            <button onClick={() => setMapModal(null)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: 'white', borderRadius: '10px', padding: '0.5rem', cursor: 'pointer', display: 'flex' }}>
+                            <button onClick={() => setMapModal(null)} style={{ background: 'var(--border-light)', border: 'none', color: 'white', borderRadius: '10px', padding: '0.5rem', cursor: 'pointer', display: 'flex' }}>
                                 <X size={18} />
                             </button>
                         </div>
@@ -183,10 +233,18 @@ export default function SampleCollectorDashboard() {
                                 </Marker>
                             </MapContainer>
                         </div>
-                        <div style={{ padding: '0.9rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.75rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <div style={{ padding: '0.9rem 1.5rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Map size={12} /> Powered by OpenStreetMap · DiagnoLabs Internal Map
                             </span>
+                            <a 
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${mapModal.lat},${mapModal.lng}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800' }}
+                            >
+                                <Navigation size={14} /> Get Directions
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -196,21 +254,21 @@ export default function SampleCollectorDashboard() {
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(16,185,129,0.35)' }}>
-                            <Bike size={26} color="white" />
+                        <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
+                            <Bike size={26} color="var(--primary)" />
                         </div>
                         <div>
-                            <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>
+                            <h1 style={{ color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>
                                 Sample Collector <span style={{ color: '#10b981' }}>Dashboard</span>
                             </h1>
-                            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem', margin: 0, fontWeight: '600' }}>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0, fontWeight: '600' }}>
                                 Welcome, {user?.name || 'Collector'} · {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={fetchData}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'rgba(255,255,255,0.08)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'var(--border-light)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
                     >
                         <RefreshCw size={15} /> Refresh
                     </button>
@@ -221,13 +279,13 @@ export default function SampleCollectorDashboard() {
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 1.5rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                     {STAT_CARDS.map((s, i) => (
-                        <div key={i} style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(12px)', borderRadius: '18px', padding: '1.4rem 1.6rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div key={i} style={{ background: 'var(--surface-alt)', backdropFilter: 'blur(12px)', borderRadius: '18px', padding: '1.4rem 1.6rem', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, flexShrink: 0 }}>
                                 {s.icon}
                             </div>
                             <div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'white', lineHeight: 1 }}>{s.value}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', fontWeight: '600', marginTop: '0.2rem' }}>{s.label}</div>
+                                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-main)', lineHeight: 1 }}>{s.value}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>{s.label}</div>
                             </div>
                         </div>
                     ))}
@@ -236,56 +294,109 @@ export default function SampleCollectorDashboard() {
 
             {/* ── Tabs ── */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 1rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '14px', width: 'fit-content' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', background: 'white', padding: '0.4rem', borderRadius: '14px', width: 'fit-content' }}>
                     {[
                         { id: 'assignments', label: 'All Assignments', icon: <ClipboardList size={15}/> },
                         { id: 'today', label: "Today's Route", icon: <Navigation size={15}/> },
+                        { id: 'profile', label: 'My Profile', icon: <User size={15}/> },
                     ].map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1rem', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.2s', background: activeTab === tab.id ? 'white' : 'transparent', color: activeTab === tab.id ? '#0f172a' : 'rgba(255,255,255,0.5)' }}>
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1rem', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.2s', background: activeTab === tab.id ? 'var(--primary)' : 'transparent', color: activeTab === tab.id ? 'white' : 'var(--text-muted)' }}>
                             {tab.icon} {tab.label}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* ── Main Content ── */}
+            {/* Main Content */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
 
-                {/* Search & Filter */}
+                {activeTab === 'profile' ? (
+                    <div style={{ background: 'var(--surface-alt)', borderRadius: '24px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                        <div style={{ padding: '2rem', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', color: 'white' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'white', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: '900', boxShadow: 'var(--shadow-lg)' }}>
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <div>
+                                    <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', fontWeight: '800' }}>{user?.name}</h2>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.9, fontSize: '0.9rem', fontWeight: '600' }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><BadgeCheck size={16} /> Verified Collector</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={16} /> ID: {user?.employeeId || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ padding: '2rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 600px)', justifyContent: 'center' }}>
+                                <div style={{ background: 'var(--bg-main)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: '800' }}>Personal Details</h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Full Name</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.name}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Email Address</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.email}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Role</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600', textTransform: 'capitalize' }}>{user?.role}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Phone Number</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.phone || 'Not Provided'}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Address</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.address || 'Not Provided'}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Joined Date</div>
+                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.createdAt ? String(user.createdAt).split('T')[0] : 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Search & Filter */}
                 <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                     <input
                         type="text"
                         placeholder="Search by patient name, phone, address or test..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        style={{ flex: 1, minWidth: '220px', padding: '0.65rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: 'white', fontSize: '0.85rem', outline: 'none', fontWeight: '600' }}
+                        style={{ flex: 1, minWidth: '220px', padding: '0.65rem 1rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', fontWeight: '600' }}
                     />
                     <select
                         value={filterStatus}
                         onChange={e => setFilterStatus(e.target.value)}
-                        style={{ padding: '0.65rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: 'white', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                        style={{ padding: '0.65rem 1rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
                     >
-                        <option value="All" style={{ background: '#1e293b' }}>All Status</option>
-                        <option value="Pending" style={{ background: '#1e293b' }}>Pending</option>
-                        <option value="Confirmed" style={{ background: '#1e293b' }}>Confirmed</option>
-                        <option value="Sample Collected" style={{ background: '#1e293b' }}>Collected</option>
-                        <option value="Sample Processing" style={{ background: '#1e293b' }}>Processing</option>
+                        <option value="All" style={{ background: 'white' }}>All Status</option>
+                        <option value="Pending" style={{ background: 'white' }}>Pending</option>
+                        <option value="Confirmed" style={{ background: 'white' }}>Confirmed</option>
+                        <option value="Sample Collected" style={{ background: 'white' }}>Collected</option>
+                        <option value="Sample Processing" style={{ background: 'white' }}>Processing</option>
                     </select>
                 </div>
 
                 {/* Assignment Cards */}
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.4)' }}>
+                    <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)' }}>
                         <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem', display: 'block' }} />
                         <p style={{ fontWeight: '700' }}>Loading assignments...</p>
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         {(activeTab === 'today' ? todayBookings : filteredAssignments).length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                <TestTube size={40} style={{ color: 'rgba(255,255,255,0.2)', margin: '0 auto 1rem', display: 'block' }} />
-                                <p style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '700', fontSize: '1rem' }}>No assignments found</p>
-                                <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.8rem' }}>All collections are up to date!</p>
+                            <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--surface-alt)', borderRadius: '20px', border: '1px solid var(--border-light)' }}>
+                                <TestTube size={40} style={{ color: 'var(--border)', margin: '0 auto 1rem', display: 'block' }} />
+                                <p style={{ color: 'var(--text-muted)', fontWeight: '700', fontSize: '1rem' }}>No assignments found</p>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>All collections are up to date!</p>
                             </div>
                         ) : (
                             (activeTab === 'today' ? todayBookings : filteredAssignments).map(booking => {
@@ -294,17 +405,17 @@ export default function SampleCollectorDashboard() {
                                 const isCollected = booking.status === 'Sample Collected' || booking.status === 'Sample Processing' || booking.status === 'Report Uploaded';
 
                                 return (
-                                    <div key={booking._id} style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(12px)', borderRadius: '20px', border: `1px solid ${isCollected ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.08)'}`, padding: '1.4rem 1.6rem', transition: 'all 0.2s' }}>
+                                    <div key={booking._id} style={{ background: 'var(--surface-alt)', backdropFilter: 'blur(12px)', borderRadius: '20px', border: `1px solid ${isCollected ? 'rgba(16,185,129,0.25)' : 'var(--border-light)'}`, padding: '1.4rem 1.6rem', transition: 'all 0.2s' }}>
 
                                         {/* Top Row */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <User size={18} color="rgba(255,255,255,0.5)" />
+                                                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <User size={18} color="var(--text-muted)" />
                                                 </div>
                                                 <div>
-                                                    <div style={{ color: 'white', fontWeight: '800', fontSize: '0.98rem' }}>{booking.patient?.name || 'Patient'}</div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.45)', fontSize: '0.78rem', fontWeight: '600' }}>
+                                                    <div style={{ color: 'var(--text-main)', fontWeight: '800', fontSize: '0.98rem' }}>{booking.patient?.name || 'Patient'}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600' }}>
                                                         <Phone size={11} /> {booking.patient?.phone || 'N/A'}
                                                     </div>
                                                 </div>
@@ -316,33 +427,33 @@ export default function SampleCollectorDashboard() {
 
                                         {/* Details Grid */}
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                                            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                                                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Tests</div>
+                                            <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Tests</div>
                                                 {booking.testDetails?.map((t, i) => (
-                                                    <div key={i} style={{ color: 'white', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <div key={i} style={{ color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                         <FlaskConical size={11} style={{ color: '#10b981' }} /> {t.testName}
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                                                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Appointment</div>
-                                                <div style={{ color: 'white', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Appointment</div>
+                                                <div style={{ color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                     <Calendar size={12} style={{ color: '#3b82f6' }} />
                                                     {booking.appointmentDate ? new Date(booking.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                                 </div>
-                                                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem', paddingLeft: '1.1rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem', paddingLeft: '1.1rem' }}>
                                                     {booking.appointmentTime || 'N/A'}
                                                 </div>
                                             </div>
-                                            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                                                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Collection Address</div>
-                                                <div style={{ color: 'white', fontSize: '0.8rem', fontWeight: '700', display: 'flex', gap: '0.3rem' }}>
+                                            <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Collection Address</div>
+                                                <div style={{ color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: '700', display: 'flex', gap: '0.3rem' }}>
                                                     <MapPin size={12} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
                                                     <span>{booking.sampleCollectionAddress || 'N/A'}</span>
                                                 </div>
                                             </div>
-                                            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                                                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Amount</div>
+                                            <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Amount</div>
                                                 <div style={{ color: '#10b981', fontSize: '0.98rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                                     <IndianRupee size={14} /> {booking.totalAmount?.toLocaleString('en-IN') || 0}
                                                 </div>
@@ -355,7 +466,7 @@ export default function SampleCollectorDashboard() {
                                         {/* Collector Note */}
                                         {!isCollected && (
                                             <div style={{ marginBottom: '1rem' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
                                                     <StickyNote size={11} /> Collector Note (Optional)
                                                 </div>
                                                 <input
@@ -363,57 +474,69 @@ export default function SampleCollectorDashboard() {
                                                     placeholder="e.g. Patient was fasting, used left arm vein..."
                                                     value={noteMap[booking._id] || ''}
                                                     onChange={e => setNoteMap(prev => ({ ...prev, [booking._id]: e.target.value }))}
-                                                    style={{ width: '100%', padding: '0.6rem 0.9rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.8rem', outline: 'none', fontWeight: '600', boxSizing: 'border-box' }}
+                                                    style={{ width: '100%', padding: '0.6rem 0.9rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontSize: '0.8rem', outline: 'none', fontWeight: '600', boxSizing: 'border-box' }}
                                                 />
                                             </div>
                                         )}
 
+                                        
                                         {/* Action Buttons */}
                                         <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                                            {/* In-Site Map Button */}
-                                            <button
-                                                onClick={() => openMap(booking)}
-                                                disabled={geocoding}
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}
-                                            >
-                                                {geocoding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Map size={13} />} View Map
-                                            </button>
-
                                             {/* Call Patient */}
                                             {booking.patient?.phone && (
-                                                <a
-                                                    href={`tel:${booking.patient.phone}`}
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', textDecoration: 'none' }}
-                                                >
+                                                <a href={`tel:${booking.patient.phone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'var(--surface-alt)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', textDecoration: 'none' }}>
                                                     <Phone size={13} /> Call Patient
                                                 </a>
                                             )}
+                                            
+                                            {/* View Map */}
+                                            <button onClick={() => openMap(booking)} disabled={geocoding} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'var(--surface-alt)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                {geocoding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Map size={13} />} View Map
+                                            </button>
 
-                                            {/* Mark as Collected — main CTA */}
-                                            {!isCollected && (
-                                                <button
-                                                    onClick={() => markCollected(booking._id)}
-                                                    disabled={isUpdating}
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: isUpdating ? 'rgba(16,185,129,0.3)' : 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: isUpdating ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
-                                                >
-                                                    {isUpdating ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Updating...</> : <><CheckCircle size={13} /> Mark Collected</>}
+                                            {/* Payment Button */}
+                                            {booking.paymentStatus !== 'Paid' && (
+                                                <button onClick={() => setPaymentModal(booking)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                    <IndianRupee size={13} /> Collect Payment
                                                 </button>
                                             )}
 
-                                            {/* If Confirmed, allow Send to Processing */}
+                                            {/* Advanced Collection Flow based on status */}
+                                            {booking.status === 'Confirmed' && (
+                                                <button onClick={() => updateStatus(booking._id, 'Out for Collection')} disabled={isUpdating} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
+                                                    <Bike size={13} /> Start Journey
+                                                </button>
+                                            )}
+
+                                            {booking.status === 'Out for Collection' && (
+                                                <>
+                                                    {!booking.vialBarcode && (
+                                                        <button onClick={() => setScanningBookingId(booking._id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                            <ScanLine size={13} /> Scan Barcode
+                                                        </button>
+                                                    )}
+                                                    {!booking.collectionProofUrl && (
+                                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                            {proofUploading === booking._id ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={13} />} Upload Proof
+                                                            <input type="file" accept="image/*" capture="environment" onChange={(e) => handleProofUpload(e, booking._id)} style={{ display: 'none' }} />
+                                                        </label>
+                                                    )}
+                                                    
+                                                    {/* Mark Collected CTA */}
+                                                    <button onClick={() => markCollected(booking._id)} disabled={isUpdating} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: isUpdating ? 'not-allowed' : 'pointer', boxShadow: 'var(--shadow-sm)' }}>
+                                                        {isUpdating ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Updating...</> : <><CheckCircle size={13} /> Mark Collected</>}
+                                                    </button>
+                                                </>
+                                            )}
+
                                             {booking.status === 'Sample Collected' && (
-                                                <button
-                                                    onClick={() => updateStatus(booking._id, 'Sample Processing')}
-                                                    disabled={isUpdating}
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}
-                                                >
+                                                <button onClick={() => updateStatus(booking._id, 'Sample Processing')} disabled={isUpdating} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
                                                     <Zap size={13} /> Send to Lab <ArrowRight size={11} />
                                                 </button>
                                             )}
 
-                                            {/* Collected badge */}
                                             {isCollected && (
-                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem' }}>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem' }}>
                                                     <CheckCircle size={13} /> {booking.status}
                                                 </span>
                                             )}
@@ -421,7 +544,7 @@ export default function SampleCollectorDashboard() {
 
                                         {/* Existing note */}
                                         {booking.mentorNote && (
-                                            <div style={{ marginTop: '0.75rem', padding: '0.6rem 0.9rem', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem', fontWeight: '600', display: 'flex', gap: '0.4rem' }}>
+                                            <div style={{ marginTop: '0.75rem', padding: '0.6rem 0.9rem', background: 'var(--surface-alt)', borderRadius: '10px', color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600', display: 'flex', gap: '0.4rem' }}>
                                                 <StickyNote size={13} style={{ flexShrink: 0, marginTop: '1px' }} /> {booking.mentorNote}
                                             </div>
                                         )}
@@ -431,13 +554,55 @@ export default function SampleCollectorDashboard() {
                         )}
                     </div>
                 )}
+                </>
+                )}
             </div>
+
+            
+            {/* Barcode Scanner */}
+            {scanningBookingId && (
+                <BarcodeScanner 
+                    onScanSuccess={handleBarcodeSuccess} 
+                    onClose={() => setScanningBookingId(null)} 
+                />
+            )}
+
+            {/* Payment Modal */}
+            {paymentModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }} onClick={() => setPaymentModal(null)}>
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', width: '100%', maxWidth: '400px', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CreditCard size={18} style={{ color: 'var(--primary)' }} /> Collect Payment</h3>
+                            <button onClick={() => setPaymentModal(null)} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.4rem', cursor: 'pointer' }}><X size={16} /></button>
+                        </div>
+                        
+                        <div style={{ padding: '1rem', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Amount to Collect</div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-main)', display: 'flex', alignItems: 'center' }}><IndianRupee size={22} /> {paymentModal.totalAmount?.toLocaleString('en-IN') || 0}</div>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Payment Method</label>
+                            <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontWeight: '600', outline: 'none' }}>
+                                <option value="Cash">Cash</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Card">Card Reader</option>
+                            </select>
+                        </div>
+
+                        <button onClick={() => collectPayment(paymentModal._id)} disabled={updatingId === paymentModal._id} style={{ width: '100%', padding: '1rem', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            {updatingId === paymentModal._id ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={18} />} Mark as Paid
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <style>{`
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                input::placeholder { color: rgba(255,255,255,0.25); }
-                select option { background: #1e293b; color: white; }
+                input::placeholder { color: var(--text-muted); }
+                select option { background: white; color: var(--text-main); }
             `}</style>
         </div>
     );
 }
+

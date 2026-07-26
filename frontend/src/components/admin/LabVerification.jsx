@@ -20,7 +20,7 @@ const LabVerification = () => {
     const fetchPendingLabs = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_BASE_URL}/api/labs/all-discovery`);
+            const res = await axios.get(`${API_BASE_URL}/api/labs/all-discovery`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
             setLabs(res.data);
         } catch (err) {
             console.error("Error fetching discovery labs:", err);
@@ -543,3 +543,4 @@ const LabVerification = () => {
 };
 
 export default LabVerification;
+

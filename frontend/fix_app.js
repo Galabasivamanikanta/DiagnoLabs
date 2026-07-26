@@ -1,0 +1,2 @@
+const fs = require('fs'); let c = fs.readFileSync('src/App.jsx', 'utf-8'); c = c.replace(/\
+/g, '\n').replace(/<Route path=\"\/adminlogin\" element=\{<AdminLoginGateway \/>\} \/>.*?<Route path=\"\/admin\/login\" element=\{<AdminLogin \/>\} \/>/gs, '<Route path=\"/adminlogin\" element=\{<AdminLoginGateway />\} />\n        <Route path=\"/adminlogin/form\" element=\{<AdminLoginForm />\} />'); fs.writeFileSync('src/App.jsx', c);

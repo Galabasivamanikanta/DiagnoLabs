@@ -74,7 +74,7 @@ const Checkout = () => {
 
     if (!test) return <div className="container mt-5">No test selected</div>;
     if (!user) {
-        navigate('/login');
+        navigate('/userlogin');
         return null; // Redirect logic usually handles this, just failsafe
     }
 
@@ -490,3 +490,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

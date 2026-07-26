@@ -96,7 +96,9 @@ const Login = () => {
     const message = location.state?.message;
 
     const handleSuccessRedirect = (resUser) => {
-        if (from) {
+        if (resUser.role === 'phlebotomist' || resUser.role === 'nurse') {
+            navigate('/collector/dashboard');
+        } else if (from) {
             navigate(from, { state: fromState, replace: true });
         } else if (resUser.role !== 'patient' && resUser.role !== 'lab_partner') {
             navigate('/admin/dashboard');
@@ -128,8 +130,13 @@ const Login = () => {
     };
 
     const handleLogout = () => {
+        const currentRole = user?.role;
         logout();
-        navigate('/login', { replace: true, state: { message: "Successfully logged out. Please login with a new account." } });
+        if (currentRole && currentRole !== 'patient') {
+            navigate('/adminlogin', { replace: true, state: { message: "Successfully logged out. Please login again." } });
+        } else {
+            navigate('/userlogin', { replace: true, state: { message: "Successfully logged out. Please login with a new account." } });
+        }
         setEmail('');
         setPassword('');
     };
@@ -742,7 +749,7 @@ const Login = () => {
                                             <div className="relative flex items-center">
                                                 <Lock className="absolute left-[14px] w-[17px] h-[17px] text-[#9aa1ac]" />
                                                 <input 
-                                                    type="password" 
+                                                    type={showPassword ? 'text' : 'password'}
                                                     name="password"
                                                     placeholder="Choose Password" 
                                                     className="w-full pl-[40px] pr-[14px] py-[10px] border-[1.5px] border-[#e6e8ee] rounded-[11px] text-sm font-semibold text-[#0a1e46] outline-none focus:border-[#0a1e46] focus:ring-0 transition-all"
@@ -750,6 +757,13 @@ const Login = () => {
                                                     onChange={handleRegChange} 
                                                     required 
                                                 />
+                                                <button 
+                                                    type="button" 
+                                                    className="absolute right-4 text-[#9aa1ac] flex items-center justify-center p-0"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                >
+                                                    {showPassword ? <EyeOff className="w-[17px] h-[17px] text-[#9aa1ac]" /> : <Eye className="w-[17px] h-[17px] text-[#9aa1ac]" />}
+                                                </button>
                                             </div>
                                         </div>
                                         <button type="submit" className="w-full mt-1 py-[11px] text-white rounded-[12px] font-bold flex items-center justify-center gap-2 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all relative" style={{ background: 'linear-gradient(135deg, #cc9a3d, #b48530)', boxShadow: '0 8px 16px rgba(204,154,61,0.25)' }}>
@@ -825,3 +839,5 @@ const Login = () => {
 };
 
 export default Login;
+
+

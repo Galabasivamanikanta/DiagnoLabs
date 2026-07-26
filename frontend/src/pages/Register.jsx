@@ -67,7 +67,7 @@ const Register = () => {
                 const regRes = await register(formData);
                 if (regRes.success) {
                     alert("Registration & Verification Successful!");
-                    navigate('/login');
+                    navigate('/userlogin');
                 } else {
                     alert(regRes.message);
                 }
@@ -149,4 +149,5 @@ const Register = () => {
 };
 
 export default Register;
+
 

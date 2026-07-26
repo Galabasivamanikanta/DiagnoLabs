@@ -13,6 +13,8 @@ router.get('/employees', verifyTokenAndAdmin, async (req, res) => {
     }
 });
 
+
+
 // ADD NEW EMPLOYEE (Admin only)
 router.post('/employees', verifyTokenAndAdmin, async (req, res) => {
     try {

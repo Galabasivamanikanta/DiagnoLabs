@@ -18,12 +18,17 @@ const Navbar = () => {
     }, []);
 
     const handleLogout = () => {
+        const currentRole = user?.role;
         logout();
-        navigate('/login');
+        if (currentRole && currentRole !== 'patient') {
+            navigate('/adminlogin', { replace: true });
+        } else {
+            navigate('/userlogin');
+        }
     };
 
     // Hide navbar on auth and dashboard pages
-    const hideNavbarPaths = ['/admin/dashboard', '/login', '/register', '/partner/login', '/admin/login', '/demo'];
+    const hideNavbarPaths = ['/admin/dashboard', '/userlogin', '/register', '/partner/login', '/admin/login', '/adminlogin', '/adminlogin/form', '/demo'];
     if (hideNavbarPaths.includes(location.pathname)) return null;
 
     return (
@@ -83,7 +88,7 @@ const Navbar = () => {
                                 <div style={{ textAlign: 'right' }} className="hide-mobile">
                                     <div style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-main)' }}>{user.name}</div>
                                     <div style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                        {user.role === 'admin' ? 'Administrator' : user.role === 'lab_partner' ? 'Lab Partner' : 'Patient'}
+                                        {user.role === 'admin' ? 'Administrator' : user.role === 'lab_partner' ? 'Lab Partner' : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? 'Collector' : 'Patient'}
                                     </div>
                                 </div>
                                 <div style={{
@@ -135,6 +140,10 @@ const Navbar = () => {
                                                 <User size={18} /> Profile & Settings
                                             </button>
                                         </>
+                                    ) : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? (
+                                        <Link to="/collector/dashboard" className="dropdown-item">
+                                            <LayoutDashboard size={18} /> Collector Dashboard
+                                        </Link>
                                     ) : (
                                         <>
                                             <Link to="/patient/profile" className="dropdown-item">
@@ -195,6 +204,10 @@ const Navbar = () => {
                                 <Link to="/partner/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
                                     <LayoutDashboard size={18} /> Partner Workbench
                                 </Link>
+                            ) : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? (
+                                <Link to="/collector/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <LayoutDashboard size={18} /> Collector Dashboard
+                                </Link>
                             ) : (
                                 <>
                                     <Link to="/patient/profile" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
@@ -212,7 +225,7 @@ const Navbar = () => {
                     ) : (
                         <>
                             <div style={{ height: '1px', background: 'var(--border-light)', margin: '0.5rem 0' }}></div>
-                            <Link to="/login" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>Login / Register</Link>
+                            <Link to="/userlogin" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>Login / Register</Link>
                         </>
                     )}
                 </div>
@@ -292,3 +305,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+

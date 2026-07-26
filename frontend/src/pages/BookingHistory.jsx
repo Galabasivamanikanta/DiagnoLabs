@@ -59,10 +59,10 @@ const BookingHistory = () => {
     };
 
     useEffect(() => {
-        if (!user) { navigate('/login'); return; }
+        if (!user) { navigate('/userlogin'); return; }
         const fetchBookings = async () => {
             try {
-                const res = await axios.get(`${API_BASE_URL}/api/bookings/user/${user._id}`);
+                const res = await axios.get(`${API_BASE_URL}/api/bookings/user/${user._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 // Sort by newest first
                 const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 setBookings(sorted);
@@ -430,3 +430,5 @@ const BookingHistory = () => {
 };
 
 export default BookingHistory;
+
+

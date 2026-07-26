@@ -228,7 +228,7 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/bookings/all`);
+            const res = await axios.get(`${API_BASE_URL}/api/bookings/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
             setBookings(res.data);
         } catch (err) {
             console.error("Error fetching admin data:", err);
@@ -245,7 +245,7 @@ const AdminDashboard = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate('/adminlogin');
     };
 
     // Stats
@@ -859,3 +859,7 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
+
+

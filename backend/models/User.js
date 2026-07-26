@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true }, 
     phone: { type: String, required: true },
     customerId: { type: String, unique: true, sparse: true },
+    employeeId: { type: String, unique: true, sparse: true },
     isVerified: { type: Boolean, default: false },
+    isFirstLogin: { type: Boolean, default: true },
     role: {
         type: String,
         enum: [

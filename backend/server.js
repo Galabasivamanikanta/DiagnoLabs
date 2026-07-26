@@ -187,6 +187,7 @@ app.use('/api/collector', require('./routes/collector'));
 app.use('/api/collector-dashboard', require('./routes/collectorDashboard'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/staff', require('./routes/staff'));
 
 // ADMINISTRATIVE ACTIONS
 app.post('/api/admin/sync-india', async (req, res) => {
