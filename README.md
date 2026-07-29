@@ -1,4 +1,4 @@
-# 🧬 DiagnoLabs — India's Advanced Medical Diagnostics Platform
+# DiagnoLabs — India's Advanced Medical Diagnostics Platform
 
 <div align="center">
 
@@ -10,29 +10,29 @@
 
 **Discover NABL-certified laboratories · Book diagnostic tests · Track results — all in one platform.**
 
-[Live Demo](#) · [Report Bug](../../issues) · [Request Feature](../../issues)
+[Live Demo](#) · [Report Bug](https://github.com/Galabasivamanikanta/DiagnoLabs/issues) · [Request Feature](https://github.com/Galabasivamanikanta/DiagnoLabs/issues)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [About the Project](#-about-the-project)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [API Reference](#-api-reference)
-- [User Roles](#-user-roles)
-- [Screenshots](#-screenshots)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [About the Project](#about-the-project)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [User Roles](#user-roles)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🏥 About the Project
+## About the Project
 
 **DiagnoLabs** is a full-stack, production-grade healthcare diagnostics platform built for India. It connects patients with NABL-certified laboratories, enables real-time test booking, AI-assisted health guidance, and provides a complete staff management suite for lab operators.
 
@@ -40,53 +40,53 @@
 
 ### Why DiagnoLabs?
 
-- 🗺️ **Spatial Lab Discovery** — Maps labs across India using OpenStreetMap & Pincode Registry
-- 🤖 **Clinical AI Chatbot** — Powered by Google Gemini for intelligent health guidance
-- 📅 **End-to-End Booking** — Appointment scheduling, payment via Razorpay, PDF reports
-- 🔐 **Role-Based Access Control** — 14 distinct staff roles with secure JWT authentication
-- 📊 **Admin Command Center** — Full visibility into bookings, labs, staff, and financials
+- **Spatial Lab Discovery** — Maps labs across India using OpenStreetMap & Pincode Registry
+- **Clinical AI Chatbot** — Powered by Google Gemini for intelligent health guidance
+- **End-to-End Booking** — Appointment scheduling, payment via Razorpay, PDF reports
+- **Role-Based Access Control** — 14 distinct staff roles with secure JWT authentication
+- **Admin Command Center** — Full visibility into bookings, labs, staff, and financials
 
 ---
 
-## ✨ Features
+## Features
 
-### 👤 Patient Portal
-- 🔍 **Smart Lab Search** — Search by test name, lab, city, or specialty
-- 📍 **Nearby Lab Finder** — GPS-based proximity detection with distance & ETA
-- 🏷️ **NABL Badge Verification** — Community vs Verified lab classification
-- 📅 **Appointment Booking** — Home collection or walk-in scheduling
-- 💳 **Razorpay Payment Gateway** — Secure online payments with receipt generation
-- 📄 **PDF Report Downloads** — Digitally generated test reports
-- 📱 **OTP Verification** — Twilio SMS + email OTP for account security
-- 🔐 **Google OAuth 2.0** — One-click social login
-- 📖 **Booking History** — Full history with status tracking
+### Patient Portal
+- **Smart Lab Search** — Search by test name, lab, city, or specialty
+- **Nearby Lab Finder** — GPS-based proximity detection with distance & ETA
+- **NABL Badge Verification** — Community vs Verified lab classification
+- **Appointment Booking** — Home collection or walk-in scheduling
+- **Razorpay Payment Gateway** — Secure online payments with receipt generation
+- **PDF Report Downloads** — Digitally generated test reports
+- **OTP Verification** — Twilio SMS + email OTP for account security
+- **Google OAuth 2.0** — One-click social login
+- **Booking History** — Full history with status tracking
 
-### 🧬 Lab & Admin Dashboard
-- 📊 **Real-Time Analytics** — Booking stats, revenue charts, test performance
-- 🏢 **Lab Partner Management** — Onboard/manage partner labs
-- 👨‍💼 **Staff Provisioning** — Create accounts for 14 role types with auto-generated Employee IDs
-- 🎟️ **Promo Code Engine** — Create discount codes with usage limits
-- 📦 **Inventory Management** — Track consumables and reagents
-- 🎫 **Support Ticket System** — Internal helpdesk for patient queries
-- 📋 **Audit Logs** — Full action history for compliance
-- 🗺️ **India Labs Network Map** — Geographic visualization of all partner labs
+### Lab & Admin Dashboard
+- **Real-Time Analytics** — Booking stats, revenue charts, test performance
+- **Lab Partner Management** — Onboard/manage partner labs
+- **Staff Provisioning** — Create accounts for 14 role types with auto-generated Employee IDs
+- **Promo Code Engine** — Create discount codes with usage limits
+- **Inventory Management** — Track consumables and reagents
+- **Support Ticket System** — Internal helpdesk for patient queries
+- **Audit Logs** — Full action history for compliance
+- **India Labs Network Map** — Geographic visualization of all partner labs
 
-### 🤖 Clinical AI Assistant
-- 💬 **Conversational Health Guidance** — Powered by Google Gemini AI
-- 🔊 **Text-to-Speech** — Voice output for accessibility
-- ⚡ **Quick Prompts** — One-tap common health queries
-- 📎 **File Attachment Support** — Upload reports for analysis
-- 🧪 **Test Recommendations** — Context-aware diagnostic suggestions
+### Clinical AI Assistant
+- **Conversational Health Guidance** — Powered by Google Gemini AI
+- **Text-to-Speech** — Voice output for accessibility
+- **Quick Prompts** — One-tap common health queries
+- **File Attachment Support** — Upload reports for analysis
+- **Test Recommendations** — Context-aware diagnostic suggestions
 
-### 🚚 Sample Collector Dashboard
-- 📱 **Mobile-Optimized** — Built for field phlebotomists
-- 📷 **Barcode Scanner** — QR/barcode sample tracking
-- 🗺️ **Route Optimization** — Daily collection route management
-- ✅ **Sample Status Updates** — Real-time status push to patients
+### Sample Collector Dashboard
+- **Mobile-Optimized** — Built for field phlebotomists
+- **Barcode Scanner** — QR/barcode sample tracking
+- **Route Optimization** — Daily collection route management
+- **Sample Status Updates** — Real-time status push to patients
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 | Technology | Purpose |
@@ -126,7 +126,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 DiagnoLabs/
@@ -195,7 +195,7 @@ DiagnoLabs/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -207,8 +207,8 @@ DiagnoLabs/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/diagnolabs.git
-cd diagnolabs
+git clone https://github.com/Galabasivamanikanta/DiagnoLabs.git
+cd DiagnoLabs
 ```
 
 ### 2. Setup Backend
@@ -218,7 +218,7 @@ cd backend
 npm install
 ```
 
-Create a `.env` file in `/backend` (see [Environment Variables](#-environment-variables)):
+Create a `.env` file in `/backend` (see [Environment Variables](#environment-variables)):
 
 ```bash
 cp .env.example .env
@@ -247,7 +247,7 @@ Navigate to `http://localhost:5173` in your browser.
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
 Create a `.env` file in the `/backend` directory with the following variables:
 
@@ -283,7 +283,7 @@ PORT=5000
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### Authentication
 | Method | Endpoint | Description |
@@ -323,7 +323,7 @@ PORT=5000
 
 ---
 
-## 👥 User Roles
+## User Roles
 
 | Role | Employee ID Prefix | Access |
 |---|---|---|
@@ -344,7 +344,7 @@ PORT=5000
 
 ---
 
-## 🎨 Design System
+## Design System
 
 DiagnoLabs uses a **CSS-first responsive system** with:
 
@@ -361,19 +361,19 @@ DiagnoLabs uses a **CSS-first responsive system** with:
 
 ---
 
-## 🔒 Security
+## Security
 
-- 🔐 Passwords hashed with **bcryptjs** (salt rounds: 10)
-- 🎫 **JWT** tokens with 3-day expiry
-- 🛡️ **Helmet.js** sets secure HTTP headers
-- ⏱️ **express-rate-limit** prevents brute force attacks
-- 🚫 Staff members **cannot** use the patient login endpoint (role-blocked)
-- 📋 All admin actions logged to **AuditLog** collection
-- 🔑 Environment variables for all secrets — never hardcoded
+- Passwords hashed with **bcryptjs** (salt rounds: 10)
+- **JWT** tokens with 3-day expiry
+- **Helmet.js** sets secure HTTP headers
+- **express-rate-limit** prevents brute force attacks
+- Staff members **cannot** use the patient login endpoint (role-blocked)
+- All admin actions logged to **AuditLog** collection
+- Environment variables for all secrets — never hardcoded
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -391,25 +391,25 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Siva Manikanta** — Full Stack Developer
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Project: [DiagnoLabs](https://github.com/yourusername/diagnolabs)
+- GitHub: [@Galabasivamanikanta](https://github.com/Galabasivamanikanta)
+- Project: [DiagnoLabs](https://github.com/Galabasivamanikanta/DiagnoLabs)
 
 ---
 
 <div align="center">
 
-Made with ❤️ for better healthcare access in India 🇮🇳
+Made for better healthcare access in India.
 
-⭐ **Star this repo if you find it useful!**
+**Star this repo if you find it useful!**
 
 </div>
