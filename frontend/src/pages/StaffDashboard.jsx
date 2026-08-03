@@ -121,7 +121,7 @@ export default function StaffDashboard() {
                     ))}
                 </div>
                 <div style={{ padding: '1.5rem 1rem', borderTop: '1px solid var(--border-light)' }}>
-                    <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', width: '100%', border: 'none', background: '#fee2e2', color: '#ef4444', borderRadius: '12px', cursor: 'pointer', fontWeight: '700' }}>
+                    <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', width: '100%', border: 'none', background: '#fef2f2', color: 'var(--danger)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700' }}>
                         <LogOut size={18} /> Sign Out
                     </button>
                 </div>

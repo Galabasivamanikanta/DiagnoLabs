@@ -109,7 +109,7 @@ const LabDetails = () => {
                                     <h1 style={{ fontSize: '3rem', fontWeight: '900', color: '#0f172a', marginBottom: '0.5rem', letterSpacing: '-1px', lineHeight: '1.1' }}>{lab.name}</h1>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '2px' }}>
-                                            {[...Array(5)].map((_, i) => <Star key={i} size={18} fill={i < Math.floor(lab.rating || 4.5) ? "#f59e0b" : "none"} stroke={i < Math.floor(lab.rating || 4.5) ? "#f59e0b" : "#cbd5e1"} />)}
+                                            {[...Array(5)].map((_, i) => <Star key={i} size={18} fill={i < Math.floor(lab.rating || 4.5) ? "var(--accent-gold)" : "none"} stroke={i < Math.floor(lab.rating || 4.5) ? "var(--accent-gold)" : "#cbd5e1"} />)}
                                         </div>
                                         <span style={{ fontWeight: '800', color: '#475569', fontSize: '1rem' }}>{lab.rating || '4.8'} Clinical Accuracy Score</span>
                                     </div>

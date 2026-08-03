@@ -184,7 +184,7 @@ const AdminLogin = () => {
                             <div className="w-1/2 flex flex-col gap-3 justify-center">
                                 {/* Pill 1 */}
                                 <div className="bg-[#F8FAFC] rounded-full p-2 flex items-center gap-3 shadow-sm border border-gray-50">
-                                    <div className="w-8 h-8 rounded-full border-[4px] border-[#3B82F6] border-t-[#BFDBFE]"></div>
+                                    <div className="w-8 h-8 rounded-full border-[4px] border-[var(--primary)] border-t-[var(--primary-light)]"></div>
                                     <div className="flex flex-col flex-1 pr-2 justify-center">
                                         <span className="text-[9px] font-bold text-gray-700 leading-none mb-1">Active Users</span>
                                         <span className="text-[8px] font-semibold text-gray-400 leading-none">2,451 online</span>
@@ -192,7 +192,7 @@ const AdminLogin = () => {
                                 </div>
                                 {/* Pill 2 */}
                                 <div className="bg-[#F8FAFC] rounded-full p-2 flex items-center gap-3 shadow-sm border border-gray-50">
-                                    <div className="w-8 h-8 rounded-full border-[4px] border-[#1E3A8A] border-t-[#3B82F6]"></div>
+                                    <div className="w-8 h-8 rounded-full border-[4px] border-[var(--primary-hover)] border-t-[var(--primary)]"></div>
                                     <div className="flex flex-col flex-1 pr-2 justify-center">
                                         <span className="text-[9px] font-bold text-gray-700 leading-none mb-1">Pending Tests</span>
                                         <span className="text-[8px] font-semibold text-gray-400 leading-none">142 in queue</span>
@@ -200,7 +200,7 @@ const AdminLogin = () => {
                                 </div>
                                 {/* Pill 3 */}
                                 <div className="bg-[#F8FAFC] rounded-full p-2 flex items-center gap-3 shadow-sm border border-gray-50">
-                                    <div className="w-8 h-8 rounded-full border-[4px] border-[#60A5FA] border-t-[#DBEAFE]"></div>
+                                    <div className="w-8 h-8 rounded-full border-[4px] border-[var(--primary-light)] border-t-[#DBEAFE]"></div>
                                     <div className="flex flex-col flex-1 pr-2 justify-center">
                                         <span className="text-[9px] font-bold text-gray-700 leading-none mb-1">System Health</span>
                                         <span className="text-[8px] font-semibold text-green-500 leading-none">99.9% uptime</span>
@@ -215,15 +215,15 @@ const AdminLogin = () => {
                                     <div className="w-10 h-10 rounded-full border-[4px] border-[#94A3B8] border-r-[#CBD5E1] border-b-[#CBD5E1]"></div>
                                     <div className="flex flex-col flex-1 justify-center">
                                         <span className="text-[10px] font-bold text-gray-800 leading-none mb-1">Monthly Reports</span>
-                                        <span className="text-[9px] font-semibold text-blue-500 leading-none">+12.5% vs last month</span>
+                                        <span className="text-[9px] font-semibold text-navy leading-none">+12.5% vs last month</span>
                                     </div>
                                 </div>
                                 {/* Bottom Bar Chart */}
                                     <div className="bg-[#F8FAFC] rounded-xl shadow-sm border border-gray-50 p-3 flex items-end justify-around h-[100px] flex-none">
-                                        <div className="w-4 bg-[#60A5FA] h-[40%] rounded-t-sm shadow-sm"></div>
-                                        <div className="w-4 bg-[#60A5FA] h-[80%] rounded-t-sm shadow-sm"></div>
-                                        <div className="w-4 bg-[#60A5FA] h-[60%] rounded-t-sm shadow-sm"></div>
-                                        <div className="w-4 bg-[#60A5FA] h-[100%] rounded-t-sm shadow-sm"></div>
+                                        <div className="w-4 bg-[var(--primary-light)] h-[40%] rounded-t-sm shadow-sm"></div>
+                                        <div className="w-4 bg-[var(--primary-light)] h-[80%] rounded-t-sm shadow-sm"></div>
+                                        <div className="w-4 bg-[var(--primary-light)] h-[60%] rounded-t-sm shadow-sm"></div>
+                                        <div className="w-4 bg-[var(--primary-light)] h-[100%] rounded-t-sm shadow-sm"></div>
                                     </div>
                                 </div>
                             </div>
@@ -235,7 +235,7 @@ const AdminLogin = () => {
                             <div className="absolute inset-0 bg-gradient-to-b from-[#FCD34D] to-[#B45309]" style={{ clipPath: 'polygon(50% 0%, 100% 20%, 100% 70%, 50% 100%, 0% 70%, 0% 20%)', borderRadius: '4px' }}></div>
                             
                             {/* Inner Shield (Dark Blue) */}
-                            <div className="absolute inset-1 bg-gradient-to-br from-[#1E40AF] to-[#0F172A] shadow-inner" style={{ clipPath: 'polygon(50% 0%, 100% 20%, 100% 70%, 50% 100%, 0% 70%, 0% 20%)' }}>
+                            <div className="absolute inset-1 bg-gradient-to-br from-[var(--primary-hover)] to-[#0F172A] shadow-inner" style={{ clipPath: 'polygon(50% 0%, 100% 20%, 100% 70%, 50% 100%, 0% 70%, 0% 20%)' }}>
                                 {/* Inner 3D Highlight / Glass Effect */}
                                 <div className="absolute top-0 left-0 w-1/2 h-full bg-white opacity-10"></div>
                                 <div className="absolute top-4 left-4 w-2 h-2 bg-white rounded-full opacity-60"></div>
@@ -246,7 +246,7 @@ const AdminLogin = () => {
                                 {/* Lock Hook */}
                                 <div className="w-10 h-10 border-[5px] border-[#FCD34D] rounded-t-full border-b-0 mb-[-4px]"></div>
                                 {/* Lock Body */}
-                                <div className="w-14 h-12 bg-gradient-to-b from-[#FDE68A] to-[#D97706] rounded-md shadow-lg flex items-center justify-center border border-[#F59E0B]">
+                                <div className="w-14 h-12 bg-gradient-to-b from-[#FDE68A] to-[var(--accent-gold-hover)] rounded-md shadow-lg flex items-center justify-center border border-[var(--accent-gold)]">
                                     {/* Keyhole */}
                                     <div className="w-3 h-3 bg-[#78350F] rounded-full relative">
                                         <div className="absolute top-2 left-1 w-1 h-3 bg-[#78350F] rounded-b-sm"></div>
@@ -260,15 +260,15 @@ const AdminLogin = () => {
                 {/* Footer Features */}
                 <div className="flex gap-12 text-[#4B5563]">
                     <div className="flex items-center gap-2">
-                        <ShieldCheck size={20} className="text-blue-600" />
+                        <ShieldCheck size={20} className="text-navy" />
                         <span className="text-sm font-semibold">Secure Access</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <BarChart3 size={20} className="text-blue-600" />
+                        <BarChart3 size={20} className="text-navy" />
                         <span className="text-sm font-semibold">Powerful Insights</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Users size={20} className="text-blue-600" />
+                        <Users size={20} className="text-navy" />
                         <span className="text-sm font-semibold">Better Outcomes</span>
                     </div>
                 </div>
@@ -422,7 +422,7 @@ const AdminLogin = () => {
                                         <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#0A192F] focus:ring-[#0A192F]" />
                                         <span className="text-xs text-gray-500 font-medium">Remember me</span>
                                     </label>
-                                    <button type="button" onClick={() => setIsRecovering(true)} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">Forgot Password?</button>
+                                    <button type="button" onClick={() => setIsRecovering(true)} className="text-xs font-semibold text-navy hover:text-navy transition-colors">Forgot Password?</button>
                                 </div>
 
                                 <button 
@@ -502,7 +502,7 @@ const AdminLogin = () => {
 
                     <div className="mt-8 pt-6 border-t border-gray-100 text-center">
                         <p className="text-xs font-medium text-gray-500">
-                            Need Help? <button type="button" onClick={() => setIsRecovering(true)} className="text-blue-600 font-bold hover:underline ml-1">Contact Support</button>
+                            Need Help? <button type="button" onClick={() => setIsRecovering(true)} className="text-navy font-bold hover:underline ml-1">Contact Support</button>
                         </p>
                     </div>
                 </div>

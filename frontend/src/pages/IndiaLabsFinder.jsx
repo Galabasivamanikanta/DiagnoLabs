@@ -87,7 +87,7 @@ const IndiaLabsFinder = () => {
             </p>
           </div>
 
-          <div className="mobile-stack" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="search-bar-wrapper" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', padding: '0.6rem 1.2rem', borderRadius: 999, border: '1px solid var(--border)', background: 'white' }}>
               <TrendingUp size={18} /> <span style={{ fontWeight: 900 }}>{results.length}</span> labs
             </div>
@@ -107,7 +107,7 @@ const IndiaLabsFinder = () => {
             <div>
               <label style={{ display: 'block', fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Pincode (optional)</label>
               <input value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6-digit" style={inputStyle} />
-              {!isPincodeValid && <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '0.85rem', marginTop: 6 }}>Invalid pincode.</div>}
+              {!isPincodeValid && <div style={{ color: 'var(--danger)', fontWeight: 800, fontSize: '0.85rem', marginTop: 6 }}>Invalid pincode.</div>}
             </div>
           </div>
 
@@ -122,7 +122,7 @@ const IndiaLabsFinder = () => {
             >
               Reset
             </button>
-            {error && <div style={{ color: '#ef4444', fontWeight: 900 }}>{error}</div>}
+            {error && <div style={{ color: 'var(--danger)', fontWeight: 900 }}>{error}</div>}
           </div>
         </div>
 
@@ -145,7 +145,7 @@ const IndiaLabsFinder = () => {
                       <div style={{ marginTop: 8, color: '#64748b', fontWeight: 700, fontSize: '0.95rem' }}>{lab.address}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ padding: '0.35rem 0.7rem', borderRadius: 999, background: lab.isVerified ? '#eff6ff' : '#fefce8', border: '1px solid var(--border)', fontWeight: 900, color: lab.isVerified ? '#1d4ed8' : '#ca8a04' }}>
+                      <div style={{ padding: '0.35rem 0.7rem', borderRadius: 999, background: lab.isVerified ? 'var(--surface-alt)' : '#fefce8', border: '1px solid var(--border)', fontWeight: 900, color: lab.isVerified ? 'var(--primary-hover)' : '#ca8a04' }}>
                         {lab.isVerified ? 'Verified Partner' : 'Community'}
                       </div>
                       <div style={{ marginTop: 10, fontWeight: 900, color: '#0f172a' }}>{tests.length} tests</div>

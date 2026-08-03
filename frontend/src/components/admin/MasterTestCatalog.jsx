@@ -62,14 +62,14 @@ const MasterTestCatalog = () => {
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={14} /> {test.turnaroundTimeHours}h</span>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <span style={{ padding: '0.3rem 0.8rem', borderRadius: '100px', background: test.isActive ? '#dcfce7' : '#fee2e2', color: test.isActive ? '#166534' : '#991b1b', fontWeight: '800', fontSize: '0.8rem' }}>
+                                        <span style={{ padding: '0.3rem 0.8rem', borderRadius: '100px', background: test.isActive ? '#dcfce7' : '#fef2f2', color: test.isActive ? '#166534' : '#991b1b', fontWeight: '800', fontSize: '0.8rem' }}>
                                             {test.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <button style={{ padding: '0.4rem', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                                            <button style={{ padding: '0.4rem', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                            <button style={{ padding: '0.4rem', background: '#fef2f2', color: '#991b1b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>

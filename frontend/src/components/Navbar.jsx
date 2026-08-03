@@ -288,7 +288,7 @@ const Navbar = () => {
                 }
                 .text-danger:hover {
                     background: #fef2f2 !important;
-                    color: #dc2626 !important;
+                    color: var(--danger) !important;
                 }
                 @keyframes slideUp {
                     from { opacity: 0; transform: translateY(10px); }

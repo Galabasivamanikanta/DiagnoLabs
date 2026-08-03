@@ -140,7 +140,7 @@ const ReceiptModal = ({ booking, onClose, user }) => {
 
                 {/* ── STATUS STRIP ── */}
                 <div style={{
-                    background: '#059669',
+                    background: 'var(--success)',
                     padding: '0.5rem 1.5rem',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
@@ -159,7 +159,7 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                     <div className="no-print" style={{ background: '#f0f7ff', borderRadius: '10px', padding: '0.8rem 1.25rem', border: '1px solid #e0eeff' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' }}>
                             <div style={{ position: 'absolute', top: '11px', left: '5%', right: '5%', height: '2px', background: '#dce8f5', zIndex: 1 }} />
-                            <div style={{ position: 'absolute', top: '11px', left: '5%', width: `${currentStageIdx >= 0 ? (currentStageIdx / (STAGES.length - 1)) * 90 : 0}%`, height: '2px', background: '#059669', zIndex: 2, transition: 'width 0.5s ease' }} />
+                            <div style={{ position: 'absolute', top: '11px', left: '5%', width: `${currentStageIdx >= 0 ? (currentStageIdx / (STAGES.length - 1)) * 90 : 0}%`, height: '2px', background: 'var(--success)', zIndex: 2, transition: 'width 0.5s ease' }} />
                             {STAGES.map((stage, idx) => {
                                 const done = idx <= currentStageIdx;
                                 const curr = idx === currentStageIdx;
@@ -167,14 +167,14 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                                     <div key={stage} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 3, flex: 1 }}>
                                         <div style={{
                                             width: '22px', height: '22px', borderRadius: '50%',
-                                            background: done ? '#059669' : 'white',
-                                            border: `2px solid ${done ? '#059669' : '#dce8f5'}`,
+                                            background: done ? 'var(--success)' : 'white',
+                                            border: `2px solid ${done ? 'var(--success)' : '#dce8f5'}`,
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             boxShadow: curr ? '0 0 0 3px rgba(5,150,105,0.12)' : 'none'
                                         }}>
                                             {done ? <CheckCircle2 size={11} color="white" /> : <Clock size={9} color="#94a3b8" />}
                                         </div>
-                                        <div style={{ marginTop: '0.3rem', fontSize: '0.58rem', fontWeight: '700', textAlign: 'center', color: done ? '#059669' : '#94a3b8', lineHeight: 1.2 }}>{stage}</div>
+                                        <div style={{ marginTop: '0.3rem', fontSize: '0.58rem', fontWeight: '700', textAlign: 'center', color: done ? 'var(--success)' : '#94a3b8', lineHeight: 1.2 }}>{stage}</div>
                                     </div>
                                 );
                             })}
@@ -228,7 +228,7 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                                         <span style={{ color: '#64748b', fontWeight: '600' }}>{label}:</span>
                                         <span style={{ 
                                             fontWeight: '700', 
-                                            color: highlight ? '#059669' : '#0f172a',
+                                            color: highlight ? 'var(--success)' : '#0f172a',
                                             fontFamily: mono ? 'monospace' : 'inherit',
                                             textAlign: 'left',
                                             wordBreak: 'break-word'
@@ -298,9 +298,9 @@ const ReceiptModal = ({ booking, onClose, user }) => {
                     </div>
 
                     {/* ── CLINICAL INSTRUCTIONS ── */}
-                    <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px', padding: '0.9rem 1.25rem' }}>
+                    <div style={{ background: 'var(--surface-alt)', border: '1px solid var(--accent-gold-light)', borderRadius: '10px', padding: '0.9rem 1.25rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.6rem' }}>
-                            <AlertCircle size={13} color="#d97706" />
+                            <AlertCircle size={13} color="var(--accent-gold-hover)" />
                             <span style={{ fontSize: '0.62rem', fontWeight: '800', color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Clinical Instructions & Precautions</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.78rem' }}>

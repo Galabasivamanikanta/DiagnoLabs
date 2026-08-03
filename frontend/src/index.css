@@ -373,54 +373,337 @@ h1, h2, h3, h4, .font-heading {
   }
 }
 
-/* Responsive Table */
+
+
+
+
+/* --- Mobile Responsive Enhancements --- */
 @media (max-width: 768px) {
-  .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  /* Make all tables horizontally scrollable implicitly */
+  .table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Stack grid layouts that are using fixed columns */
+  .mobile-stack {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Prevent modals from overflowing */
+  .mobile-modal {
+    width: 95% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* Horizontal scrolling for tab containers */
+.scroll-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+.scroll-tabs::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+
+/* --- Mobile Responsive Table Cards --- */
+@media (max-width: 768px) {
+  .responsive-table-cards, .responsive-table-cards tbody, .responsive-table-cards tr, .responsive-table-cards td {
     display: block;
     width: 100%;
+    box-sizing: border-box;
   }
-  .responsive-table thead {
+  .responsive-table-cards thead {
     display: none;
   }
-  .responsive-table tr {
+  .responsive-table-cards tr {
     margin-bottom: 1.5rem;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.5rem;
+    border-radius: 16px;
+    padding: 0.5rem 1rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     background: white;
   }
-  .responsive-table td {
-    text-align: right;
-    padding-left: 40% !important;
-    position: relative;
-    border: none !important;
-    border-bottom: 1px dashed var(--border) !important;
-    padding-top: 0.8rem !important;
-    padding-bottom: 0.8rem !important;
+  .responsive-table-cards td {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
+    text-align: right;
+    padding: 1rem 0 !important;
+    border-bottom: 1px dashed var(--border) !important;
+    gap: 1rem;
   }
-  .responsive-table td:last-child {
+  .responsive-table-cards td:last-child {
     border-bottom: none !important;
+    padding-bottom: 0.5rem !important;
   }
-  .responsive-table td::before {
+  .responsive-table-cards td::before {
     content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 35%;
-    text-align: left;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--text-muted);
     font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-align: left;
+    flex-shrink: 0;
   }
-  .responsive-table td > div {
-    text-align: right;
+  .responsive-table-cards td > div {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
+    text-align: right;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   DiagnoLabs Centralized UI Module — Global Styles
+   ═══════════════════════════════════════════════════ */
+
+/* --- Prevent any horizontal overflow on mobile --- */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* --- SmartModal animations --- */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* --- ScrollTabs: hide scrollbar --- */
+.scroll-tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Mobile container padding override --- */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Make modals that don't use SmartModal still fit on mobile */
+  [style*="width: '560px'"],
+  [style*="width: 560px"],
+  [style*="maxWidth: '560px'"],
+  [style*="maxWidth: 560px"] {
+    max-width: 95vw !important;
+    width: 95vw !important;
+  }
+
+  /* Ensure no image or element bleeds beyond screen */
+  img, video, iframe, embed {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* All flex rows wrap on mobile by default */
+  .flex-mobile-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  /* Stack layout utility */
+  .mobile-col {
+    flex-direction: column !important;
+  }
+}
+
+/* --- Tablet adjustments --- */
+@media (max-width: 1024px) and (min-width: 641px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* --- Touch targets: minimum 44px for mobile buttons --- */
+@media (max-width: 640px) {
+  button, a, [role="button"] {
+    min-height: 40px;
+  }
+}
+
+/* --- Global smooth font scaling --- */
+@media (max-width: 640px) {
+  h1 { font-size: clamp(1.6rem, 6vw, 2.2rem) !important; }
+  h2 { font-size: clamp(1.3rem, 5vw, 1.8rem) !important; }
+  h3 { font-size: clamp(1.1rem, 4vw, 1.5rem) !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DIAGNOLABS — CSS-ONLY RESPONSIVE SYSTEM
+   Grid ani Flexbox CSS lo adjust avutayi — JS avasaram ledu.
+   Mobile  : max-width 640px
+   Tablet  : 641px – 1023px
+   Desktop : 1024px+
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Universal Grid Collapse ──────────────────────────────────
+   Any inline grid with repeat(2,…) or repeat(3,…) stacks to
+   1 column on mobile automatically via this rule.              */
+@media (max-width: 640px) {
+  /* 2-col grids → single column */
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="gridTemplateColumns: '1fr 1fr'"],
+  [style*="repeat(2, 1fr)"],
+  [style*="repeat(2,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 3-col grids → single column */
+  [style*="repeat(3, 1fr)"],
+  [style*="repeat(3,1fr)"],
+  [style*="gridTemplateColumns: '1fr 1fr 1fr'"],
+  [style*="2fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 4-col grids → 2 cols */
+  [style*="repeat(4, 1fr)"],
+  [style*="repeat(4,1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Any grid gap that's too wide → compact */
+  [style*="gap: '4rem'"],
+  [style*="gap: '5rem'"],
+  [style*="gap: '6rem'"],
+  [style*="gap: '8rem'"] {
+    gap: 1.25rem !important;
+  }
+}
+
+/* ── Universal Flex Row → Column on Mobile ─────────────────── */
+@media (max-width: 640px) {
+  /* Named helper: add class="row-mobile-col" to any flex row
+     and it stacks on mobile automatically                      */
+  .row-mobile-col {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* Full-width children inside stacked flex parents */
+  .row-mobile-col > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+}
+
+/* ── Padding Normalizer ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Sections with giant desktop vertical padding */
+  [style*="padding: '10rem"],
+  [style*="padding: '12rem"],
+  [style*="padding: '14rem"] {
+    padding-top: 4rem !important;
+    padding-bottom: 4rem !important;
+  }
+
+  /* CTA / hero inner blocks */
+  [style*="padding: '8rem 4rem'"],
+  [style*="padding: '6rem 4rem'"] {
+    padding: 2.5rem 1.25rem !important;
+    border-radius: 20px !important;
+  }
+}
+
+/* ── Tablet: 2-col from 3-col ───────────────────────────────── */
+@media (min-width: 641px) and (max-width: 1023px) {
+  [style*="repeat(3, 1fr)"],
+  [style*="repeat(3,1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  [style*="repeat(4, 1fr)"],
+  [style*="repeat(4,1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  [style*="2fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* ── Auto-fill safe grids (use these classes in JSX) ─────────
+   class="grid-1"  → always 1 col
+   class="grid-2"  → 1 col mobile, 2 col tablet+
+   class="grid-3"  → 1 col mobile, 2 col tablet, 3 col desktop
+   class="grid-4"  → 2 col mobile, 2 col tablet, 4 col desktop  */
+
+.grid-1 { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 641px) {
+  .grid-2 { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 641px)  { .grid-3 { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; } }
+@media (min-width: 1024px) { .grid-3 { grid-template-columns: repeat(3, 1fr); gap: 2rem;   } }
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (min-width: 641px)  { .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; } }
+@media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, 1fr); gap: 2rem;   } }
+
+/* ── Stat row: always 3 cols, no stacking ───────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(0.75rem, 3vw, 3rem);
+  text-align: center;
+}
+
+/* ── Safe flex row with auto wrap ───────────────────────────── */
+.flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  align-items: center;
+}
+
+/* ── Card base ──────────────────────────────────────────────── */
+.card {
+  background: white;
+  border-radius: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--border);
+  padding: clamp(1rem, 3vw, 1.75rem);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
 }

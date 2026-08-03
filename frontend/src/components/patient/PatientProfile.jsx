@@ -83,7 +83,7 @@ const PatientProfile = ({ bookings, onDownloadInvoice }) => {
                     padding: '1rem', 
                     borderRadius: '12px', 
                     marginBottom: '2rem', 
-                    background: message.type === 'success' ? '#dcfce7' : '#fee2e2',
+                    background: message.type === 'success' ? '#dcfce7' : '#fef2f2',
                     color: message.type === 'success' ? '#166534' : '#991b1b',
                     fontWeight: '700' 
                 }}>
@@ -91,7 +91,7 @@ const PatientProfile = ({ bookings, onDownloadInvoice }) => {
                 </div>
             )}
 
-            <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem' }}>
+            <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 600px)', gap: '2rem' }}>
                 
                 {/* Left Column: Patient Overview */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

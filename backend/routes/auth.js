@@ -5,9 +5,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../middleware/auth');
 const { sendCustomerIdNotification } = require('../services/customerIdNotification');
+const { sendEmail } = require('../services/mailService');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const { sendVerificationOTP, verifyOTP } = require('../services/otpService');
+
+const generateId = (prefix) => {
+    return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+};
+
+const generatePassword = () => {
+    return Math.random().toString(36).slice(-8);
+};
 
 // REGISTER USER
 router.post('/register', async (req, res) => {
@@ -320,11 +329,27 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json("User with this email already exists");
 
-        const empPrefix = role === 'admin' ? 'ADM' : role === 'lab_partner' ? 'LAB' : 'EMP';
-        let employeeId = generateId(empPrefix);
+        const prefixMap = {
+            'admin':             'ADM',
+            'lab_partner':       'LAB',
+            'doctor':            'DOC',
+            'phlebotomist':      'PHB',
+            'nurse':             'NRS',
+            'receptionist':      'RCP',
+            'inventory_manager': 'INV',
+            'finance_manager':   'FIN',
+            'marketing_head':    'MKT',
+            'support_staff':     'SUP',
+            'delivery_partner':  'DEL',
+            'quality_auditor':   'QAL',
+            'it_specialist':     'IT',
+            'employee':          'EMP'
+        };
+        const empPrefix = prefixMap[role] || 'EMP';
+        let employeeId = generateId(empPrefix).toUpperCase();
         let idExists = await User.findOne({ employeeId });
         while (idExists) {
-            employeeId = generateId(empPrefix);
+            employeeId = generateId(empPrefix).toUpperCase();
             idExists = await User.findOne({ employeeId });
         }
 
@@ -497,6 +522,22 @@ router.get('/dev/reset-users-final', async (req, res) => {
         res.status(500).send(e.toString());
     }
 });
+// DEV: Reset any employee password to 123456 by employeeId
+router.get('/dev/reset-employee/:empId', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const empId = req.params.empId.toUpperCase();
+        const user = await User.findOne({ employeeId: empId });
+        if (!user) return res.status(404).send(`Employee ${empId} not found`);
+        const salt = await bcrypt.genSalt(10);
+        const hashed = await bcrypt.hash('123456', salt);
+        await User.updateOne({ employeeId: empId }, { $set: { password: hashed, isFirstLogin: true } });
+        res.send(`✅ Password for ${empId} reset to 123456 successfully.`);
+    } catch (e) {
+        res.status(500).send(e.toString());
+    }
+});
+
 module.exports = router;
 
 

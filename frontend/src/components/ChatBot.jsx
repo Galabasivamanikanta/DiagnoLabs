@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
+import useDevice from '../hooks/useDevice';
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -53,7 +54,7 @@ const testIcon = (name = '') => {
     if (n.includes('heart') || n.includes('cardiac') || n.includes('ecg') || n.includes('lipid')) return <HeartPulse size={18} className="text-red-600" />;
     if (n.includes('liver') || n.includes('kidney') || n.includes('urine') || n.includes('renal')) return <ShieldCheck size={18} className="text-emerald-600" />;
     if (n.includes('vitamin') || n.includes('b12') || n.includes('iron')) return <Pill size={18} className="text-violet-500" />;
-    if (n.includes('full') || n.includes('body') || n.includes('checkup')) return <Activity size={18} className="text-blue-500" />;
+    if (n.includes('full') || n.includes('body') || n.includes('checkup')) return <Activity size={18} className="text-navy" />;
     return <FlaskConical size={18} className="text-primary" />;
 };
 
@@ -103,7 +104,7 @@ const RecommendationCards = ({ tests, onBook }) => (
                     onClick={() => onBook(testName)}
                     style={{
                         padding: '0.45rem 0.9rem',
-                        background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
+                        background: 'linear-gradient(135deg, #0ea5e9, var(--primary))',
                         color: 'white',
                         borderRadius: '10px',
                         border: 'none',
@@ -131,7 +132,7 @@ const ActionBanner = ({ action, onAction }) => {
         CHECKOUT: { icon: <CreditCard size={16} />, label: 'Proceed to Checkout', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
         PREP_DONE: { icon: <ClipboardList size={16} />, label: 'View My Bookings', color: '#9333ea', bg: '#faf5ff', border: '#e9d5ff' },
         REPORT_ANALYZED: { icon: <CheckCircle2 size={16} />, label: 'View All Reports', color: '#0ea5e9', bg: '#f0f9ff', border: '#bae6fd' },
-        MED_INFO: { icon: <BookOpen size={16} />, label: 'Learn More', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+        MED_INFO: { icon: <BookOpen size={16} />, label: 'Learn More', color: 'var(--accent-gold)', bg: 'var(--surface-alt)', border: '#fde68a' },
     };
     const cfg = configs[action];
     if (!cfg) return null;
@@ -154,6 +155,7 @@ const ActionBanner = ({ action, onAction }) => {
 // ─────────────────────────────────────────────────────────────
 const ChatBot = () => {
     const navigate = useNavigate();
+    const { isMobile } = useDevice();
 
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);   // TTS toggle
@@ -406,24 +408,28 @@ const ChatBot = () => {
         <>
             {/* FAB Button */}
             <motion.button
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.92 }}
                 onClick={() => setIsOpen(o => !o)}
                 aria-label="Open Clinical AI Chat"
                 style={{
-                    position: 'fixed', bottom: '2rem', right: '2rem',
-                    width: '64px', height: '64px', borderRadius: '22px',
-                    background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
-                    color: 'white', border: '2px solid rgba(255,255,255,0.25)',
+                    position: 'fixed',
+                    bottom: isMobile ? '5rem' : '2rem',
+                    right: isMobile ? '1rem' : '2rem',
+                    width: isMobile ? '60px' : '60px',
+                    height: isMobile ? '60px' : '60px',
+                    borderRadius: '18px',
+                    background: 'linear-gradient(135deg, #0ea5e9, var(--primary))',
+                    color: 'white', border: '2px solid rgba(255,255,255,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 15px 35px -5px rgba(37,99,235,0.45)',
-                    cursor: 'pointer', zIndex: 2000
+                    boxShadow: '0 8px 24px -4px rgba(37,99,235,0.4)',
+                    cursor: 'pointer', zIndex: 1500
                 }}
             >
                 <AnimatePresence mode="wait">
                     {isOpen
-                        ? <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}><ChevronDown size={30} /></motion.div>
-                        : <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}><MessageSquare size={30} /></motion.div>
+                        ? <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}><ChevronDown size={isMobile ? 20 : 26} /></motion.div>
+                        : <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}><MessageSquare size={isMobile ? 20 : 26} /></motion.div>
                     }
                 </AnimatePresence>
             </motion.button>
@@ -432,19 +438,23 @@ const ChatBot = () => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 80, scale: 0.92, filter: 'blur(8px)' }}
-                        animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: 80, scale: 0.92, filter: 'blur(8px)' }}
-                        transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+                        initial={{ opacity: 0, y: 60, scale: 0.94 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 60, scale: 0.94 }}
+                        transition={{ type: 'spring', damping: 24, stiffness: 300 }}
                         style={{
-                            position: 'fixed', bottom: '7.5rem', right: '2rem',
-                            width: '100%', maxWidth: '430px', height: '90vh', maxHeight: '680px',
+                            position: 'fixed',
+                            bottom: isMobile ? '8.5rem' : '7.5rem',
+                            right: isMobile ? '1rem' : '2rem',
+                            width: isMobile ? 'calc(100vw - 2rem)' : '420px',
+                            height: isMobile ? '80vh' : '85vh',
+                            maxHeight: isMobile ? '640px' : '700px',
                             background: 'rgba(255,255,255,0.98)',
                             backdropFilter: 'blur(24px)',
-                            borderRadius: '32px',
-                            boxShadow: '0 40px 80px -15px rgba(15,23,42,0.22)',
+                            borderRadius: isMobile ? '20px' : '28px',
+                            boxShadow: '0 24px 60px -12px rgba(15,23,42,0.2)',
                             display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                            zIndex: 2000, border: '1px solid rgba(226,232,240,0.8)'
+                            zIndex: 1500, border: '1px solid rgba(226,232,240,0.8)'
                         }}
                     >
                         {/* ── Header ── */}
@@ -457,7 +467,7 @@ const ChatBot = () => {
                                     <div>
                                         <div style={{ fontWeight: '800', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             Clinical AI
-                                            <span style={{ width: '7px', height: '7px', background: '#10b981', borderRadius: '50%', display: 'inline-block' }} />
+                                            <span style={{ width: '7px', height: '7px', background: 'var(--success)', borderRadius: '50%', display: 'inline-block' }} />
                                         </div>
                                         <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                             DiagnoLabs · Gemini Powered
@@ -518,7 +528,7 @@ const ChatBot = () => {
                                         padding: '0.9rem 1.1rem',
                                         borderRadius: msg.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                                         background: msg.sender === 'user'
-                                            ? 'linear-gradient(135deg,#2563eb,#0ea5e9)'
+                                            ? 'linear-gradient(135deg,var(--primary),#0ea5e9)'
                                             : (msg.isError ? '#fff1f2' : 'white'),
                                         color: msg.sender === 'user' ? 'white' : '#1e293b',
                                         boxShadow: msg.sender === 'user'
@@ -552,7 +562,7 @@ const ChatBot = () => {
                                     style={{ alignSelf: 'flex-start' }}
                                 >
                                     <div style={{ padding: '0.75rem 1.25rem', borderRadius: '16px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                        <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+                                        <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
                                         <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>Clinical AI thinking...</span>
                                     </div>
                                 </motion.div>
@@ -620,7 +630,7 @@ const ChatBot = () => {
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
                                     title="Attach prescription or report"
-                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: attachedFile ? '#dbeafe' : 'transparent', border: 'none', cursor: 'pointer', color: attachedFile ? '#2563eb' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: attachedFile ? '#dbeafe' : 'transparent', border: 'none', cursor: 'pointer', color: attachedFile ? 'var(--primary)' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                 >
                                     <Paperclip size={18} />
                                 </button>
@@ -640,7 +650,7 @@ const ChatBot = () => {
                                     whileTap={{ scale: 0.85 }}
                                     onClick={toggleListening}
                                     title={isListening ? 'Stop listening' : 'Voice input'}
-                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: isListening ? '#fee2e2' : 'transparent', border: 'none', cursor: 'pointer', color: isListening ? '#e11d48' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: isListening ? '#fef2f2' : 'transparent', border: 'none', cursor: 'pointer', color: isListening ? '#e11d48' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                 >
                                     {isListening
                                         ? <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}><Mic size={18} /></motion.div>
@@ -653,7 +663,7 @@ const ChatBot = () => {
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleSend()}
                                     disabled={isLoading}
-                                    style={{ width: '40px', height: '40px', borderRadius: '14px', background: 'linear-gradient(135deg,#0ea5e9,#2563eb)', color: 'white', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 14px -3px rgba(37,99,235,0.4)', flexShrink: 0, opacity: isLoading ? 0.6 : 1 }}
+                                    style={{ width: '40px', height: '40px', borderRadius: '14px', background: 'linear-gradient(135deg,#0ea5e9,var(--primary))', color: 'white', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 14px -3px rgba(37,99,235,0.4)', flexShrink: 0, opacity: isLoading ? 0.6 : 1 }}
                                 >
                                     <Send size={17} />
                                 </motion.button>

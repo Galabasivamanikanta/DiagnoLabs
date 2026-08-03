@@ -297,7 +297,7 @@ const AdvancedAuth = () => {
                       {strengthLabel(passwordStrength)}
                     </span>
                     <div className="strength-bar">
-                      <div className="strength-fill" style={{ width: `${passwordStrength}%`, backgroundColor: passwordStrength >= 75 ? '#10b981' : passwordStrength >= 45 ? '#f59e0b' : '#ef4444' }} />
+                      <div className="strength-fill" style={{ width: `${passwordStrength}%`, backgroundColor: passwordStrength >= 75 ? 'var(--success)' : passwordStrength >= 45 ? 'var(--accent-gold)' : 'var(--danger)' }} />
                     </div>
                   </div>
                 </div>

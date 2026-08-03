@@ -154,7 +154,7 @@ const Login = () => {
                     <div className="p-6 bg-gray-50 rounded-2xl mb-8 border border-gray-100">
                         <span className="text-xs text-gray-400 font-extrabold tracking-wider block mb-2 uppercase">ACTIVE SESSION IDENTITY</span>
                         <h4 className="text-lg text-navy font-bold">{user.name}</h4>
-                        <span className="inline-block mt-2 bg-blue-50 text-blue-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase">{user.role.replace('_', ' ')}</span>
+                        <span className="inline-block mt-2 bg-slate-50 text-navy text-xs font-extrabold px-3 py-1 rounded-full uppercase">{user.role.replace('_', ' ')}</span>
                     </div>
 
                     <div className="flex flex-col gap-4">
@@ -248,7 +248,7 @@ const Login = () => {
                 <div className="my-auto w-full max-w-[540px] flex flex-col">
                     {/* Pill badge */}
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full text-xs font-bold text-[#0a1e46] shadow-sm border border-gray-100 self-start mb-6">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-navy animate-pulse"></span>
                         <span>India's Most Advanced Clinical Discovery Network</span>
                     </div>
 
@@ -345,28 +345,28 @@ const Login = () => {
                                         <stop offset="100%" stopColor="#94a3b8" />
                                     </linearGradient>
                                     <linearGradient id="metallic-blue" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#3b82f6" />
-                                        <stop offset="50%" stopColor="#1d4ed8" />
-                                        <stop offset="100%" stopColor="#1e3a8a" />
+                                        <stop offset="0%" stopColor="var(--primary)" />
+                                        <stop offset="50%" stopColor="var(--primary-hover)" />
+                                        <stop offset="100%" stopColor="var(--primary-hover)" />
                                     </linearGradient>
                                     <linearGradient id="gold-trim" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#f59e0b" />
-                                        <stop offset="50%" stopColor="#d97706" />
+                                        <stop offset="0%" stopColor="var(--accent-gold)" />
+                                        <stop offset="50%" stopColor="var(--accent-gold-hover)" />
                                         <stop offset="100%" stopColor="#b45309" />
                                     </linearGradient>
                                     
                                     {/* Liquid gradients */}
                                     <linearGradient id="liquid-grad-1" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#60a5fa" />
-                                        <stop offset="100%" stopColor="#1d4ed8" />
+                                        <stop offset="0%" stopColor="var(--primary-light)" />
+                                        <stop offset="100%" stopColor="var(--primary-hover)" />
                                     </linearGradient>
                                     <linearGradient id="liquid-grad-2" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#1e3a8a" />
+                                        <stop offset="0%" stopColor="var(--primary)" />
+                                        <stop offset="100%" stopColor="var(--primary-hover)" />
                                     </linearGradient>
                                     <linearGradient id="liquid-grad-3" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#93c5fd" />
-                                        <stop offset="100%" stopColor="#2563eb" />
+                                        <stop offset="0%" stopColor="var(--primary-light)" />
+                                        <stop offset="100%" stopColor="var(--primary)" />
                                     </linearGradient>
                                     
                                     {/* Glare and glass highlights */}
@@ -415,7 +415,7 @@ const Login = () => {
                                         <rect x="259" y="112" width="16" height="82" rx="8" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
                                         <rect x="259" y="112" width="16" height="82" rx="8" fill="url(#glass-reflection)" />
                                         {/* Meniscus */}
-                                        <ellipse cx="267" cy="145" rx="7" ry="2.5" fill="#93c5fd" opacity="0.8" />
+                                        <ellipse cx="267" cy="145" rx="7" ry="2.5" fill="var(--primary-light)" opacity="0.8" />
                                         {/* Tube Lip */}
                                         <rect x="257" y="108" width="20" height="4" rx="1.5" fill="rgba(255,255,255,0.9)" stroke="#cbd5e1" strokeWidth="1" />
                                     </g>
@@ -428,7 +428,7 @@ const Login = () => {
                                         <rect x="281" y="102" width="16" height="92" rx="8" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
                                         <rect x="281" y="102" width="16" height="92" rx="8" fill="url(#glass-reflection)" />
                                         {/* Meniscus */}
-                                        <ellipse cx="289" cy="138" rx="7" ry="2.5" fill="#60a5fa" opacity="0.8" />
+                                        <ellipse cx="289" cy="138" rx="7" ry="2.5" fill="var(--primary-light)" opacity="0.8" />
                                         {/* Tube Lip */}
                                         <rect x="279" y="98" width="20" height="4" rx="1.5" fill="rgba(255,255,255,0.9)" stroke="#cbd5e1" strokeWidth="1" />
                                     </g>
@@ -486,7 +486,7 @@ const Login = () => {
 
                                     {/* Objective Lenses */}
                                     <rect x="116" y="108" width="6" height="16" rx="1.5" fill="url(#chrome-grad)" stroke="#94a3b8" transform="rotate(20, 119, 108)" />
-                                    <rect x="130" y="111" width="7" height="20" rx="1.5" fill="url(#metallic-blue)" stroke="#1e3a8a" strokeWidth="0.8" />
+                                    <rect x="130" y="111" width="7" height="20" rx="1.5" fill="url(#metallic-blue)" stroke="var(--primary-hover)" strokeWidth="0.8" />
                                     <rect x="130" y="127" width="7" height="3" fill="url(#gold-trim)" />
 
                                     {/* Prism Head Housing */}
@@ -521,7 +521,7 @@ const Login = () => {
                     <stop offset="100%" stopColor="#3a6fd8" stopOpacity="0" />
                   </radialGradient>
                   <linearGradient id="hexfill" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#1e3a8a" />
+                    <stop offset="0%" stopColor="var(--primary-hover)" />
                     <stop offset="100%" stopColor="#081736" />
                   </linearGradient>
                 </defs>
@@ -583,8 +583,8 @@ const Login = () => {
                     </svg>
                 </div>
                 {/* Glowing blue dots */}
-                <div className="absolute top-[28%] right-[32%] w-1.5 h-1.5 bg-blue-400 rounded-full shadow-[0_0_8px_#60a5fa] animate-ping" style={{ animationDuration: '3s' }}></div>
-                <div className="absolute bottom-[35%] right-[15%] w-2 h-2 bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa] opacity-60"></div>
+                <div className="absolute top-[28%] right-[32%] w-1.5 h-1.5 bg-navy rounded-full shadow-[0_0_8px_var(--primary-light)] animate-ping" style={{ animationDuration: '3s' }}></div>
+                <div className="absolute bottom-[35%] right-[15%] w-2 h-2 bg-navy rounded-full shadow-[0_0_10px_var(--primary-light)] opacity-60"></div>
             </div>
 
             {/* Right Panel / Login Card (Centered on small screens, flex item on large) */}
@@ -668,7 +668,7 @@ const Login = () => {
                                             onChange={(e) => setRememberMe(e.target.checked)} 
                                         /> Remember me
                                     </label>
-                                    <a href="#" className="text-[#1e3a8a] hover:underline">Forgot Password?</a>
+                                    <a href="#" className="text-[var(--primary-hover)] hover:underline">Forgot Password?</a>
                                 </div>
 
                                 {/* Login Button */}
@@ -789,7 +789,7 @@ const Login = () => {
                                             <p className="text-xs text-gray-400 mt-2">Sent to {regData.phone || regData.email}</p>
                                         </div>
                                         
-                                        <button type="submit" disabled={verifying} className="w-full py-3 bg-[#10b981] text-white rounded-[12px] font-bold hover:shadow-lg transition-all">
+                                        <button type="submit" disabled={verifying} className="w-full py-3 bg-[var(--success)] text-white rounded-[12px] font-bold hover:shadow-lg transition-all">
                                             {verifying ? 'Validating Token...' : 'Verify & Complete Setup'}
                                         </button>
                                         
@@ -797,7 +797,7 @@ const Login = () => {
                                             {timer > 0 ? (
                                                 <span className="text-gray-400">Resend code in <span className="text-[#0a1e46]">{timer}s</span></span>
                                             ) : (
-                                                <button type="button" onClick={() => handleSendOTP(null)} className="text-[#1e3a8a] hover:underline">
+                                                <button type="button" onClick={() => handleSendOTP(null)} className="text-[var(--primary-hover)] hover:underline">
                                                     Resend Verification Code
                                                 </button>
                                             )}
@@ -815,14 +815,14 @@ const Login = () => {
 
                     {/* New here Create Account prompt */}
                     <div className={`text-center mt-3 text-xs font-bold transition-all ${activeTab === 'login' ? 'text-gray-400' : 'opacity-0 pointer-events-none'}`}>
-                        New here? <button onClick={() => setActiveTab('citizen')} className="text-[#1e3a8a] hover:underline">Create an account</button>
+                        New here? <button onClick={() => setActiveTab('citizen')} className="text-[var(--primary-hover)] hover:underline">Create an account</button>
                     </div>
 
                     {/* Bottom trust strip */}
                     <div className="border-t border-gray-100 mt-4 pt-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-[26px] h-[26px] rounded-full bg-blue-50 text-royal-blue flex items-center justify-center">
-                                <ShieldCheck className="w-[14px] h-[14px] text-[#1e3a8a]" strokeWidth={2.5} />
+                            <div className="w-[26px] h-[26px] rounded-full bg-slate-50 text-royal-blue flex items-center justify-center">
+                                <ShieldCheck className="w-[14px] h-[14px] text-[var(--primary-hover)]" strokeWidth={2.5} />
                             </div>
                             <div className="flex items-center">
                                 <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=100" alt="Doctor" className="w-[26px] h-[26px] rounded-full border-2 border-white" />

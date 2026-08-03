@@ -48,7 +48,7 @@ const BroadcastEngine = () => {
                 </div>
 
                 {status && (
-                    <div style={{ padding: '1rem', background: status.includes('success') ? '#dcfce7' : '#fee2e2', color: status.includes('success') ? '#166534' : '#991b1b', borderRadius: '12px', fontWeight: '800', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ padding: '1rem', background: status.includes('success') ? '#dcfce7' : '#fef2f2', color: status.includes('success') ? '#166534' : '#991b1b', borderRadius: '12px', fontWeight: '800', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <AlertCircle size={18} /> {status}
                     </div>
                 )}

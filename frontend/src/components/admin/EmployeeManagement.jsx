@@ -9,8 +9,8 @@ import {
 
 const AVATAR_GRADIENTS = [
     'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    'linear-gradient(135deg, #10b981, #34d399)',
-    'linear-gradient(135deg, #f59e0b, #fbbf24)',
+    'linear-gradient(135deg, var(--success), #34d399)',
+    'linear-gradient(135deg, var(--accent-gold), var(--accent-gold))',
     'linear-gradient(135deg, #f43f5e, #fb7185)',
     'linear-gradient(135deg, #06b6d4, #22d3ee)',
     'linear-gradient(135deg, #8b5cf6, #c084fc)',
@@ -298,7 +298,7 @@ const EmployeeManagement = () => {
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ color: '#94a3b8' }}>Status:</span>
-                                        <span style={{ fontWeight: '800', color: emp.isVerified ? '#059669' : '#d97706' }}>
+                                        <span style={{ fontWeight: '800', color: emp.isVerified ? 'var(--success)' : 'var(--accent-gold-hover)' }}>
                                             {emp.isVerified ? 'VERIFIED' : 'PENDING'}
                                         </span>
                                     </div>
@@ -308,7 +308,7 @@ const EmployeeManagement = () => {
                                     <button onClick={() => handleEdit(emp)} style={{ flex: 1, padding: '0.6rem', border: '1px solid #e2e8f0', borderRadius: '10px', background: 'white', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', color: '#4b5563' }}>
                                         <Edit3 size={12} /> Edit
                                     </button>
-                                    <button onClick={() => handleDelete(emp._id)} style={{ flex: 1, padding: '0.6rem', border: '1px solid #fee2e2', borderRadius: '10px', background: 'white', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', color: '#dc2626' }}>
+                                    <button onClick={() => handleDelete(emp._id)} style={{ flex: 1, padding: '0.6rem', border: '1px solid #fef2f2', borderRadius: '10px', background: 'white', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', color: 'var(--danger)' }}>
                                         <Trash2 size={12} /> Remove
                                     </button>
                                 </div>
@@ -346,8 +346,8 @@ const EmployeeManagement = () => {
                                         { label: 'Verify OTP', number: 2 },
                                         { label: 'Credentials', number: 3 }
                                     ].map((s) => (
-                                        <div key={s.number} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: '800', color: step === s.number ? '#003366' : (step > s.number ? '#059669' : '#94a3b8') }}>
-                                            <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: step === s.number ? '#003366' : (step > s.number ? '#059669' : '#e2e8f0'), color: step >= s.number ? 'white' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>
+                                        <div key={s.number} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: '800', color: step === s.number ? '#003366' : (step > s.number ? 'var(--success)' : '#94a3b8') }}>
+                                            <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: step === s.number ? '#003366' : (step > s.number ? 'var(--success)' : '#e2e8f0'), color: step >= s.number ? 'white' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>
                                                 {step > s.number ? '✓' : s.number}
                                             </div>
                                             <span>{s.label}</span>
@@ -421,7 +421,7 @@ const EmployeeManagement = () => {
                                     {/* ── STEP 2: OTP VERIFICATION ── */}
                                     {step === 2 && (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'center', padding: '1rem 0' }}>
-                                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', color: '#d97706', margin: '0 auto' }}>
+                                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--accent-gold-light)', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', color: 'var(--accent-gold-hover)', margin: '0 auto' }}>
                                                 <Mail size={24} />
                                             </div>
                                             <div>
@@ -441,7 +441,7 @@ const EmployeeManagement = () => {
                                             </div>
 
                                             {otpError && (
-                                                <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '700' }}>{otpError}</div>
+                                                <div style={{ color: 'var(--danger)', fontSize: '0.8rem', fontWeight: '700' }}>{otpError}</div>
                                             )}
 
                                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', fontSize: '0.8rem' }}>

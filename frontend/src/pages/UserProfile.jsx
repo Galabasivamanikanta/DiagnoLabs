@@ -144,7 +144,7 @@ const UserProfile = () => {
     return (
         <div style={{ background: 'var(--background)', minHeight: '100vh', paddingTop: '8rem', paddingBottom: '5rem' }}>
             <div className="container animate-fade-in" style={{ maxWidth: '900px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
                     <div>
                         <h2 style={{ fontSize: '2.5rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: '800' }}>User Profile</h2>
                         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Manage your personal identity, contact details, and clinical identifiers.</p>
@@ -165,7 +165,7 @@ const UserProfile = () => {
                         padding: '1.2rem 1.8rem', 
                         borderRadius: '16px', 
                         boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                        background: message.type === 'success' ? '#dcfce7' : '#fee2e2',
+                        background: message.type === 'success' ? '#dcfce7' : '#fef2f2',
                         color: message.type === 'success' ? '#166534' : '#991b1b',
                         fontWeight: '700',
                         display: 'flex',

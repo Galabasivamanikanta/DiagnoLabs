@@ -57,12 +57,12 @@ const formatDate = (dateStr) => {
 
 
 const statusBadgeConfig = {
-    'Pending':          { color: '#92400e', bg: '#fef3c7' },
-    'Confirmed':        { color: '#1e40af', bg: '#dbeafe' },
+    'Pending':          { color: '#92400e', bg: 'var(--accent-gold-light)' },
+    'Confirmed':        { color: 'var(--primary-hover)', bg: '#dbeafe' },
     'Sample Collected': { color: '#5b21b6', bg: '#ede9fe' },
     'Sample Processing':{ color: '#6d28d9', bg: '#f5f3ff' },
     'Report Uploaded':  { color: '#166534', bg: '#dcfce7' },
-    'Cancelled':        { color: '#991b1b', bg: '#fee2e2' },
+    'Cancelled':        { color: '#991b1b', bg: '#fef2f2' },
 };
 
 const CustomerLookupPanel = ({ user: adminUser }) => {
@@ -128,7 +128,7 @@ const CustomerLookupPanel = ({ user: adminUser }) => {
                     </button>
                 </form>
                 {error && (
-                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#fee2e2', borderRadius: '10px', color: '#991b1b', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#fef2f2', borderRadius: '10px', color: '#991b1b', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <XCircle size={18} /> {error}
                     </div>
                 )}
@@ -151,7 +151,7 @@ const CustomerLookupPanel = ({ user: adminUser }) => {
                                     </span>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.2rem', background: result.user.isVerified ? '#dcfce7' : '#fef3c7', borderRadius: '100px', color: result.user.isVerified ? '#166534' : '#92400e', fontWeight: '800', fontSize: '0.85rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1.2rem', background: result.user.isVerified ? '#dcfce7' : 'var(--accent-gold-light)', borderRadius: '100px', color: result.user.isVerified ? '#166534' : '#92400e', fontWeight: '800', fontSize: '0.85rem' }}>
                                 <CheckCircle2 size={15} /> {result.user.isVerified ? 'Verified' : 'Unverified'}
                             </div>
                         </div>

@@ -25,12 +25,12 @@ import {
 import ReceiptModal from '../components/patient/ReceiptModal';
 
 const statusConfig = {
-    'Pending':            { color: '#92400e', bg: '#fef3c7', icon: <Clock size={14} /> },
-    'Confirmed':        { color: '#1e40af', bg: '#dbeafe', icon: <CheckCircle2 size={14} /> },
+    'Pending':            { color: '#92400e', bg: 'var(--accent-gold-light)', icon: <Clock size={14} /> },
+    'Confirmed':        { color: 'var(--primary-hover)', bg: '#dbeafe', icon: <CheckCircle2 size={14} /> },
     'Sample Collected': { color: '#5b21b6', bg: '#ede9fe', icon: <FlaskConical size={14} /> },
     'Sample Processing':{ color: '#6d28d9', bg: '#f5f3ff', icon: <FlaskConical size={14} /> },
     'Report Uploaded':  { color: '#166534', bg: '#dcfce7', icon: <CheckCircle2 size={14} /> },
-    'Cancelled':        { color: '#991b1b', bg: '#fee2e2', icon: <XCircle size={14} /> },
+    'Cancelled':        { color: '#991b1b', bg: '#fef2f2', icon: <XCircle size={14} /> },
 };
 
 const BookingHistory = () => {
@@ -112,8 +112,8 @@ const BookingHistory = () => {
                 </div>
 
                 {/* Customer ID + Stats Card */}
-                <div className="grid-responsive-auto" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', alignItems: 'center', marginBottom: '2.5rem', background: 'white', padding: '1.5rem 2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', background: 'white', padding: '1.5rem 2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
                                 <div style={{ padding: '0.6rem', background: '#f0f9ff', borderRadius: '10px', color: '#0369a1' }}>
                                     <IdCard size={22} />
                                 </div>
@@ -124,16 +124,19 @@ const BookingHistory = () => {
                                     </div>
                                 </div>
                             </div>
-                            {[
-                                { label: 'Total Bookings', value: bookings.length, color: '#0a1e46' },
-                                { label: 'Reports Ready', value: bookings.filter(b => b.status === 'Report Uploaded').length, color: '#166534' },
-                                { label: 'Pending', value: bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed').length, color: '#92400e' },
-                            ].map(stat => (
-                                <div key={stat.label} style={{ textAlign: 'center', padding: '0.5rem 1.5rem', borderLeft: '1px solid var(--border)' }}>
-                                    <div style={{ fontSize: '2rem', fontWeight: '900', color: stat.color }}>{stat.value}</div>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>{stat.label}</div>
-                                </div>
-                            ))}
+                            
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', flex: 1, justifyContent: 'space-around' }}>
+                                {[
+                                    { label: 'Total Bookings', value: bookings.length, color: '#0a1e46' },
+                                    { label: 'Reports Ready', value: bookings.filter(b => b.status === 'Report Uploaded').length, color: '#166534' },
+                                    { label: 'Pending', value: bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed').length, color: '#92400e' },
+                                ].map(stat => (
+                                    <div key={stat.label} style={{ textAlign: 'center', minWidth: '100px' }}>
+                                        <div style={{ fontSize: '2rem', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>{stat.label}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                 {/* Filters */}
@@ -167,139 +170,125 @@ const BookingHistory = () => {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                {/* Bookings List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)' }}>
+                        <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)', background: 'white', borderRadius: '20px', border: '1px solid var(--border)' }}>
                             <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
                             Loading your history...
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '5rem' }}>
+                        <div style={{ textAlign: 'center', padding: '5rem', background: 'white', borderRadius: '20px', border: '1px solid var(--border)' }}>
                             <History size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
                             <div style={{ fontWeight: '700', fontSize: '1.2rem', color: 'var(--text-muted)' }}>No bookings found</div>
                             <div style={{ color: 'var(--text-light)', marginTop: '0.5rem' }}>Try adjusting your search or filter.</div>
                         </div>
                     ) : (
-                        <div style={{ overflowX: 'auto', padding: '0.5rem' }}>
-                            <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
-                                <thead>
-                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
-                                        {['S.No', 'Booking ID', 'Date', 'Test(s)', 'Lab', 'Amount', 'Status', 'Action'].map(h => (
-                                            <th key={h} style={{ padding: '1rem 1.25rem', textAlign: 'left', fontWeight: '800', fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filtered.map((b, idx) => {
-                                        const cfg = statusConfig[b.status] || statusConfig['Pending'];
-                                        return (
-                                            <tr key={b._id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#fafbfc'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                        filtered.map((b, idx) => {
+                            const cfg = statusConfig[b.status] || statusConfig['Pending'];
+                            return (
+                                <div key={b._id} style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border)', padding: '1.25rem 1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                                    {/* Card Top Row: Booking ID + Status */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-light)' }}>#{idx + 1}</span>
+                                            <span style={{ fontFamily: 'monospace', fontWeight: '900', color: 'var(--primary)', fontSize: '1rem', letterSpacing: '1px' }}>
+                                                DH-{b._id.slice(-8).toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 1rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                                            {cfg.icon} {b.status}
+                                        </span>
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div style={{ borderTop: '1px solid var(--border)', marginBottom: '1rem' }} />
+
+                                    {/* Card Info Grid */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                                        {/* Date */}
+                                        <div>
+                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Date & Time</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '800', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                                <CalendarDays size={14} style={{ color: 'var(--text-muted)' }} />
+                                                {b.appointmentDate ? new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: '600', paddingLeft: '1.2rem' }}>
+                                                {b.appointmentTime || ''}
+                                            </div>
+                                        </div>
+
+                                        {/* Test */}
+                                        <div>
+                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Test(s)</div>
+                                            <div style={{ fontWeight: '800', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                                {b.testDetails?.[0]?.testName || 'N/A'}
+                                            </div>
+                                            {b.testDetails?.length > 1 && (
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.1rem' }}>
+                                                    +{b.testDetails.length - 1} more
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Lab */}
+                                        <div>
+                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Lab</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '700', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                                                <Building2 size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                                {b.lab?.name || 'DAA Accredited Lab'}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '800', marginTop: '0.1rem', paddingLeft: '1.2rem' }}>
+                                                Lab ID: {b.lab?.registrationNumber || (b.lab?._id ? `LAB-${String(b.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
+                                            </div>
+                                        </div>
+
+                                        {/* Amount */}
+                                        <div>
+                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Amount</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: '900', color: '#166534', fontSize: '1.1rem' }}>
+                                                <BadgeIndianRupee size={16} />
+                                                {b.totalAmount?.toLocaleString('en-IN')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div style={{ borderTop: '1px solid var(--border)', marginBottom: '1rem' }} />
+
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        <button
+                                            onClick={() => setSelectedBooking(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#f1f5f9', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', flex: 1, justifyContent: 'center' }}
+                                        >
+                                            <FileText size={14} /> Receipt
+                                        </button>
+
+                                        <button
+                                            onClick={() => setTrackingBooking(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', flex: 1, justifyContent: 'center' }}
+                                        >
+                                            <Clock size={14} /> Track Process
+                                        </button>
+
+                                        {(b.status === 'Report Uploaded' || b.reportUrl) && (
+                                            <a
+                                                href={getReportUrl(b.reportUrl)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#166534', color: 'white', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none', flex: 1, justifyContent: 'center' }}
                                             >
-                                                {/* S.No */}
-                                                <td data-label="S.No" style={{ padding: '1.1rem 1.25rem', fontWeight: '800', color: 'var(--text-light)' }}>
-                                                    {idx + 1}
-                                                </td>
-
-                                                {/* Booking ID */}
-                                                <td data-label="Booking ID" style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <span style={{ fontFamily: 'monospace', fontWeight: '800', color: 'var(--primary)', fontSize: '0.9rem' }}>
-                                                            DH-{b._id.slice(-8).toUpperCase()}
-                                                        </span>
-                                                    </div>
-                                                </td>
-
-                                                {/* Date */}
-                                                <td data-label="Date" style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: '700' }}>
-                                                        <CalendarDays size={15} style={{ color: 'var(--text-muted)' }} />
-                                                        {b.appointmentDate ? new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: '600', marginTop: '0.2rem', paddingLeft: '1.3rem' }}>
-                                                        {b.appointmentTime || 'N/A'}
-                                                    </div>
-                                                </td>
-
-                                                {/* Test(s) */}
-                                                <td data-label="Test(s)" style={{ padding: '1.1rem 1.25rem', maxWidth: '220px' }}>
-                                                    <div style={{ fontWeight: '800', color: 'var(--text-main)' }}>
-                                                        {b.testDetails?.[0]?.testName || 'N/A'}
-                                                    </div>
-                                                    {b.testDetails?.length > 1 && (
-                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.2rem' }}>
-                                                            +{b.testDetails.length - 1} more test{b.testDetails.length - 1 > 1 ? 's' : ''}
-                                                        </div>
-                                                    )}
-                                                </td>
-
-                                                {/* Lab & Lab ID */}
-                                                <td data-label="Lab & ID" style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', color: 'var(--text-main)' }}>
-                                                        <Building2 size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                                                        {b.lab?.name || 'DAA Accredited Lab'}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '800', marginTop: '0.2rem', paddingLeft: '1.3rem' }}>
-                                                        Lab ID: {b.lab?.registrationNumber || (b.lab?._id ? `LAB-${String(b.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
-                                                    </div>
-                                                </td>
-
-                                                {/* Amount */}
-                                                <td data-label="Amount" style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: '800', color: 'var(--text-main)' }}>
-                                                        <BadgeIndianRupee size={16} style={{ color: '#166534' }} />
-                                                        {b.totalAmount?.toLocaleString('en-IN')}
-                                                    </div>
-                                                </td>
-
-                                                {/* Status */}
-                                                <td data-label="Status" style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                                                        {cfg.icon} {b.status}
-                                                    </span>
-                                                </td>
-
-                                                {/* Action */}
-                                                <td data-label="Action" style={{ padding: '1.1rem 1.25rem' }}>
-                                                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                                        <button
-                                                            onClick={() => setSelectedBooking(b)}
-                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#f1f5f9', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                                        >
-                                                            <FileText size={14} /> Receipt
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => setTrackingBooking(b)}
-                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                                        >
-                                                            <Clock size={14} /> Track Process
-                                                        </button>
-
-                                                        {(b.status === 'Report Uploaded' || b.reportUrl) && (
-                                                            <a
-                                                                href={getReportUrl(b.reportUrl)}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: '#166534', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
-                                                            >
-                                                                <Download size={14} /> View Report
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                <Download size={14} /> View Report
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
                     )}
                 </div>
+
 
                 {/* Count footer */}
                 {!loading && filtered.length > 0 && (
@@ -309,16 +298,7 @@ const BookingHistory = () => {
                 )}
             </div>
 
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                tr { background: white; }
-                @media (max-width: 768px) {
-                    .responsive-table thead { display: none; }
-                    .responsive-table tr { display: block; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 12px; }
-                    .responsive-table td { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem !important; border-bottom: 1px solid #f1f5f9; }
-                    .responsive-table td::before { content: attr(data-label); font-weight: 800; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
-                }
-            `}</style>
+            
             
             {selectedBooking && (
                 <ReceiptModal booking={selectedBooking} user={user} onClose={() => setSelectedBooking(null)} />
@@ -327,7 +307,7 @@ const BookingHistory = () => {
             {/* TRACK PROCESS MODAL */}
             {trackingBooking && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyCenter: 'center', zIndex: 999, padding: '1rem' }}>
-                    <div className="animate-scale-up" style={{ background: 'white', borderRadius: '24px', maxWidth: '560px', width: '100%', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', position: 'relative' }}>
+                    <div className="animate-scale-up" style={{ background: 'white', borderRadius: '24px', width: '560px', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', position: 'relative' }}>
                         <button
                             onClick={() => setTrackingBooking(null)}
                             style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}

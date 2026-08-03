@@ -58,7 +58,7 @@ import {
 import io from 'socket.io-client';
 
 const LabDashboard = () => {
-    const { user, setUser } = useContext(AuthContext);
+    const { user, updateUser } = useContext(AuthContext);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -392,7 +392,7 @@ const LabDashboard = () => {
         setSavingUser(true);
         try {
             const res = await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, userForm, getHeaders());
-            setUser(res.data);
+            updateUser(res.data);
             alert("Representative credentials updated!");
         } catch (err) {
             console.error(err);
@@ -608,7 +608,7 @@ const LabDashboard = () => {
                         {/* Stats Summary Panel */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             {[
-                                { label: 'Active Specimen Queue', value: orders.filter(o => o.status !== 'Report Uploaded').length, desc: 'Samples awaiting report', icon: <Activity className="text-navy" />, bg: 'bg-blue-50' },
+                                { label: 'Active Specimen Queue', value: orders.filter(o => o.status !== 'Report Uploaded').length, desc: 'Samples awaiting report', icon: <Activity className="text-navy" />, bg: 'bg-slate-50' },
                                 { label: 'Pending Processing', value: orders.filter(o => o.status === 'Sample Processing').length, desc: 'Analyzing in pathology', icon: <FlaskConical className="text-purple-600" />, bg: 'bg-purple-50' },
                                 { label: 'Reports Transmitted', value: orders.filter(o => o.status === 'Report Uploaded').length, desc: 'Digitally verified PDFs', icon: <CheckCircle className="text-emerald-600" />, bg: 'bg-emerald-50' },
                                 { label: 'Average Turnaround (TAT)', value: '14.2h', desc: 'Target TAT compliance: 98%', icon: <Clock className="text-amber-600" />, bg: 'bg-amber-50' }

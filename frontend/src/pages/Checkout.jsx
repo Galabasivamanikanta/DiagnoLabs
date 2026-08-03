@@ -167,7 +167,7 @@ const Checkout = () => {
                     contact: user.phone || "9999999999"
                 },
                 theme: {
-                    color: "#2563eb"
+                    color: "var(--primary)"
                 }
             };
 
@@ -244,23 +244,23 @@ const Checkout = () => {
                             <div
                                 onClick={() => setCollectionType('home')}
                                 style={{
-                                    border: `2px solid ${collectionType === 'home' ? '#2563eb' : '#e2e8f0'}`,
+                                    border: `2px solid ${collectionType === 'home' ? 'var(--primary)' : '#e2e8f0'}`,
                                     borderRadius: '20px',
                                     padding: '1.75rem',
                                     cursor: 'pointer',
-                                    background: collectionType === 'home' ? '#eff6ff' : 'white',
+                                    background: collectionType === 'home' ? 'var(--surface-alt)' : 'white',
                                     transition: 'all 0.2s ease',
                                     position: 'relative',
                                     boxShadow: collectionType === 'home' ? '0 4px 20px rgba(37,99,235,0.15)' : 'none'
                                 }}
                             >
                                 {collectionType === 'home' && (
-                                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563eb', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--primary)', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <CheckCircle2 size={14} color="white" />
                                     </div>
                                 )}
                                 <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: collectionType === 'home' ? '#dbeafe' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-                                    <Home size={26} style={{ color: collectionType === 'home' ? '#2563eb' : '#6b7280' }} />
+                                    <Home size={26} style={{ color: collectionType === 'home' ? 'var(--primary)' : '#6b7280' }} />
                                 </div>
                                 <div style={{ fontWeight: '800', fontSize: '1.1rem', color: '#111827', marginBottom: '0.4rem' }}>Home Collection</div>
                                 <div style={{ fontSize: '0.88rem', color: '#6b7280', lineHeight: '1.5' }}>Our certified technician will visit your home to collect the sample at your preferred time.</div>
@@ -303,7 +303,7 @@ const Checkout = () => {
                     {collectionType === 'home' ? (
                     <div style={{ marginBottom: '3rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <MapPin size={20} style={{ color: '#d97706' }} /> Home Collection Address
+                            <MapPin size={20} style={{ color: 'var(--accent-gold-hover)' }} /> Home Collection Address
                         </h3>
                         
                         {!isEditing ? (
@@ -439,9 +439,9 @@ const Checkout = () => {
 
                         {/* Pre-Test Preparation */}
                         {test.description && (
-                            <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '16px', padding: '1.5rem' }}>
+                            <div style={{ background: '#fef2f2', border: '1px solid #fef2f2', borderRadius: '16px', padding: '1.5rem' }}>
                                 <h3 style={{ fontSize: '1rem', fontWeight: '800', color: '#991b1b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <AlertCircle size={18} style={{ color: '#dc2626' }} /> Preparation Instructions
+                                    <AlertCircle size={18} style={{ color: 'var(--danger)' }} /> Preparation Instructions
                                 </h3>
                                 <div style={{ color: '#7f1d1d', fontSize: '0.95rem', lineHeight: '1.5', fontWeight: '500' }}>
                                     {test.description}
@@ -453,7 +453,7 @@ const Checkout = () => {
                     {/* Price Breakdown */}
                     <div style={{ marginBottom: '2rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '2rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#111827', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Receipt size={20} style={{ color: '#059669' }} /> Payment Summary
+                            <Receipt size={20} style={{ color: 'var(--success)' }} /> Payment Summary
                         </h3>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '1.05rem', color: '#4b5563', fontWeight: '500' }}>
                             <span>Test Price</span>
@@ -461,7 +461,7 @@ const Checkout = () => {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontSize: '1.05rem', color: '#4b5563', fontWeight: '500' }}>
                             <span>Home Collection Fee</span>
-                            <span style={{ color: '#059669', fontWeight: '700' }}><span style={{ textDecoration: 'line-through', color: '#9ca3af', fontWeight: '500', marginRight: '0.5rem' }}>₹100</span>FREE</span>
+                            <span style={{ color: 'var(--success)', fontWeight: '700' }}><span style={{ textDecoration: 'line-through', color: '#9ca3af', fontWeight: '500', marginRight: '0.5rem' }}>₹100</span>FREE</span>
                         </div>
                         <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#111827' }}>Total Amount</span>

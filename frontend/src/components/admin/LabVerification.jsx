@@ -421,7 +421,7 @@ const LabVerification = () => {
                 .reject-btn {
                     width: 44px;
                     height: 44px;
-                    background: #fee2e2;
+                    background: #fef2f2;
                     color: #e11d48;
                     border: 1px solid #fecdd3;
                     border-radius: 12px;

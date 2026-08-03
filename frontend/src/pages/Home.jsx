@@ -273,42 +273,41 @@ const Home = () => {
             </section>
 
             {/* Smart Experience Section */}
-            <section style={{ padding: '10rem 0', background: 'var(--surface-alt)', borderTop: '1px solid var(--border-light)' }}>
+            <section style={{ padding: 'clamp(4rem, 8vw, 10rem) 0', background: 'var(--surface-alt)', borderTop: '1px solid var(--border-light)' }}>
                 <div className="container">
-                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8rem', alignItems: 'center' }}>
-                        <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', background: 'var(--accent-gold)', opacity: 0.05, borderRadius: '48px', filter: 'blur(60px)' }}></div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(2rem, 5vw, 5rem)', alignItems: 'center' }}>
+                        <div style={{ position: 'relative', flex: '1 1 300px', minWidth: 0 }}>
                             <span className="badge-gold" style={{ marginBottom: '1.5rem', display: 'inline-block' }}>Official Medical Gateway</span>
-                            <h2 style={{ fontSize: '3.8rem', marginBottom: '2.5rem', lineHeight: '1', fontWeight: '900' }}>Unified search. <br /><span style={{ color: 'var(--primary)' }}>One standard.</span></h2>
-                            <div style={{ display: 'grid', gap: '2.5rem' }}>
-                                <div style={{ display: 'flex', gap: '1.5rem' }}>
-                                    <div style={{ width: '56px', height: '56px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}>
-                                        <Activity size={28} style={{ color: 'var(--primary)' }} />
+                            <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 3.8rem)', marginBottom: '2rem', lineHeight: '1.1', fontWeight: '900' }}>Unified search. <br /><span style={{ color: 'var(--primary)' }}>One standard.</span></h2>
+                            <div style={{ display: 'grid', gap: '1.5rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <div style={{ width: '48px', height: '48px', background: 'white', borderRadius: '14px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}>
+                                        <Activity size={24} style={{ color: 'var(--primary)' }} />
                                     </div>
                                     <div>
-                                        <h4 style={{ fontSize: '1.3rem', marginBottom: '0.5rem', fontWeight: '800' }}>Proximity Intelligence</h4>
-                                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', fontSize: '1.05rem' }}>Real-time coordination using GPS telemetry to ensure phlebotomist arrival within 45 minutes across all metropolitan areas.</p>
+                                        <h4 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.3rem)', marginBottom: '0.4rem', fontWeight: '800' }}>Proximity Intelligence</h4>
+                                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: 'clamp(0.85rem, 2vw, 1.05rem)' }}>Real-time GPS coordination ensuring phlebotomist arrival within 45 minutes across all metropolitan areas.</p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1.5rem' }}>
-                                    <div style={{ width: '56px', height: '56px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}>
-                                        <ShieldCheck size={28} style={{ color: 'var(--success)' }} />
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <div style={{ width: '48px', height: '48px', background: 'white', borderRadius: '14px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}>
+                                        <ShieldCheck size={24} style={{ color: 'var(--success)' }} />
                                     </div>
                                     <div>
-                                        <h4 style={{ fontSize: '1.3rem', marginBottom: '0.5rem', fontWeight: '800' }}>Quality Verification Protocol</h4>
-                                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', fontSize: '1.05rem' }}>Only labs with active NABL/CAP certifications and ISO auditing participate in the DiagnoLabs unified network.</p>
+                                        <h4 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.3rem)', marginBottom: '0.4rem', fontWeight: '800' }}>Quality Verification Protocol</h4>
+                                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: 'clamp(0.85rem, 2vw, 1.05rem)' }}>Only NABL/CAP certified labs with ISO auditing participate in the DiagnoLabs network.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div style={{ position: 'relative' }}>
-                            <div className="premium-card" style={{ padding: '4rem', textAlign: 'center', borderRadius: '48px', position: 'relative', zIndex: 1 }}>
-                                <div style={{ background: 'var(--primary-light)', padding: '2rem', borderRadius: '32px', marginBottom: '2rem' }}>
-                                    <Microscope size={64} style={{ color: 'var(--primary)' }} />
+                        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+                            <div className="premium-card" style={{ padding: 'clamp(1.5rem, 4vw, 3rem)', textAlign: 'center', borderRadius: '32px' }}>
+                                <div style={{ background: 'var(--primary-light)', padding: 'clamp(1rem, 3vw, 2rem)', borderRadius: '20px', marginBottom: '1.25rem', display: 'inline-flex' }}>
+                                    <Microscope size={48} style={{ color: 'var(--primary)' }} />
                                 </div>
-                                <h3 style={{ fontSize: '2rem', marginBottom: '1.5rem', fontWeight: '900' }}>NABL Accreditation</h3>
-                                <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>We enforce high-purity medical standards for every booking within our clinical environment.</p>
-                                <button className="btn btn-primary" style={{ width: '100%', padding: '1.25rem' }}>View Clinical Standards</button>
+                                <h3 style={{ fontSize: 'clamp(1.2rem, 3vw, 2rem)', marginBottom: '1rem', fontWeight: '900' }}>NABL Accreditation</h3>
+                                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: 'clamp(0.85rem, 2vw, 1.1rem)' }}>We enforce high-purity medical standards for every booking within our clinical environment.</p>
+                                <button className="btn btn-primary" style={{ width: '100%' }}>View Clinical Standards</button>
                             </div>
                         </div>
                     </div>
@@ -316,63 +315,68 @@ const Home = () => {
             </section>
 
             {/* Impact Metrics */}
-            <section style={{ padding: '10rem 0' }}>
+            <section style={{ padding: 'clamp(4rem, 10vw, 10rem) 0' }}>
                 <div className="container">
-                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4rem', textAlign: 'center' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: 'clamp(1rem, 4vw, 4rem)',
+                        textAlign: 'center',
+                    }}>
                         <div>
-                            <div style={{ fontSize: '5rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>1.2M+</div>
-                            <div className="label-mini">Citizen Consultations</div>
+                            <div style={{ fontSize: 'clamp(1.8rem, 7vw, 5rem)', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>1.2M+</div>
+                            <div className="label-mini" style={{ fontSize: 'clamp(0.55rem, 1.8vw, 0.85rem)' }}>Citizen Consultations</div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '5rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>480+</div>
-                            <div className="label-mini">Accredited Centers</div>
+                            <div style={{ fontSize: 'clamp(1.8rem, 7vw, 5rem)', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>480+</div>
+                            <div className="label-mini" style={{ fontSize: 'clamp(0.55rem, 1.8vw, 0.85rem)' }}>Accredited Centers</div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '5rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>100%</div>
-                            <div className="label-mini">Precision Assurance</div>
+                            <div style={{ fontSize: 'clamp(1.8rem, 7vw, 5rem)', fontWeight: '900', color: 'var(--primary)', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>100%</div>
+                            <div className="label-mini" style={{ fontSize: 'clamp(0.55rem, 1.8vw, 0.85rem)' }}>Precision Assurance</div>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* CTA Final */}
-            <section style={{ padding: '4rem 2rem 10rem' }}>
+            <section style={{ padding: 'clamp(2rem, 5vw, 4rem) 1rem clamp(4rem, 8vw, 10rem)' }}>
                 <div className="container">
-                    <div className="cta-container-main" style={{ padding: '8rem 4rem', background: '#000000', borderRadius: '60px', color: 'white', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: '0', right: '0', width: '400px', height: '400px', background: 'var(--primary)', opacity: 0.1, borderRadius: '50%', filter: 'blur(100px)' }}></div>
-                        <h2 style={{ fontSize: '4.5rem', color: 'white', marginBottom: '2rem', fontWeight: '900', letterSpacing: '-0.04em' }}>Your future health, secured.</h2>
-                        <p style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.6)', marginBottom: '4rem', maxWidth: '650px', margin: '0 auto 4rem', fontWeight: '500' }}>
+                    <div style={{ padding: 'clamp(2.5rem, 6vw, 8rem) clamp(1.5rem, 5vw, 4rem)', background: '#000000', borderRadius: 'clamp(24px, 5vw, 60px)', color: 'white', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: '0', right: '0', width: '300px', height: '300px', background: 'var(--primary)', opacity: 0.1, borderRadius: '50%', filter: 'blur(80px)' }}></div>
+                        <h2 style={{ fontSize: 'clamp(1.6rem, 5vw, 4.5rem)', color: 'white', marginBottom: '1.25rem', fontWeight: '900', letterSpacing: '-0.04em', position: 'relative' }}>Your future health, secured.</h2>
+                        <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.5rem)', color: 'rgba(255,255,255,0.6)', marginBottom: 'clamp(1.5rem, 4vw, 4rem)', maxWidth: '600px', margin: '0 auto clamp(1.5rem, 4vw, 4rem)', fontWeight: '500', position: 'relative' }}>
                             DiagnoLabs is not just a portal. It is a commitment to clinical excellence and absolute patient accuracy.
                         </p>
-                        <button onClick={() => navigate('/register')} className="btn btn-gold" style={{ padding: '1.5rem 5rem', fontSize: '1.4rem' }}>
-                            Join Citizen Portal <ArrowRight size={28} />
+                        <button onClick={() => navigate('/register')} className="btn btn-gold" style={{ padding: 'clamp(0.9rem, 2vw, 1.5rem) clamp(2rem, 5vw, 5rem)', fontSize: 'clamp(0.95rem, 2vw, 1.4rem)', position: 'relative' }}>
+                            Join Citizen Portal <ArrowRight size={22} />
                         </button>
                     </div>
                 </div>
             </section>
 
             {/* Official Footer */}
-            <footer style={{ padding: '8rem 0', borderTop: '1px solid var(--border-light)', background: 'white' }}>
+            <footer style={{ padding: 'clamp(3rem, 6vw, 6rem) 0', borderTop: '1px solid var(--border-light)', background: 'white' }}>
                 <div className="container">
-                    <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '4rem', marginBottom: '8rem' }}>
-                        <div>
-                            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: 'var(--primary)', marginBottom: '2rem', letterSpacing: '-0.03em' }}>DiagnoLabs Clinical</div>
-                            <p style={{ color: 'var(--text-secondary)', maxWidth: '350px', fontSize: '1.1rem' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(2rem, 4vw, 4rem)', marginBottom: 'clamp(2rem, 5vw, 5rem)' }}>
+                        <div style={{ flex: '2 1 200px', minWidth: 0 }}>
+                            <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: '900', color: 'var(--primary)', marginBottom: '1rem', letterSpacing: '-0.03em' }}>DiagnoLabs Clinical</div>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.85rem, 2vw, 1.1rem)', lineHeight: '1.6' }}>
                                 The smart clinical discovery network for Southeast Asia, bringing NABL-certified precision to every doorstep.
                             </p>
                         </div>
-                        <div>
-                            <h5 style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-muted)', marginBottom: '2rem' }}>Platform</h5>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', color: 'var(--text-main)', fontWeight: '700' }}>
+                        <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+                            <h5 style={{ fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-muted)', marginBottom: '1rem' }}>Platform</h5>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.9rem' }}>
                                 <span>Medical Partners</span>
                                 <span>Lab Provider Hub</span>
                                 <span>Phlebotomist Portal</span>
                                 <span>API Documentation</span>
                             </div>
                         </div>
-                        <div>
-                            <h5 style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-muted)', marginBottom: '2rem' }}>Standards</h5>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', color: 'var(--text-main)', fontWeight: '700' }}>
+                        <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+                            <h5 style={{ fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-muted)', marginBottom: '1rem' }}>Standards</h5>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', color: 'var(--text-main)', fontWeight: '700', fontSize: '0.9rem' }}>
                                 <span>NABL ISO 15189</span>
                                 <span>CAP Accreditation</span>
                                 <span>Privacy Protocol</span>
@@ -380,9 +384,9 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="mobile-stack" style={{ paddingTop: '3rem', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '800' }}>
+                    <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--border-light)', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '800' }}>
                         <span>© 2026 DIAGNOLABS GROUP — CENTRAL CLINICAL COMMAND.</span>
-                        <div style={{ display: 'flex', gap: '3rem' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem' }}>
                             <Link to="/admin/login" style={{ textDecoration: 'none', color: 'inherit' }}>Admin Gateway</Link>
                             <Link to="/partner/login" style={{ textDecoration: 'none', color: 'inherit' }}>Partner Hub</Link>
                         </div>

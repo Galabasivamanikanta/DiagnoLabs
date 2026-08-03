@@ -72,7 +72,7 @@ const FinanceAnalytics = () => {
                     </div>
                     <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid var(--border)' }}>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.5rem' }}>Pending Lab Payouts (85%)</div>
-                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#d97706' }}>₹{labPayouts.toLocaleString('en-IN')}</div>
+                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--accent-gold-hover)' }}>₹{labPayouts.toLocaleString('en-IN')}</div>
                     </div>
                 </div>
             </div>
@@ -97,9 +97,9 @@ const FinanceAnalytics = () => {
                                         <td style={{ padding: '1rem', fontWeight: '800', color: 'var(--primary)', fontFamily: 'monospace' }}>DH-{b._id.slice(-6).toUpperCase()}</td>
                                         <td style={{ padding: '1rem', fontWeight: '800' }}>₹{amount.toLocaleString('en-IN')}</td>
                                         <td style={{ padding: '1rem', fontWeight: '800', color: '#166534' }}>₹{(amount * 0.15).toLocaleString('en-IN')}</td>
-                                        <td style={{ padding: '1rem', fontWeight: '800', color: '#d97706' }}>₹{(amount * 0.85).toLocaleString('en-IN')}</td>
+                                        <td style={{ padding: '1rem', fontWeight: '800', color: 'var(--accent-gold-hover)' }}>₹{(amount * 0.85).toLocaleString('en-IN')}</td>
                                         <td style={{ padding: '1rem' }}>
-                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.8rem', borderRadius: '100px', background: b.status === 'Report Uploaded' ? '#dcfce7' : '#fef3c7', color: b.status === 'Report Uploaded' ? '#166534' : '#92400e', fontWeight: '800', fontSize: '0.8rem' }}>
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.8rem', borderRadius: '100px', background: b.status === 'Report Uploaded' ? '#dcfce7' : 'var(--accent-gold-light)', color: b.status === 'Report Uploaded' ? '#166534' : '#92400e', fontWeight: '800', fontSize: '0.8rem' }}>
                                                 {b.status === 'Report Uploaded' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                                                 {b.status === 'Report Uploaded' ? 'Settled' : 'Pending'}
                                             </span>

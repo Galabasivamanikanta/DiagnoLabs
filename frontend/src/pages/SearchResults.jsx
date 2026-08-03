@@ -58,12 +58,12 @@ const SearchResults = () => {
     // Color mapping for more visual accuracy
     const getIconColor = (testName) => {
         const name = (testName || '').toLowerCase();
-        if (name.includes('diabetes')) return { bg: '#fef2f2', icon: '#dc2626' }; // Red for sugar
+        if (name.includes('diabetes')) return { bg: '#fef2f2', icon: 'var(--danger)' }; // Red for sugar
         if (name.includes('cbc') || name.includes('blood')) return { bg: '#fff1f2', icon: '#e11d48' }; // Rose for blood
         if (name.includes('heart')) return { bg: '#fff1f2', icon: '#be123c' }; // Deep red for heart
         if (name.includes('kidney') || name.includes('liver')) return { bg: '#f0fdf4', icon: '#166534' }; // Green for filtering organs
         if (name.includes('thyroid') || name.includes('hormone')) return { bg: '#fefce8', icon: '#a16207' }; // Yellow for hormones
-        if (name.includes('vitamin')) return { bg: '#eff6ff', icon: '#1d4ed8' }; // Blue for vitamins
+        if (name.includes('vitamin')) return { bg: 'var(--surface-alt)', icon: 'var(--primary-hover)' }; // Blue for vitamins
         return { bg: 'hsla(var(--primary-hsl), 0.05)', icon: 'var(--primary)' }; // Default Teal
     };
 
@@ -214,15 +214,15 @@ const SearchResults = () => {
                                     <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack" style={{
                                         display: 'flex',
                                         flexWrap: 'wrap',
-                                        gap: '2rem',
+                                        gap: 'clamp(1rem, 2vw, 2rem)',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        padding: '1.2rem 1.5rem',
+                                        padding: 'clamp(0.9rem, 2vw, 1.2rem) clamp(1rem, 2.5vw, 1.5rem)',
                                         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                         animationDelay: `${index * 0.1}s`,
-                                        background: test.lab?.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (test.lab?.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
+                                        background: test.lab?.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, var(--surface-alt))' : (test.lab?.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
                                         border: test.lab?.category === 'Premium' ? '1px solid rgba(245, 158, 11, 0.4)' : (test.lab?.category === 'Scalable' ? '1px solid rgba(148, 163, 184, 0.4)' : '1px solid rgba(194, 65, 12, 0.3)'),
-                                        borderRadius: '32px',
+                                        borderRadius: 'clamp(18px, 3vw, 32px)',
                                         position: 'relative',
                                         overflow: 'hidden'
                                     }}>
@@ -231,7 +231,7 @@ const SearchResults = () => {
                                             <div style={{
                                                 position: 'absolute',
                                                 top: '20px', right: '20px',
-                                                background: test.lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : '#ea580c',
+                                                background: test.lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : 'var(--warning)',
                                                 color: 'white',
                                                 padding: '4px 0',
                                                 width: '130px',
@@ -247,37 +247,38 @@ const SearchResults = () => {
                                             </div>
                                         )}
 
-                                        <div style={{ flex: 1, minWidth: '300px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                        <div style={{ flex: 1, minWidth: '240px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
                                                 <div style={{
-                                                    width: '64px',
-                                                    height: '64px',
+                                                    width: 'clamp(44px, 8vw, 64px)',
+                                                    height: 'clamp(44px, 8vw, 64px)',
                                                     background: theme.bg,
                                                     color: theme.icon,
-                                                    borderRadius: '20px',
+                                                    borderRadius: '14px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
+                                                    flexShrink: 0,
                                                     border: '1px solid hsla(var(--primary-hsl), 0.1)'
                                                 }}>
                                                     {getTestIcon(test.testName, test.category)}
                                                 </div>
                                                 <div>
-                                                    <h3 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', fontWeight: '900', letterSpacing: '-0.5px' }}>{test.testName}</h3>
-                                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                            <span style={{ padding: '0.2rem 0.8rem', background: test.lab.isVerified ? 'rgba(30, 64, 175, 0.1)' : 'rgba(234, 179, 8, 0.1)', color: test.lab.isVerified ? '#1e40af' : '#ca8a04', borderRadius: '100px', fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                    <h3 style={{ margin: 0, fontSize: 'clamp(1rem, 3.5vw, 1.8rem)', color: '#0f172a', fontWeight: '900', letterSpacing: '-0.3px', lineHeight: 1.2 }}>{test.testName}</h3>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                                            <span style={{ padding: '0.2rem 0.6rem', background: test.lab.isVerified ? 'rgba(30, 64, 175, 0.1)' : 'rgba(234, 179, 8, 0.1)', color: test.lab.isVerified ? 'var(--primary-hover)' : '#ca8a04', borderRadius: '100px', fontSize: '0.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                                 {test.lab.isVerified ? 'Premium NABL' : 'Community Discovery'}
                                                             </span>
-                                                            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                                <MapPin size={12} /> {test.lab.city}
+                                                            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                                <MapPin size={11} /> {test.lab.city}
                                                             </span>
                                                         </div>
-                                                        <span style={{ padding: '0.3rem 0.8rem', background: 'hsla(var(--primary-hsl), 0.08)', color: 'var(--primary)', borderRadius: '100px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase' }}>
+                                                        <span style={{ padding: '0.2rem 0.6rem', background: 'hsla(var(--primary-hsl), 0.08)', color: 'var(--primary)', borderRadius: '100px', fontSize: '0.65rem', fontWeight: '900', textTransform: 'uppercase' }}>
                                                             {test.category || 'Standard Diagnostics'}
                                                         </span>
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: '800' }}>
-                                                            <Clock size={16} /> Results in {test.turnaroundTime || '24 hrs'}
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '800' }}>
+                                                            <Clock size={13} /> Results in {test.turnaroundTime || '24 hrs'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -346,14 +347,14 @@ const SearchResults = () => {
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
-                                                    <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--text-main)' }}>₹</span>
-                                                    <span style={{ fontSize: '2.8rem', fontWeight: '900', color: 'var(--text-main)', letterSpacing: '-1.5px' }}>{test.price}</span>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+                                                    <span style={{ fontSize: 'clamp(0.9rem, 2vw, 1.3rem)', fontWeight: '800', color: 'var(--text-main)' }}>₹</span>
+                                                    <span style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: '900', color: 'var(--text-main)', letterSpacing: '-1px' }}>{test.price}</span>
                                                 </div>
                                                 {test.discountedPrice && (
-                                                    <div style={{ fontSize: '1.1rem', textDecoration: 'line-through', color: 'var(--text-light)', fontWeight: '800', marginTop: '-0.75rem' }}>
+                                                    <div style={{ fontSize: 'clamp(0.8rem, 1.5vw, 1.1rem)', textDecoration: 'line-through', color: 'var(--text-light)', fontWeight: '800', marginTop: '-0.5rem' }}>
                                                         ₹{test.discountedPrice}
                                                     </div>
                                                 )}
@@ -361,9 +362,9 @@ const SearchResults = () => {
                                             <button
                                                 className="btn btn-primary"
                                                 onClick={() => navigate('/checkout', { state: { test } })}
-                                                style={{ padding: '1.3rem 3.5rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.15rem' }}
+                                                style={{ padding: 'clamp(0.85rem, 1.5vw, 1.3rem) clamp(1.5rem, 3vw, 3.5rem)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'clamp(0.9rem, 1.8vw, 1.15rem)', whiteSpace: 'nowrap' }}
                                             >
-                                                Book Appointment <ArrowRight size={22} />
+                                                Book Appointment <ArrowRight size={18} />
                                             </button>
                                         </div>
                                     </div>

@@ -25,17 +25,49 @@ L.Icon.Default.mergeOptions({
 });
 
 const STATUS_CONFIG = {
-    'Pending':          { color: '#f59e0b', bg: '#fffbeb', border: '#fde68a', label: 'Pending',          icon: <Timer size={13}/> },
-    'Confirmed':        { color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', label: 'Confirmed',        icon: <BadgeCheck size={13}/> },
-    'Sample Collected': { color: '#10b981', bg: '#f0fdf4', border: '#6ee7b7', label: 'Collected',        icon: <CheckCircle size={13}/> },
+    'Pending':          { color: 'var(--accent-gold)', bg: 'var(--surface-alt)', border: '#fde68a', label: 'Pending',          icon: <Timer size={13}/> },
+    'Confirmed':        { color: 'var(--primary)', bg: 'var(--surface-alt)', border: 'var(--primary-light)', label: 'Confirmed',        icon: <BadgeCheck size={13}/> },
+    'Sample Collected': { color: 'var(--success)', bg: '#f0fdf4', border: '#6ee7b7', label: 'Collected',        icon: <CheckCircle size={13}/> },
     'Sample Processing':{ color: '#8b5cf6', bg: '#f5f3ff', border: '#c4b5fd', label: 'Processing',       icon: <Activity size={13}/> },
     'Report Uploaded':  { color: '#0ea5e9', bg: '#f0f9ff', border: '#7dd3fc', label: 'Report Ready',     icon: <FileSearch size={13}/> },
-    'Cancelled':        { color: '#ef4444', bg: '#fef2f2', border: '#fecaca', label: 'Cancelled',        icon: <AlertCircle size={13}/> },
+    'Cancelled':        { color: 'var(--danger)', bg: '#fef2f2', border: '#fecaca', label: 'Cancelled',        icon: <AlertCircle size={13}/> },
 };
 
 export default function SampleCollectorDashboard() {
-    const { user } = useContext(AuthContext);
+    const { user, updateUser } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const [userForm, setUserForm] = useState({ name: '', email: '', phone: '' });
+    const [savingUser, setSavingUser] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setUserForm({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || ''
+            });
+        }
+    }, [user]);
+
+    const handleUserFormChange = (e) => {
+        setUserForm({ ...userForm, [e.target.name]: e.target.value });
+    };
+
+    const handleUserFormSubmit = async (e) => {
+        e.preventDefault();
+        setSavingUser(true);
+        try {
+            const res = await axios.put(`${API_BASE_URL}/api/auth/${user.id || user._id}`, userForm, getHeaders());
+            updateUser(res.data);
+            alert("Profile updated successfully!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update profile.");
+        } finally {
+            setSavingUser(false);
+        }
+    };
 
     const [assignments, setAssignments] = useState([]);
     const [stats, setStats] = useState({ pending: 0, confirmed: 0, collected: 0, processing: 0, todayCollections: 0 });
@@ -198,9 +230,9 @@ export default function SampleCollectorDashboard() {
     });
 
     const STAT_CARDS = [
-        { label: 'Today\'s Assignments', value: todayBookings.length, icon: <Calendar size={20}/>, color: '#3b82f6', bg: '#eff6ff' },
-        { label: 'Today Collected', value: stats.todayCollections || 0, icon: <TestTube size={20}/>, color: '#10b981', bg: '#f0fdf4' },
-        { label: 'Pending Pickup', value: (stats.pending || 0) + (stats.confirmed || 0), icon: <Timer size={20}/>, color: '#f59e0b', bg: '#fffbeb' },
+        { label: 'Today\'s Assignments', value: todayBookings.length, icon: <Calendar size={20}/>, color: 'var(--primary)', bg: 'var(--surface-alt)' },
+        { label: 'Today Collected', value: stats.todayCollections || 0, icon: <TestTube size={20}/>, color: 'var(--success)', bg: '#f0fdf4' },
+        { label: 'Pending Pickup', value: (stats.pending || 0) + (stats.confirmed || 0), icon: <Timer size={20}/>, color: 'var(--accent-gold)', bg: 'var(--surface-alt)' },
         { label: 'In Processing', value: stats.processing || 0, icon: <Activity size={20}/>, color: '#8b5cf6', bg: '#f5f3ff' },
     ];
 
@@ -214,7 +246,7 @@ export default function SampleCollectorDashboard() {
                         <div style={{ padding: '1.2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
                             <div>
                                 <div style={{ color: 'var(--text-main)', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <MapPin size={16} style={{ color: '#10b981' }} /> {mapModal.patientName} — Collection Point
+                                    <MapPin size={16} style={{ color: 'var(--success)' }} /> {mapModal.patientName} — Collection Point
                                 </div>
                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem' }}>{mapModal.address}</div>
                             </div>
@@ -241,7 +273,7 @@ export default function SampleCollectorDashboard() {
                                 href={`https://www.google.com/maps/dir/?api=1&destination=${mapModal.lat},${mapModal.lng}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', textDecoration: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800' }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', textDecoration: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800' }}
                             >
                                 <Navigation size={14} /> Get Directions
                             </a>
@@ -259,7 +291,7 @@ export default function SampleCollectorDashboard() {
                         </div>
                         <div>
                             <h1 style={{ color: 'var(--text-main)', fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>
-                                Sample Collector <span style={{ color: '#10b981' }}>Dashboard</span>
+                                Sample Collector <span style={{ color: 'var(--success)' }}>Dashboard</span>
                             </h1>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0, fontWeight: '600' }}>
                                 Welcome, {user?.name || 'Collector'} · {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -330,32 +362,24 @@ export default function SampleCollectorDashboard() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 600px)', justifyContent: 'center' }}>
                                 <div style={{ background: 'var(--bg-main)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
                                     <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: '800' }}>Personal Details</h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <form onSubmit={handleUserFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Full Name</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.name}</div>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Full Name</label>
+                                            <input type="text" name="name" value={userForm.name} onChange={handleUserFormChange} style={{ width: '100%', padding: '0.8rem 1rem', background: 'white', border: '1px solid var(--border)', borderRadius: '10px', fontSize: '0.95rem', fontWeight: '600', outline: 'none' }} required />
                                         </div>
                                         <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Email Address</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.email}</div>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Email Address</label>
+                                            <input type="email" name="email" value={userForm.email} onChange={handleUserFormChange} style={{ width: '100%', padding: '0.8rem 1rem', background: 'white', border: '1px solid var(--border)', borderRadius: '10px', fontSize: '0.95rem', fontWeight: '600', outline: 'none' }} required />
                                         </div>
                                         <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Role</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600', textTransform: 'capitalize' }}>{user?.role}</div>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Phone Number</label>
+                                            <input type="text" name="phone" value={userForm.phone} onChange={handleUserFormChange} style={{ width: '100%', padding: '0.8rem 1rem', background: 'white', border: '1px solid var(--border)', borderRadius: '10px', fontSize: '0.95rem', fontWeight: '600', outline: 'none' }} required />
                                         </div>
-                                        <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Phone Number</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.phone || 'Not Provided'}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Address</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.address || 'Not Provided'}</div>
-                                        </div>
-                                        <div>
-                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: '700' }}>Joined Date</div>
-                                            <div style={{ color: 'var(--text-main)', fontWeight: '600' }}>{user?.createdAt ? String(user.createdAt).split('T')[0] : 'N/A'}</div>
-                                        </div>
-                                    </div>
+                                        <button type="submit" disabled={savingUser} style={{ marginTop: '0.5rem', padding: '0.8rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.95rem', cursor: savingUser ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                            {savingUser ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                                            {savingUser ? 'Updating...' : 'Update Profile'}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -431,14 +455,14 @@ export default function SampleCollectorDashboard() {
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Tests</div>
                                                 {booking.testDetails?.map((t, i) => (
                                                     <div key={i} style={{ color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                        <FlaskConical size={11} style={{ color: '#10b981' }} /> {t.testName}
+                                                        <FlaskConical size={11} style={{ color: 'var(--success)' }} /> {t.testName}
                                                     </div>
                                                 ))}
                                             </div>
                                             <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Appointment</div>
                                                 <div style={{ color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                    <Calendar size={12} style={{ color: '#3b82f6' }} />
+                                                    <Calendar size={12} style={{ color: 'var(--primary)' }} />
                                                     {booking.appointmentDate ? new Date(booking.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                                 </div>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: '600', marginTop: '0.2rem', paddingLeft: '1.1rem' }}>
@@ -448,16 +472,16 @@ export default function SampleCollectorDashboard() {
                                             <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Collection Address</div>
                                                 <div style={{ color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: '700', display: 'flex', gap: '0.3rem' }}>
-                                                    <MapPin size={12} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
+                                                    <MapPin size={12} style={{ color: 'var(--accent-gold)', flexShrink: 0, marginTop: '2px' }} />
                                                     <span>{booking.sampleCollectionAddress || 'N/A'}</span>
                                                 </div>
                                             </div>
                                             <div style={{ background: 'var(--surface-alt)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Amount</div>
-                                                <div style={{ color: '#10b981', fontSize: '0.98rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                                <div style={{ color: 'var(--success)', fontSize: '0.98rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                                     <IndianRupee size={14} /> {booking.totalAmount?.toLocaleString('en-IN') || 0}
                                                 </div>
-                                                <div style={{ fontSize: '0.7rem', color: booking.paymentStatus === 'Paid' ? '#10b981' : '#f59e0b', fontWeight: '700', marginTop: '0.2rem' }}>
+                                                <div style={{ fontSize: '0.7rem', color: booking.paymentStatus === 'Paid' ? 'var(--success)' : 'var(--accent-gold)', fontWeight: '700', marginTop: '0.2rem' }}>
                                                     {booking.paymentStatus || 'Pending'}
                                                 </div>
                                             </div>
@@ -511,7 +535,7 @@ export default function SampleCollectorDashboard() {
                                             {booking.status === 'Out for Collection' && (
                                                 <>
                                                     {!booking.vialBarcode && (
-                                                        <button onClick={() => setScanningBookingId(booking._id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                        <button onClick={() => setScanningBookingId(booking._id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: 'var(--accent-gold-light)', color: '#92400e', border: '1px solid #fde68a', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
                                                             <ScanLine size={13} /> Scan Barcode
                                                         </button>
                                                     )}

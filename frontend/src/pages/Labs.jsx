@@ -133,40 +133,39 @@ const Labs = () => {
                     </div>
 
                     {/* Search & Filter Command Center */}
-                    <div className="glass-card shadow-premium grid-responsive" style={{ background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr auto', gap: '1.5rem', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: '1.5rem', flex: 1 }}>
-                            <div style={{ position: 'relative', flex: 1 }}>
-                                <Search size={20} style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <div style={{ background: 'white', padding: '1.25rem', borderRadius: '24px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                            <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
+                                <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
                                     type="text"
-                                    placeholder="Search by lab name, test, or specialty..."
+                                    placeholder="Search lab, test, specialty..."
                                     value={searchQuery}
                                     onChange={(e) => _setSearchQuery(e.target.value)}
-                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '16px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none' }}
+                                    style={{ width: '100%', padding: '0.9rem 1rem 0.9rem 3rem', borderRadius: '14px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none', boxSizing: 'border-box' }}
                                 />
                             </div>
-                            <div style={{ position: 'relative', width: '250px' }}>
-                                <MapPin size={20} style={{ position: 'absolute', left: '1.2rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <div style={{ position: 'relative', flex: '1 1 150px', minWidth: 0 }}>
+                                <MapPin size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
                                     type="text"
-                                    placeholder="Filter by City..."
+                                    placeholder="City..."
                                     value={cityFilter}
                                     onChange={(e) => _setCityFilter(e.target.value)}
-                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '16px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '1.05rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none' }}
+                                    style={{ width: '100%', padding: '0.9rem 1rem 0.9rem 3rem', borderRadius: '14px', border: '1px solid var(--border-light)', background: '#f8fafc', fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-main)', outline: 'none', boxSizing: 'border-box' }}
                                 />
                             </div>
                         </div>
-
-                        <div style={{ display: 'flex', gap: '0.5rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', background: '#f8fafc', padding: '0.4rem', borderRadius: '14px', border: '1px solid var(--border-light)', width: 'fit-content' }}>
                             <button
                                 onClick={() => _setStatusFilter('all')}
-                                style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', border: 'none', background: statusFilter === 'all' ? 'white' : 'transparent', color: statusFilter === 'all' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: statusFilter === 'all' ? '700' : '600', boxShadow: statusFilter === 'all' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                                style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: 'none', background: statusFilter === 'all' ? 'white' : 'transparent', color: statusFilter === 'all' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: statusFilter === 'all' ? '700' : '600', boxShadow: statusFilter === 'all' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', fontSize: '0.9rem' }}
                             >
                                 All Partners
                             </button>
                             <button
                                 onClick={() => _setStatusFilter('open')}
-                                style={{ padding: '0.8rem 1.5rem', borderRadius: '12px', border: 'none', background: statusFilter === 'open' ? 'white' : 'transparent', color: statusFilter === 'open' ? 'var(--success)' : 'var(--text-muted)', fontWeight: statusFilter === 'open' ? '700' : '600', boxShadow: statusFilter === 'open' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                                style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: 'none', background: statusFilter === 'open' ? 'white' : 'transparent', color: statusFilter === 'open' ? 'var(--success)' : 'var(--text-muted)', fontWeight: statusFilter === 'open' ? '700' : '600', boxShadow: statusFilter === 'open' ? 'var(--shadow-sm)' : 'none', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', fontSize: '0.9rem' }}
                             >
                                 Open Now
                             </button>
@@ -231,7 +230,7 @@ const Labs = () => {
                                         transition={{ delay: index * 0.05 }}
                                         className="glass-card test-result-card premium-card"
                                         style={{
-                                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
+                                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, var(--surface-alt))' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
                                             padding: '1.2rem 1.5rem',
                                             display: 'flex',
                                             flexDirection: 'column',
@@ -241,57 +240,35 @@ const Labs = () => {
                                             overflow: 'hidden'
                                         }}
                                     >
-                                        {/* Trust Badge Ribbon */}
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '20px', right: '20px',
-                                            background: lab.isVerified ? 'linear-gradient(90deg, #0ea5e9, #2563eb)' : '#64748b',
-                                            color: 'white',
-                                            padding: '4px 0',
-                                            width: '130px',
-                                            textAlign: 'center',
-                                            whiteSpace: 'nowrap',
-                                            borderRadius: '100px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '900',
-                                            zIndex: 10,
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                                        }}>
-                                            {lab.isVerified ? 'VERIFIED' : 'COMMUNITY'}
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                                        {/* Top Row: Icon + Status badges */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div style={{
-                                                width: '56px', height: '56px',
+                                                width: '52px', height: '52px',
                                                 background: 'var(--primary-light)', color: 'var(--primary)',
-                                                borderRadius: '16px', display: 'flex',
-                                                alignItems: 'center', justifyContent: 'center'
+                                                borderRadius: '14px', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center', flexShrink: 0
                                             }}>
-                                                <Building2 size={28} />
+                                                <Building2 size={26} />
                                             </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                 {isOpen && (
                                                     <div style={{ 
-                                                        padding: '0.4rem 0.8rem', borderRadius: '100px', background: '#f0fdf4', color: '#16a34a',
-                                                        fontSize: '0.7rem', fontWeight: '900', border: '1px solid #dcfce7', display: 'flex', alignItems: 'center', gap: '0.3rem',
-                                                        animation: 'pulse 2s infinite'
+                                                        padding: '0.3rem 0.6rem', borderRadius: '100px', background: '#f0fdf4', color: '#16a34a',
+                                                        fontSize: '0.68rem', fontWeight: '900', border: '1px solid #dcfce7', display: 'flex', alignItems: 'center', gap: '0.3rem'
                                                     }}>
-                                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }}></div> OPEN NOW
-                                                    </div>
-                                                )}
-                                                {lab.googlePlaceId?.startsWith('osm_') && (
-                                                    <div style={{ 
-                                                        padding: '0.4rem 0.8rem', borderRadius: '100px', background: 'var(--primary-light)', color: 'var(--primary)',
-                                                        fontSize: '0.7rem', fontWeight: '900', border: '1px solid hsla(var(--primary-hsl), 0.1)', display: 'flex', alignItems: 'center', gap: '0.3rem'
-                                                    }}>
-                                                        <Activity size={12} /> LIVE SYNC
+                                                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#16a34a' }}></div> OPEN
                                                     </div>
                                                 )}
                                                 <div style={{ 
-                                                    padding: '0.4rem 0.8rem', borderRadius: '100px', background: '#fefce8', color: '#ca8a04',
-                                                    fontSize: '0.7rem', fontWeight: '900', border: '1px solid #fef9c3', display: 'flex', alignItems: 'center', gap: '0.3rem'
+                                                    background: lab.isVerified ? 'linear-gradient(90deg, #0ea5e9, var(--primary))' : '#64748b',
+                                                    color: 'white',
+                                                    padding: '0.3rem 0.7rem',
+                                                    borderRadius: '100px',
+                                                    fontSize: '0.68rem',
+                                                    fontWeight: '900',
+                                                    whiteSpace: 'nowrap'
                                                 }}>
-                                                    <TrendingUp size={12} /> {lab.totalReviews > 100 ? 'Popular' : 'Active'}
+                                                    {lab.isVerified ? 'VERIFIED' : 'COMMUNITY'}
                                                 </div>
                                             </div>
                                         </div>
@@ -310,7 +287,7 @@ const Labs = () => {
                                             </div>
 
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#64748b', fontWeight: '700', fontSize: '0.85rem' }}>
-                                                <div style={{ color: '#f59e0b', fontSize: '1rem' }}>★</div>
+                                                <div style={{ color: 'var(--accent-gold)', fontSize: '1rem' }}>★</div>
                                                 <span>{lab.rating || '4.5'}</span>
                                                 <span style={{ color: '#cbd5e1' }}>|</span>
                                                 <span>{lab.totalReviews || '0'} Ratings</span>
@@ -326,33 +303,35 @@ const Labs = () => {
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#64748b' }}>
-                                                    <Navigation size={14} className="text-secondary" /> {lab.distance ? `${(lab.distance/1000).toFixed(1)} km` : 'Local'}
+                                                    <Navigation size={14} /> {lab.distance ? `${(lab.distance/1000).toFixed(1)} km away` : 'Local'}
                                                 </div>
-                                                <div style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--primary)' }}>{lab.estimatedTime || 'Nearby'} mins</div>
+                                                <div style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--primary)' }}>
+                                                    {lab.estimatedTime ? `${lab.estimatedTime} mins` : lab.distance ? `~${Math.ceil(lab.distance / 500)} mins` : 'Nearby'}
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Action Buttons Bar */}
-                                        <div className="test-card-actions-row" style={{ display: 'flex', gap: '0.6rem', marginTop: 'auto' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
                                             <a href={lab.whatsapp} target="_blank" rel="noreferrer" style={{ 
-                                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                                background: '#22c55e', color: 'white', padding: '0.8rem', borderRadius: '12px', 
-                                                textDecoration: 'none', fontSize: '0.85rem', fontWeight: '900', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
+                                                flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                                                background: '#22c55e', color: 'white', padding: '0.75rem 0.5rem', borderRadius: '12px', 
+                                                textDecoration: 'none', fontSize: '0.82rem', fontWeight: '900', minWidth: '100px'
                                             }}>
-                                                <MessageSquare size={16} /> WhatsApp
+                                                <MessageSquare size={15} /> WhatsApp
                                             </a>
                                             <a href={`tel:${lab.phone}`} style={{ 
-                                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                                                background: 'white', color: 'var(--primary)', padding: '0.8rem', borderRadius: '12px', 
-                                                textDecoration: 'none', fontSize: '0.85rem', fontWeight: '900', border: '2px solid var(--primary)'
+                                                flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                                                background: 'white', color: 'var(--primary)', padding: '0.75rem 0.5rem', borderRadius: '12px', 
+                                                textDecoration: 'none', fontSize: '0.82rem', fontWeight: '900', border: '2px solid var(--primary)', minWidth: '90px'
                                             }}>
-                                                <Phone size={16} /> Call Now
+                                                <Phone size={15} /> Call Now
                                             </a>
                                             <Link to={`/lab/${lab._id}`} style={{ 
-                                                width: '45px', h: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                background: 'var(--primary)', color: 'white', borderRadius: '12px', textDecoration: 'none'
+                                                width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                background: 'var(--primary)', color: 'white', borderRadius: '12px', textDecoration: 'none', flexShrink: 0
                                             }}>
-                                                <ChevronRight size={20} />
+                                                <ChevronRight size={18} />
                                             </Link>
                                         </div>
                                     </motion.div>

@@ -46,7 +46,7 @@ const MasterControl = () => {
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem' }}><Globe size={16} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />Active WebSockets</div>
                         <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>{telemetry?.activeWebSockets || 0}</div>
                     </div>
-                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid #d97706' }}>
+                    <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', borderLeft: '4px solid var(--accent-gold-hover)' }}>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem' }}><Zap size={16} style={{ verticalAlign: 'middle', marginRight: '0.5rem' }} />CPU Usage</div>
                         <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>{telemetry?.cpuUsage || 0} <span style={{ fontSize: '1rem', color: '#64748b' }}>%</span></div>
                     </div>
@@ -60,8 +60,8 @@ const MasterControl = () => {
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {[
-                        { key: 'maintenance', label: 'Global Maintenance Mode', desc: 'Pause all new patient bookings and show maintenance screen.', color: '#dc2626' },
-                        { key: 'surgePricing', label: 'Peak Surge Pricing (+20%)', desc: 'Apply a flat 20% surge multiplier to all standard catalog tests.', color: '#d97706' },
+                        { key: 'maintenance', label: 'Global Maintenance Mode', desc: 'Pause all new patient bookings and show maintenance screen.', color: 'var(--danger)' },
+                        { key: 'surgePricing', label: 'Peak Surge Pricing (+20%)', desc: 'Apply a flat 20% surge multiplier to all standard catalog tests.', color: 'var(--accent-gold-hover)' },
                         { key: 'emergencyAlerts', label: 'Emergency Dashboard Banner', desc: 'Display a critical alert banner on the patient and lab partner portals.', color: '#0284c7' }
                     ].map(toggle => (
                         <div key={toggle.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem', background: '#f1f5f9', borderRadius: '12px' }}>

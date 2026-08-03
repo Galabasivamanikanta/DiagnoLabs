@@ -116,10 +116,8 @@ const NearbySearch = () => {
                             border: '1px solid var(--border)', 
                             boxShadow: 'var(--shadow-sm)',
                             display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.75rem'
-                        }}>
-                            <div style={{ width: '28px', height: '28px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                              <div style={{ width: '28px', height: '28px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Sparkles size={16} />
                             </div>
                             <span style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-main)' }}>Unsure what you need?</span>
@@ -131,7 +129,7 @@ const NearbySearch = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="mobile-stack" style={{
+                    <div className="search-bar-wrapper" style={{
                         maxWidth: '1000px',
                         margin: '0 auto',
                         display: 'flex',
@@ -229,7 +227,7 @@ const NearbySearch = () => {
                             display: 'flex',
                             flexDirection: 'column',
                             animationDelay: `${index * 0.1}s`,
-                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, #fffbeb)' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
+                            background: lab.category === 'Premium' ? 'linear-gradient(145deg, #ffffff, var(--surface-alt))' : (lab.category === 'Scalable' ? 'linear-gradient(145deg, #ffffff, #f8fafc)' : 'linear-gradient(145deg, #ffffff, #fff7ed)'),
                             backdropFilter: 'blur(10px)',
                             position: 'relative',
                             overflow: 'hidden',
@@ -240,7 +238,7 @@ const NearbySearch = () => {
                             <div style={{
                                 position: 'absolute',
                                 top: '20px', right: '20px',
-                                background: lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (lab.accuracyScore >= 75 ? '#ca8a04' : '#ea580c'),
+                                background: lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (lab.accuracyScore >= 75 ? '#ca8a04' : 'var(--warning)'),
                                 color: 'white',
                                 padding: '4px 0',
                                 width: '130px',
@@ -261,7 +259,7 @@ const NearbySearch = () => {
                                     {lab.category && (
                                         <div style={{ 
                                             padding: '0.4rem 0.8rem', 
-                                            background: lab.category === 'Premium' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : (lab.category === 'Scalable' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#94a3b8'), 
+                                            background: lab.category === 'Premium' ? 'linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover))' : (lab.category === 'Scalable' ? 'linear-gradient(135deg, var(--primary), var(--primary))' : '#94a3b8'), 
                                             color: 'white',
                                             borderRadius: '100px', 
                                             fontSize: '0.65rem', 
@@ -280,7 +278,7 @@ const NearbySearch = () => {
                                         borderRadius: '100px', 
                                         fontSize: '0.65rem', 
                                         fontWeight: '800', 
-                                        color: lab.isVerified ? '#1e40af' : '#ca8a04', 
+                                        color: lab.isVerified ? 'var(--primary-hover)' : '#ca8a04', 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         gap: '0.3rem' 
@@ -291,7 +289,7 @@ const NearbySearch = () => {
                                 <div style={{ 
                                     display: 'flex', 
                                     alignItems: 'center', 
-                                    color: lab.isOpenNow ? '#16a34a' : '#ef4444', 
+                                    color: lab.isOpenNow ? '#16a34a' : 'var(--danger)', 
                                     fontSize: '0.75rem', 
                                     fontWeight: '900', 
                                     textTransform: 'uppercase',
@@ -337,13 +335,13 @@ const NearbySearch = () => {
                                         {lab.name}
                                     </h3>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div style={{ color: '#f59e0b', display: 'flex', gap: '1px' }}>
+                                        <div style={{ color: 'var(--accent-gold)', display: 'flex', gap: '1px' }}>
                                             {[...Array(5)].map((_, i) => (
                                                 <span key={i} style={{ fontSize: '0.8rem' }}>{i < Math.floor(lab.rating || 4) ? '★' : '☆'}</span>
                                             ))}
                                         </div>
                                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>
-                                            {lab.rating || '4.8'} ({lab.totalReviews || '0'} views)
+                                            {Number(lab.rating || 4.8).toFixed(1)} ({lab.totalReviews || '0'} views)
                                         </span>
                                     </div>
                                 </div>
