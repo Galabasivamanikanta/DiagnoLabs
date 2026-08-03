@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const { sendWhatsAppMessage } = require('./whatsappService');
-const { sendEmail } = require('./mailService');
+const { sendEmail, getDiagnoLabsEmailTemplate } = require('./mailService');
+
+
 
 // In-memory OTP storage (Use Redis for production!)
 const otpStore = new Map();
