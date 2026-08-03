@@ -332,8 +332,13 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
     try {
         const { name, email, phone, role } = req.body;
         
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json("User with this email already exists");
+        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+        if (existingUser) {
+            if (existingUser.email === email) {
+                return res.status(400).json({ message: "An employee with this email already exists." });
+            }
+            return res.status(400).json({ message: "An employee with this phone number already exists." });
+        }
 
         const prefixMap = {
             'admin':             'ADM',
@@ -374,6 +379,10 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
         const savedUser = await newUser.save();
 
+        // Clear OTP store after successful registration
+        clearOTP(email);
+        clearOTP(phone);
+
         // Send Email
         const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: http://localhost:5173/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
         
@@ -381,10 +390,15 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
         res.status(201).json({ message: "Staff provisioned successfully", employeeId });
     } catch (err) {
-        console.error(err);
-        res.status(500).json(err);
+        console.error("Admin Register Error:", err);
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyPattern || {})[0] || 'credential';
+            return res.status(400).json({ message: `An account with this ${field} already exists in the system.` });
+        }
+        res.status(500).json({ message: err.message || "Error saving employee details" });
     }
 });
+
 
 // STAFF / ADMIN LOGIN
 router.post('/admin-login', async (req, res) => {

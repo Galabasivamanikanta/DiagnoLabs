@@ -172,9 +172,11 @@ const EmployeeManagement = () => {
             fetchEmployees();
         } catch (err) {
             console.error("Error saving employee:", err);
-            alert(err.response?.data?.message || "Error saving employee details");
+            const serverMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : null);
+            alert(serverMsg || "Error saving employee details. Please check if the email or phone number is already registered.");
         }
     };
+
 
     const resetForm = () => {
         setFormData({ name: '', email: '', password: '', phone: '', role: 'employee' });
