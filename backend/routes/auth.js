@@ -332,14 +332,6 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
     try {
         const { name, email, phone, role } = req.body;
         
-        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
-        if (existingUser) {
-            if (existingUser.email === email) {
-                return res.status(400).json({ message: "An employee with this email already exists." });
-            }
-            return res.status(400).json({ message: "An employee with this phone number already exists." });
-        }
-
         const prefixMap = {
             'admin':             'ADM',
             'lab_partner':       'LAB',
@@ -365,6 +357,29 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
         }
 
         const tempPassword = generatePassword();
+
+        let existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+        if (existingUser) {
+            // Upgrade/Re-provision existing account seamlessly
+            existingUser.name = name || existingUser.name;
+            existingUser.email = email;
+            existingUser.phone = phone || existingUser.phone;
+            existingUser.role = role;
+            existingUser.employeeId = employeeId;
+            existingUser.password = tempPassword;
+            existingUser.isVerified = true;
+            existingUser.isFirstLogin = true;
+
+            await existingUser.save();
+
+            clearOTP(email);
+            clearOTP(phone);
+
+            const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: http://localhost:5173/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
+            await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+
+            return res.status(200).json({ message: "Staff provisioned successfully", employeeId });
+        }
 
         const newUser = new User({
             name,
@@ -398,6 +413,7 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
         res.status(500).json({ message: err.message || "Error saving employee details" });
     }
 });
+
 
 
 // STAFF / ADMIN LOGIN

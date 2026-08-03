@@ -71,12 +71,19 @@ router.put('/employees/:id', verifyTokenAndAdmin, async (req, res) => {
 // DELETE EMPLOYEE (Admin only)
 router.delete('/employees/:id', verifyTokenAndAdmin, async (req, res) => {
     try {
-        await User.findByIdAndDelete(req.params.id);
+        const { clearOTP } = require('../services/otpService');
+        const user = await User.findById(req.params.id);
+        if (user) {
+            if (user.email) clearOTP(user.email);
+            if (user.phone) clearOTP(user.phone);
+            await User.findByIdAndDelete(req.params.id);
+        }
         res.status(200).json("Employee deleted successfully");
     } catch (err) {
         res.status(500).json(err);
     }
 });
+
 
 // --- ADVANCED ADMIN MODULES ---
 
