@@ -248,9 +248,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Express global error handler to prevent route crashes
 app.use((err, req, res, next) => {
-    console.error('🔥 [AUTO-HEAL] Express Route Error:', err.message);
-    res.status(500).json({ error: "An internal error occurred, but the server auto-recovered." });
+    console.error('🔥 [AUTO-HEAL] Express Route Error:', err.stack || err.message);
+    res.status(500).json({ error: err.message || "An internal server error occurred." });
 });
+
 // ------------------------------------------------
 
 server.listen(PORT, '0.0.0.0', () => {

@@ -67,21 +67,33 @@ const sendVerificationOTP = async (phone, email) => {
         let emailResult = { success: false };
 
         if (phone) {
-            whatsappResult = await sendWhatsAppMessage(phone, `Your DiagnoLabs verification code is: ${otp}. Valid for 10 minutes.`);
+            try {
+                const formattedPhone = phone.length === 10 ? `+91${phone}` : (phone.startsWith('+') ? phone : `+${phone}`);
+                whatsappResult = await sendWhatsAppMessage(formattedPhone, `Your DiagnoLabs verification code is: ${otp}. Valid for 10 minutes.`);
+            } catch (wErr) {
+                console.error("WhatsApp Dispatch Error:", wErr.message);
+                whatsappResult = { success: false, error: wErr.message };
+            }
         }
 
         if (email) {
-            emailResult = await sendEmail(
-                email,
-                `🧪 ${otp} is your DiagnoLabs Verification Code`,
-                `Your DiagnoLabs verification code is: ${otp}`,
-                getDiagnoLabsEmailTemplate({
-                    title: 'Verification Code',
-                    recipientName: 'Team Member',
-                    messageHtml: messageHtml
-                })
-            );
+            try {
+                emailResult = await sendEmail(
+                    email,
+                    `🧪 ${otp} is your DiagnoLabs Verification Code`,
+                    `Your DiagnoLabs verification code is: ${otp}`,
+                    getDiagnoLabsEmailTemplate({
+                        title: 'Verification Code',
+                        recipientName: 'Team Member',
+                        messageHtml: messageHtml
+                    })
+                );
+            } catch (mErr) {
+                console.error("Email Dispatch Error:", mErr.message);
+                emailResult = { success: false, error: mErr.message };
+            }
         }
+
 
         const isSent = emailResult.success || whatsappResult.success;
 
