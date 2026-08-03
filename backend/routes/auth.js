@@ -8,7 +8,8 @@ const { sendCustomerIdNotification } = require('../services/customerIdNotificati
 const { sendEmail } = require('../services/mailService');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const { sendVerificationOTP, verifyOTP } = require('../services/otpService');
+const { sendVerificationOTP, verifyOTP, clearOTP } = require('../services/otpService');
+
 
 const generateId = (prefix) => {
     return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
