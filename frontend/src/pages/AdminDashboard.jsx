@@ -430,7 +430,40 @@ const AdminDashboard = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -12 }}
                             transition={{ duration: 0.25 }}
+                            style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}
                         >
+                            {/* Hero Welcome Banner */}
+                            <div className="overview-hero-banner">
+                                <div className="hero-banner-content">
+                                    <div className="hero-live-badge">
+                                        <span className="live-pulse-dot"></span> LIVE NETWORK ACTIVE
+                                    </div>
+                                    <h2>Welcome back, {user?.name || 'Administrator'} 👋</h2>
+                                    <p>DiagnoLabs Clinical Gateway is operating smoothly. All 2DSphere spatial queries, payment webhooks, and security protocols are active.</p>
+                                    <div className="hero-quick-chips">
+                                        <button className="hero-chip-btn" onClick={() => setActiveTab('bookings')}>
+                                            <ClipboardList size={14} /> Manage Bookings ({pendingBookings})
+                                        </button>
+                                        <button className="hero-chip-btn" onClick={() => setActiveTab('employees')}>
+                                            <Users size={14} /> Employee Directory
+                                        </button>
+                                        <button className="hero-chip-btn" onClick={() => setActiveTab('telemetry')}>
+                                            <Activity size={14} /> System Telemetry
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="hero-banner-visual">
+                                    <div className="hero-metric-pill">
+                                        <span className="pill-val">{totalBookings}</span>
+                                        <span className="pill-lbl">Total Orders</span>
+                                    </div>
+                                    <div className="hero-metric-pill highlight">
+                                        <span className="pill-val">₹{totalRevenue.toLocaleString()}</span>
+                                        <span className="pill-lbl">Platform Volume</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Stats Grid */}
                             <div className="admin-stats-grid">
                                 <motion.div
@@ -441,9 +474,9 @@ const AdminDashboard = () => {
                                 >
                                     <div className="stat-card-glow"></div>
                                     <div className="stat-card-header">
-                                        <div className="stat-card-icon"><ClipboardList size={22} /></div>
+                                        <div className="stat-card-icon"><ClipboardList size={24} /></div>
                                         <div className="stat-card-trend up">
-                                            <ArrowUpRight size={12} /> 12%
+                                            <ArrowUpRight size={12} /> +14%
                                         </div>
                                     </div>
                                     <h2 className="stat-card-value">{totalBookings}</h2>
@@ -458,9 +491,9 @@ const AdminDashboard = () => {
                                 >
                                     <div className="stat-card-glow"></div>
                                     <div className="stat-card-header">
-                                        <div className="stat-card-icon"><Clock size={22} /></div>
+                                        <div className="stat-card-icon"><Clock size={24} /></div>
                                         <div className="stat-card-trend down">
-                                            <ArrowDownRight size={12} /> 5%
+                                            <ArrowDownRight size={12} /> -3%
                                         </div>
                                     </div>
                                     <h2 className="stat-card-value">{pendingBookings}</h2>
@@ -475,13 +508,13 @@ const AdminDashboard = () => {
                                 >
                                     <div className="stat-card-glow"></div>
                                     <div className="stat-card-header">
-                                        <div className="stat-card-icon"><FileText size={22} /></div>
+                                        <div className="stat-card-icon"><FileText size={24} /></div>
                                         <div className="stat-card-trend up">
-                                            <ArrowUpRight size={12} /> 18%
+                                            <ArrowUpRight size={12} /> +22%
                                         </div>
                                     </div>
                                     <h2 className="stat-card-value">{completedBookings}</h2>
-                                    <p className="stat-card-label">Reports Done</p>
+                                    <p className="stat-card-label">Reports Delivered</p>
                                 </motion.div>
 
                                 <motion.div
@@ -492,13 +525,13 @@ const AdminDashboard = () => {
                                 >
                                     <div className="stat-card-glow"></div>
                                     <div className="stat-card-header">
-                                        <div className="stat-card-icon"><Zap size={22} /></div>
+                                        <div className="stat-card-icon"><BadgeIndianRupee size={24} /></div>
                                         <div className="stat-card-trend up">
-                                            <ArrowUpRight size={12} /> 24%
+                                            <ArrowUpRight size={12} /> +28%
                                         </div>
                                     </div>
                                     <h2 className="stat-card-value">₹{totalRevenue.toLocaleString()}</h2>
-                                    <p className="stat-card-label">Total Revenue</p>
+                                    <p className="stat-card-label">Gross Revenue</p>
                                 </motion.div>
                             </div>
 
@@ -512,11 +545,11 @@ const AdminDashboard = () => {
                                     transition={{ delay: 0.25 }}
                                 >
                                     <div className="insight-card-title">
-                                        <Activity size={15} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Status Breakdown
+                                        <Activity size={17} style={{ color: 'var(--primary)' }} />
+                                        <span>Fulfillment Pipeline</span>
                                     </div>
                                     <div className="insight-bar-row">
-                                        <span className="insight-bar-label">Completed</span>
+                                        <span className="insight-bar-label">Delivered Reports</span>
                                         <div className="insight-bar-track">
                                             <div
                                                 className="insight-bar-fill green"
@@ -526,7 +559,7 @@ const AdminDashboard = () => {
                                         <span className="insight-bar-value">{completedBookings}</span>
                                     </div>
                                     <div className="insight-bar-row">
-                                        <span className="insight-bar-label">Pending</span>
+                                        <span className="insight-bar-label">Pending Action</span>
                                         <div className="insight-bar-track">
                                             <div
                                                 className="insight-bar-fill amber"
@@ -536,7 +569,7 @@ const AdminDashboard = () => {
                                         <span className="insight-bar-value">{pendingBookings}</span>
                                     </div>
                                     <div className="insight-bar-row">
-                                        <span className="insight-bar-label">Processing</span>
+                                        <span className="insight-bar-label">In-Processing</span>
                                         <div className="insight-bar-track">
                                             <div
                                                 className="insight-bar-fill purple"
@@ -555,8 +588,8 @@ const AdminDashboard = () => {
                                     transition={{ delay: 0.3 }}
                                 >
                                     <div className="insight-card-title">
-                                        <Clock size={15} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Recent Activity
+                                        <Clock size={17} style={{ color: 'var(--primary)' }} />
+                                        <span>Live Network Activity</span>
                                     </div>
                                     <ul className="admin-activity-list">
                                         {recentActivity.length === 0 ? (
@@ -588,12 +621,15 @@ const AdminDashboard = () => {
                                 transition={{ delay: 0.35 }}
                             >
                                 <div className="admin-panel-header">
-                                    <h3>Recent Bookings</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <FlaskConical size={20} style={{ color: 'var(--primary)' }} />
+                                        <h3 style={{ margin: 0 }}>Recent Patient Bookings</h3>
+                                    </div>
                                     <button
                                         className="panel-filter-btn"
                                         onClick={() => setActiveTab('bookings')}
                                     >
-                                        View All <ChevronRight size={14} />
+                                        View All Bookings <ChevronRight size={14} />
                                     </button>
                                 </div>
                                 <div style={{ overflowX: 'auto' }}>
