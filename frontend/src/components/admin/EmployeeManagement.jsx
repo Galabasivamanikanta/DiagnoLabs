@@ -529,10 +529,16 @@ const EmployeeManagement = () => {
                                     
                                     {/* Action Wizard buttons */}
                                     {step === 1 && !editMode && (
-                                        <button type="button" onClick={handleSendOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                            {verifying ? 'Sending...' : 'Verify Email (OTP)'}
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button type="button" onClick={() => setStep(3)} style={{ padding: '0.75rem 1.2rem', border: '1px solid #003366', borderRadius: '10px', background: '#f0f9ff', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: '#003366' }}>
+                                                ⚡ Direct Provision (Skip OTP)
+                                            </button>
+                                            <button type="button" onClick={handleSendOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                {verifying ? 'Sending...' : 'Verify Email (OTP)'}
+                                            </button>
+                                        </div>
                                     )}
+
 
                                     {step === 2 && (
                                         <button type="button" onClick={handleVerifyOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white' }}>

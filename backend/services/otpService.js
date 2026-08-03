@@ -5,12 +5,16 @@ const { sendEmail } = require('./mailService');
 // In-memory OTP storage (Use Redis for production!)
 const otpStore = new Map();
 
-const generateOTP = (identifier) => {
+const clearOTP = (identifier) => {
+    if (identifier) otpStore.delete(identifier);
+};
+
+const generateOTP = (identifier, force = false) => {
     const now = Date.now();
     const record = otpStore.get(identifier);
 
-    // SERVER-SIDE RATE LIMIT: 60s cooldown for OTP generation
-    if (record && record.lastSent && (now - record.lastSent < 60 * 1000)) {
+    // SERVER-SIDE RATE LIMIT: 60s cooldown for OTP generation (unless force re-generate)
+    if (!force && record && record.lastSent && (now - record.lastSent < 60 * 1000)) {
         const remaining = Math.ceil((60 * 1000 - (now - record.lastSent)) / 1000);
         throw new Error(`Please wait ${remaining} seconds before requesting a new clinical OTP.`);
     }
@@ -20,6 +24,7 @@ const generateOTP = (identifier) => {
     otpStore.set(identifier, { otp, expiry, lastSent: now });
     return otp;
 };
+
 
 
 const verifyOTP = (identifier, otp) => {
@@ -68,4 +73,5 @@ const sendVerificationOTP = async (phone, email) => {
 };
 
 
-module.exports = { sendVerificationOTP, verifyOTP };
+module.exports = { sendVerificationOTP, verifyOTP, clearOTP };
+

@@ -242,6 +242,11 @@ router.delete('/:id', verifyTokenAndAuthorization, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Clear any active OTP records for deleted user so re-adding works instantly
+        const { clearOTP } = require('../services/otpService');
+        if (deletedUser.email) clearOTP(deletedUser.email);
+        if (deletedUser.phone) clearOTP(deletedUser.phone);
+
         res.status(200).json({ message: "Account and all associated data deleted successfully" });
     } catch (err) {
         console.error("Delete Error:", err);
@@ -257,12 +262,13 @@ router.post('/send-otp', async (req, res) => {
         if (result.success) {
             res.status(200).json({ message: "OTP sent successfully", data: result });
         } else {
-            res.status(500).json({ message: "Failed to send OTP", error: result });
+            res.status(400).json({ message: result.message || "Failed to send OTP", error: result });
         }
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Failed to send verification OTP" });
     }
 });
+
 
 // VERIFY OTP
 router.post('/verify-otp', async (req, res) => {
