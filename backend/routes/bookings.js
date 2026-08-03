@@ -259,8 +259,14 @@ router.post('/verify-payment', verifyToken, async (req, res) => {
             success: true,
             msg: 'Payment verified successfully'
         });
+    } catch (err) {
+        console.error("Payment Verification Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // DELETE BOOKING (Admin & Staff Only)
-router.delete('/:id', verifyToken, async (req, res) => {
+const handleDeleteBookingReq = async (req, res) => {
     const adminRoles = ['admin', 'lab_partner', 'it_specialist', 'quality_auditor', 'doctor', 'receptionist'];
     const userRoles = Array.isArray(req.user.role) ? req.user.role : [req.user.role];
     const hasPermission = userRoles.some(r => adminRoles.includes(r));
@@ -279,8 +285,12 @@ router.delete('/:id', verifyToken, async (req, res) => {
         console.error("Delete Booking Error:", err);
         res.status(500).json({ error: err.message });
     }
-});
+};
+
+router.delete('/:id', verifyToken, handleDeleteBookingReq);
+router.post('/delete/:id', verifyToken, handleDeleteBookingReq);
 
 module.exports = router;
+
 
 

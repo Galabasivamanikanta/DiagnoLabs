@@ -253,9 +253,15 @@ const AdminDashboard = () => {
         if (!window.confirm(confirmMsg)) return;
 
         try {
-            await axios.delete(`${API_BASE_URL}/api/bookings/${bookingId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
+            try {
+                await axios.delete(`${API_BASE_URL}/api/bookings/${bookingId}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+            } catch (deleteErr) {
+                await axios.post(`${API_BASE_URL}/api/bookings/delete/${bookingId}`, {}, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+            }
             setBookings(prev => prev.filter(b => b._id !== bookingId));
             alert("✅ Booking permanently deleted from Database & UI!");
         } catch (err) {
