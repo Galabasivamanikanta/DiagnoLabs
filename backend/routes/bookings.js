@@ -259,11 +259,28 @@ router.post('/verify-payment', verifyToken, async (req, res) => {
             success: true,
             msg: 'Payment verified successfully'
         });
+// DELETE BOOKING (Admin & Staff Only)
+router.delete('/:id', verifyToken, async (req, res) => {
+    const adminRoles = ['admin', 'lab_partner', 'it_specialist', 'quality_auditor', 'doctor', 'receptionist'];
+    const userRoles = Array.isArray(req.user.role) ? req.user.role : [req.user.role];
+    const hasPermission = userRoles.some(r => adminRoles.includes(r));
+
+    if (!hasPermission) {
+        return res.status(403).json({ error: "Access Denied: Only Admins and Staff can delete bookings." });
+    }
+
+    try {
+        const deletedBooking = await Booking.findByIdAndDelete(req.params.id);
+        if (!deletedBooking) {
+            return res.status(404).json({ error: "Booking record not found" });
+        }
+        res.status(200).json({ success: true, message: "Booking permanently deleted from database", id: req.params.id });
     } catch (err) {
-        console.error("Payment Verification Error:", err);
+        console.error("Delete Booking Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
 module.exports = router;
+
 

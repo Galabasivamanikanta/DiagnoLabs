@@ -20,7 +20,7 @@ import {
     Activity, TrendingUp, Calendar, FileText, Microscope,
     ChevronRight, ExternalLink, Clock, Zap, Menu, X,
     IdCard, Phone, Mail, MapPin, Droplets, CalendarDays, Building2, BadgeIndianRupee, CheckCircle2, XCircle, FlaskConical,
-    Megaphone, PieChart, ShieldCheck, Database
+    Megaphone, PieChart, ShieldCheck, Database, Trash2
 } from 'lucide-react';
 import '../styles/AdminDashboard.css';
 
@@ -247,6 +247,23 @@ const AdminDashboard = () => {
         logout();
         navigate('/adminlogin');
     };
+
+    const handleDeleteBooking = async (bookingId, patientName) => {
+        const confirmMsg = `Are you sure you want to permanently delete booking DH-${bookingId.slice(-8).toUpperCase()} for ${patientName || 'this patient'}?\n\nThis will remove the record permanently from both Database & UI.`;
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            await axios.delete(`${API_BASE_URL}/api/bookings/${bookingId}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setBookings(prev => prev.filter(b => b._id !== bookingId));
+            alert("✅ Booking permanently deleted from Database & UI!");
+        } catch (err) {
+            console.error("Failed to delete booking:", err);
+            alert(err.response?.data?.error || err.response?.data || "Failed to delete booking.");
+        }
+    };
+
 
     // Stats
     const totalBookings = bookings.length;
@@ -639,13 +656,23 @@ const AdminDashboard = () => {
                                                                 {booking.status}
                                                             </span>
                                                         </td>
-                                                        <td style={{ textAlign: 'right' }}>
-                                                            <button
-                                                                className="table-action-btn"
-                                                                onClick={() => navigate('/partner/dashboard')}
-                                                            >
-                                                                Coordinate <ChevronRight size={14} />
-                                                            </button>
+                                                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                                            <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                                <button
+                                                                    className="table-action-btn"
+                                                                    onClick={() => navigate('/partner/dashboard')}
+                                                                >
+                                                                    Coordinate <ChevronRight size={14} />
+                                                                </button>
+                                                                <button
+                                                                    className="table-action-btn"
+                                                                    style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
+                                                                    title="Delete Booking from Database and UI"
+                                                                    onClick={() => handleDeleteBooking(booking._id, booking.patient?.name)}
+                                                                >
+                                                                    <Trash2 size={14} /> Delete
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
@@ -763,13 +790,23 @@ const AdminDashboard = () => {
                                                                 {booking.status}
                                                             </span>
                                                         </td>
-                                                        <td style={{ textAlign: 'right' }}>
-                                                            <button
-                                                                className="table-action-btn"
-                                                                onClick={() => navigate('/partner/dashboard')}
-                                                            >
-                                                                Coordinate <ChevronRight size={14} />
-                                                            </button>
+                                                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                                            <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                                <button
+                                                                    className="table-action-btn"
+                                                                    onClick={() => navigate('/partner/dashboard')}
+                                                                >
+                                                                    Coordinate <ChevronRight size={14} />
+                                                                </button>
+                                                                <button
+                                                                    className="table-action-btn"
+                                                                    style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
+                                                                    title="Delete Booking from Database and UI"
+                                                                    onClick={() => handleDeleteBooking(booking._id, booking.patient?.name)}
+                                                                >
+                                                                    <Trash2 size={14} /> Delete
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
