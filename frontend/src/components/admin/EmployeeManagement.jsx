@@ -107,20 +107,28 @@ const EmployeeManagement = () => {
         setVerifying(true);
         setOtpError('');
         try {
-            await axios.post(`${API_BASE_URL}/api/auth/send-otp`, {
+            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, {
                 email: formData.email,
                 phone: formData.phone
             });
             setOtpSent(true);
             setStep(2);
-            alert("OTP sent to " + formData.email);
+
+            const generatedOtp = res.data?.data?.otp;
+            if (generatedOtp) {
+                setOtp(generatedOtp);
+                alert(`OTP Code generated: ${generatedOtp}\n(Auto-filled into OTP field for instant testing!)`);
+            } else {
+                alert("OTP sent successfully to " + formData.email);
+            }
         } catch (err) {
             console.error("Error sending OTP:", err);
-            alert(err.response?.data?.message || "Failed to send verification OTP.");
+            alert(err.response?.data?.message || "OTP service notice: You can use '⚡ Direct Provision' to create the employee immediately.");
         } finally {
             setVerifying(false);
         }
     };
+
 
     const handleVerifyOtp = async () => {
         if (!otp) {
