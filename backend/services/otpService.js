@@ -48,37 +48,56 @@ const sendVerificationOTP = async (phone, email) => {
     const identifier = phone || email;
     
     try {
-        const otp = generateOTP(identifier, true); // Force fresh OTP bypassing rate limits
-        const message = `Your DiagnoLabs verification code is: ${otp}. Valid for 10 minutes.`;
+        const otp = generateOTP(identifier, true); // Force fresh OTP
+        const messageHtml = `
+            <p>Your official DiagnoLabs security verification code is:</p>
+            <div style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #0284c7; margin: 20px 0; text-align: center; background: #f0f9ff; padding: 15px; border-radius: 12px; border: 1.5px dashed #0284c7;">
+                ${otp}
+            </div>
+            <p style="font-size: 13px; color: #64748b;">This code is valid for 10 minutes. Do not share this OTP with anyone.</p>
+        `;
 
         console.log(`\n======================================================`);
-        console.log(`🧪 DIAGNOLABS VERIFICATION OTP GENERATED`);
-        console.log(`Identifier: ${identifier}`);
-        console.log(`OTP Code  : ${otp}`);
+        console.log(`🧪 DIAGNOLABS STRICT OTP DISPATCHED TO: ${identifier}`);
         console.log(`======================================================\n`);
 
         let whatsappResult = { success: false };
         let emailResult = { success: false };
 
         if (phone) {
-            whatsappResult = await sendWhatsAppMessage(phone, message);
+            whatsappResult = await sendWhatsAppMessage(phone, `Your DiagnoLabs verification code is: ${otp}. Valid for 10 minutes.`);
         }
 
         if (email) {
-            emailResult = await sendEmail(email, 'DiagnoLabs Verification Code', message);
+            emailResult = await sendEmail(
+                email,
+                `🧪 ${otp} is your DiagnoLabs Verification Code`,
+                `Your DiagnoLabs verification code is: ${otp}`,
+                getDiagnoLabsEmailTemplate({
+                    title: 'Verification Code',
+                    recipientName: 'Team Member',
+                    messageHtml: messageHtml
+                })
+            );
+        }
+
+        const isSent = emailResult.success || whatsappResult.success;
+
+        if (!isSent) {
+            return { success: false, message: "Failed to deliver OTP to the provided email/phone. Please check email address." };
         }
 
         return { 
             success: true,
-            otp: otp, // Return OTP for seamless auto-fill / fallback testing
-            whatsapp: whatsappResult,
-            email: emailResult
+            emailSent: emailResult.success,
+            whatsappSent: whatsappResult.success
         };
     } catch (err) {
         console.error("OTP Generation Error:", err);
         return { success: false, message: err.message };
     }
 };
+
 
 
 

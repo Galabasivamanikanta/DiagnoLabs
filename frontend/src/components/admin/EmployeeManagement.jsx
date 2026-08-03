@@ -111,23 +111,21 @@ const EmployeeManagement = () => {
                 email: formData.email,
                 phone: formData.phone
             });
-            setOtpSent(true);
-            setStep(2);
-
-            const generatedOtp = res.data?.data?.otp;
-            if (generatedOtp) {
-                setOtp(generatedOtp);
-                alert(`OTP Code generated: ${generatedOtp}\n(Auto-filled into OTP field for instant testing!)`);
+            if (res.data?.message?.includes('successfully') || res.status === 200) {
+                setOtpSent(true);
+                setStep(2);
+                alert(`A 6-digit verification code has been sent to ${formData.email}. Please check your inbox.`);
             } else {
-                alert("OTP sent successfully to " + formData.email);
+                alert("Failed to send OTP. Please check the email address.");
             }
         } catch (err) {
             console.error("Error sending OTP:", err);
-            alert(err.response?.data?.message || "OTP service notice: You can use '⚡ Direct Provision' to create the employee immediately.");
+            alert(err.response?.data?.message || "Failed to send verification OTP. Please try again.");
         } finally {
             setVerifying(false);
         }
     };
+
 
 
     const handleVerifyOtp = async () => {
@@ -537,15 +535,11 @@ const EmployeeManagement = () => {
                                     
                                     {/* Action Wizard buttons */}
                                     {step === 1 && !editMode && (
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button type="button" onClick={() => setStep(3)} style={{ padding: '0.75rem 1.2rem', border: '1px solid #003366', borderRadius: '10px', background: '#f0f9ff', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: '#003366' }}>
-                                                ⚡ Direct Provision (Skip OTP)
-                                            </button>
-                                            <button type="button" onClick={handleSendOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                {verifying ? 'Sending...' : 'Verify Email (OTP)'}
-                                            </button>
-                                        </div>
+                                        <button type="button" onClick={handleSendOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            {verifying ? 'Sending OTP...' : 'Send Verification OTP'}
+                                        </button>
                                     )}
+
 
 
                                     {step === 2 && (
