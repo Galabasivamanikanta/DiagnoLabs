@@ -1,7 +1,4 @@
-/**
- * Simulated Notification Service for DiagnoLabs
- * In a production environment, this would integrate with Twilio, SendGrid, Gupshup, etc.
- */
+const { sendEmail, getDiagnoLabsEmailTemplate } = require('./mailService');
 
 const sendTransactionReceipt = async (booking, patient, lab) => {
     console.log('\n======================================================');
@@ -11,50 +8,53 @@ const sendTransactionReceipt = async (booking, patient, lab) => {
     const transactionId = booking.razorpayPaymentId || "N/A";
     const amount = booking.totalAmount;
     const testNames = booking.testDetails.map(t => t.testName).join(', ');
+    const bookingCode = `DH-${booking._id.toString().slice(-8).toUpperCase()}`;
 
-    // 1. Patient Notification
-    const patientMsg = `
-Hi ${patient.name},
-Your booking for ${testNames} at ${lab.name} is confirmed!
-Transaction ID: ${transactionId}
-Amount Paid: ₹${amount}
-View your detailed receipt and test instructions in your DiagnoLabs Dashboard.
-Thank you for choosing DiagnoLabs!`;
+    // 1. Patient Notification (HTML Email)
+    if (patient.email) {
+        const patientHtml = getDiagnoLabsEmailTemplate({
+            title: `Booking Confirmed (${bookingCode}) - DiagnoLabs`,
+            recipientName: patient.name,
+            messageHtml: `<p>Your diagnostic test booking has been <strong>successfully confirmed</strong>!</p><p>Our certified phlebotomist team is preparing your sample collection. Please ensure you are available at your registered collection address on your appointment date.</p>`,
+            bookingDetails: {
+                bookingId: bookingCode,
+                testName: testNames,
+                labName: lab.name || 'DiagnoLabs Clinical Partner',
+                amount: amount,
+                transactionId: transactionId
+            },
+            actionUrl: 'https://diagnolabs.vercel.app/bookings',
+            actionText: 'View My Booking & Instructions'
+        });
 
-    console.log(`[SMS - PATIENT] Sending to ${patient.phone || 'Patient Phone'}...`);
-    console.log(`[WHATSAPP - PATIENT] Sending to ${patient.phone || 'Patient WhatsApp'}...`);
-    console.log(`[EMAIL - PATIENT] Sending receipt PDF to ${patient.email}...`);
-    console.log(`Message Content: ${patientMsg}\n`);
+        await sendEmail(patient.email, `✅ Booking Confirmed [${bookingCode}] - DiagnoLabs`, `Your booking for ${testNames} is confirmed! Amount: ₹${amount}`, patientHtml);
+    }
 
-    // 2. Lab Notification
-    const labMsg = `
-NEW BOOKING ALERT
-Patient: ${patient.name}
-Test(s): ${testNames}
-Booking ID: ${booking._id}
-Amount: ₹${amount} (Paid online via Razorpay)
-Please prepare for sample collection at: ${booking.sampleCollectionAddress}`;
+    // 2. Lab Partner Notification (HTML Email)
+    if (lab.email) {
+        const labHtml = getDiagnoLabsEmailTemplate({
+            title: `New Sample Collection Order (${bookingCode})`,
+            recipientName: lab.name || 'Lab Manager',
+            messageHtml: `<p>A new diagnostic booking has been dispatched to your center. Please assign a certified phlebotomist for sample collection.</p>`,
+            bookingDetails: {
+                bookingId: bookingCode,
+                testName: testNames,
+                labName: patient.name,
+                amount: amount,
+                transactionId: transactionId
+            },
+            actionUrl: 'https://diagnolabs.vercel.app/partner/dashboard',
+            actionText: 'Open Lab Partner Console'
+        });
 
-    console.log(`[EMAIL - LAB] Sending alert to ${lab.email || 'Lab Partner Email'}...`);
-    console.log(`[SMS - LAB] Sending to Lab Manager...`);
-    console.log(`Message Content: ${labMsg}\n`);
+        await sendEmail(lab.email, `🔬 New Order Assigned [${bookingCode}] - DiagnoLabs`, `New booking for ${testNames} by ${patient.name}`, labHtml);
+    }
 
-    // 3. Admin Notification
-    const adminMsg = `
-DiagnoLabs Transaction Alert:
-A new transaction of ₹${amount} was completed successfully.
-Booking ID: ${booking._id}
-Transaction ID: ${transactionId}
-Patient: ${patient.email}
-Lab: ${lab.name}`;
-
-    console.log(`[EMAIL - ADMIN] Sending transaction log to admin@diagnolabs.in...`);
-    console.log(`Message Content: ${adminMsg}\n`);
-
-    console.log('✅ ALL NOTIFICATIONS DISPATCHED SUCCESSFULLY\n');
+    console.log('✅ ALL DIAGNOLABS HTML EMAIL NOTIFICATIONS DISPATCHED SUCCESSFULLY\n');
     return true;
 };
 
 module.exports = {
     sendTransactionReceipt
 };
+
