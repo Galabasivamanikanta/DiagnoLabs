@@ -4,10 +4,11 @@ let baseUrl;
 if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     // In production web environment (Vercel), enforce Render backend URL!
     if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1') || envUrl.includes('vercel.app')) {
-        baseUrl = 'https://diagnolabs.onrender.com';
+        baseUrl = 'https://diagnolabs-1qvc.onrender.com';
     } else {
         baseUrl = envUrl;
     }
+
 } else {
     baseUrl = envUrl || 'http://127.0.0.1:5000';
 }
