@@ -376,8 +376,33 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
             clearOTP(email);
             clearOTP(phone);
 
-            const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: http://localhost:5173/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
-            await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+            const frontendUrl = process.env.FRONTEND_URL || 'https://diagnolabs-platform.vercel.app';
+            const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: ${frontendUrl}/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
+            
+            const emailHtml = `
+            <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+              <div style="background-color: #0a1e46; padding: 24px; text-align: center; border-bottom: 4px solid #d4af37;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">DIAGNO<span style="color: #d4af37;">LABS</span></h1>
+              </div>
+              <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
+                <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Welcome to the Team, ${name}!</h2>
+                <p style="font-size: 16px; line-height: 1.5; color: #475569;">Your account has been successfully provisioned. Please use the credentials below to access the internal staff portal.</p>
+                <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                  <p style="margin: 0 0 12px 0; font-size: 15px;"><strong>Employee ID:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px;">${employeeId}</span></p>
+                  <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</span></p>
+                </div>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;"><em>* You will be required to change your password upon your first login.</em></p>
+                <div style="text-align: center;">
+                  <a href="${frontendUrl}/adminlogin" style="display: inline-block; background-color: #0a1e46; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 16px;">Login to Portal</a>
+                </div>
+              </div>
+              <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+                &copy; ${new Date().getFullYear()} DiagnoLabs. All rights reserved.<br>
+                This is an automated message, please do not reply.
+              </div>
+            </div>`;
+
+            await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailHtml);
 
             return res.status(200).json({ message: "Staff provisioned successfully", employeeId });
         }
@@ -400,9 +425,33 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
         clearOTP(phone);
 
         // Send Email
-        const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: http://localhost:5173/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
+        const frontendUrl = process.env.FRONTEND_URL || 'https://diagnolabs-platform.vercel.app';
+        const emailText = `Hello ${name},\n\nWelcome to the DiagnoLabs Team!\n\nYour account has been successfully provisioned. Please use the following credentials to access the internal staff portal.\n\nLogin Portal: ${frontendUrl}/adminlogin\nEmployee ID: ${employeeId}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password upon your first login.\n\nBest Regards,\nDiagnoLabs Admin`;
         
-        await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+        const emailHtml = `
+        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background-color: #0a1e46; padding: 24px; text-align: center; border-bottom: 4px solid #d4af37;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">DIAGNO<span style="color: #d4af37;">LABS</span></h1>
+          </div>
+          <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
+            <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Welcome to the Team, ${name}!</h2>
+            <p style="font-size: 16px; line-height: 1.5; color: #475569;">Your account has been successfully provisioned. Please use the credentials below to access the internal staff portal.</p>
+            <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <p style="margin: 0 0 12px 0; font-size: 15px;"><strong>Employee ID:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px;">${employeeId}</span></p>
+              <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</span></p>
+            </div>
+            <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;"><em>* You will be required to change your password upon your first login.</em></p>
+            <div style="text-align: center;">
+              <a href="${frontendUrl}/adminlogin" style="display: inline-block; background-color: #0a1e46; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 16px;">Login to Portal</a>
+            </div>
+          </div>
+          <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+            &copy; ${new Date().getFullYear()} DiagnoLabs. All rights reserved.<br>
+            This is an automated message, please do not reply.
+          </div>
+        </div>`;
+        
+        await sendEmail(email, 'Welcome to DiagnoLabs - Your Access Credentials', emailText, emailHtml);
 
         res.status(201).json({ message: "Staff provisioned successfully", employeeId });
     } catch (err) {
@@ -616,9 +665,33 @@ router.post('/admin-recover', async (req, res) => {
         await user.save();
 
         // Send email with recovery details
+        const frontendUrl = process.env.FRONTEND_URL || 'https://diagnolabs-platform.vercel.app';
         const emailText = `Hello ${user.name},\n\nYour DiagnoLabs Admin Portal account has been successfully recovered.\n\nYour Employee ID is: ${user.employeeId}\nYour new Temporary Password is: ${tempPassword}\n\nPlease login immediately and you will be prompted to set a new secure password.\n\nBest Regards,\nDiagnoLabs Security System`;
         
-        await sendEmail(email, 'Account Recovery - DiagnoLabs Access Credentials', emailText, emailText.replace(/\n/g, '<br>'));
+        const emailHtml = `
+        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background-color: #0a1e46; padding: 24px; text-align: center; border-bottom: 4px solid #d4af37;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">DIAGNO<span style="color: #d4af37;">LABS</span></h1>
+          </div>
+          <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
+            <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Account Recovered</h2>
+            <p style="font-size: 16px; line-height: 1.5; color: #475569;">Hello ${user.name}, your DiagnoLabs Admin Portal account has been successfully recovered.</p>
+            <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <p style="margin: 0 0 12px 0; font-size: 15px;"><strong>Employee ID:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px;">${user.employeeId}</span></p>
+              <p style="margin: 0; font-size: 15px;"><strong>New Temporary Password:</strong> <span style="color: #0f172a; font-family: monospace; font-size: 16px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</span></p>
+            </div>
+            <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;"><em>* Please login immediately. You will be prompted to set a new secure password upon login.</em></p>
+            <div style="text-align: center;">
+              <a href="${frontendUrl}/adminlogin" style="display: inline-block; background-color: #0a1e46; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 16px;">Login to Portal</a>
+            </div>
+          </div>
+          <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+            &copy; ${new Date().getFullYear()} DiagnoLabs. All rights reserved.<br>
+            This is an automated message, please do not reply.
+          </div>
+        </div>`;
+
+        await sendEmail(email, 'Account Recovery - DiagnoLabs Access Credentials', emailText, emailHtml);
 
         res.status(200).json("Account details sent successfully. Please check your email.");
     } catch (err) {
