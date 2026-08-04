@@ -1504,7 +1504,45 @@
   width: 100%;
   height: 130px;
   overflow: hidden;
+  position: relative;
 }
+
+/* Real company logo overlay on top of the background image */
+.demo-mega-partner-logo-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.demo-mega-partner-logo-overlay img {
+  max-width: 80px;
+  max-height: 24px;
+  object-fit: contain;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
+}
+
+.demo-mega-logo-fallback {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--demo-navy-main);
+  letter-spacing: 0.02em;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .demo-mega-partner-img img {
   width: 100%;

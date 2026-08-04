@@ -237,9 +237,15 @@ const Demo = () => {
               <div className="demo-mega-menu demo-mega-partners">
                 <div className="demo-mega-inner">
                   <div className="demo-mega-partner-grid">
+                    {/* Apollo Diagnostics */}
                     <div className="demo-mega-partner-card">
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=300&h=160&q=80" alt="Apollo Diagnostics" />
+                        <div className="demo-mega-partner-logo-overlay">
+                          <img src="https://logo.clearbit.com/apollodiagnostics.in" alt="Apollo Logo"
+                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                          <span style={{display:'none'}} className="demo-mega-logo-fallback">AD</span>
+                        </div>
                       </div>
                       <div className="demo-mega-partner-info">
                         <h4>Apollo Diagnostics</h4>
@@ -247,9 +253,15 @@ const Demo = () => {
                         <span className="demo-mega-partner-tag">NABL Certified</span>
                       </div>
                     </div>
+                    {/* Dr. Lal PathLabs */}
                     <div className="demo-mega-partner-card">
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=300&h=160&q=80" alt="Dr. Lal PathLabs" />
+                        <div className="demo-mega-partner-logo-overlay">
+                          <img src="https://logo.clearbit.com/lalpathlabs.com" alt="Dr Lal Logo"
+                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                          <span style={{display:'none'}} className="demo-mega-logo-fallback">DL</span>
+                        </div>
                       </div>
                       <div className="demo-mega-partner-info">
                         <h4>Dr. Lal PathLabs</h4>
@@ -257,9 +269,15 @@ const Demo = () => {
                         <span className="demo-mega-partner-tag">ISO Audited</span>
                       </div>
                     </div>
+                    {/* Thyrocare */}
                     <div className="demo-mega-partner-card">
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1581595219315-a187dd40c322?auto=format&fit=crop&w=300&h=160&q=80" alt="Thyrocare" />
+                        <div className="demo-mega-partner-logo-overlay">
+                          <img src="https://logo.clearbit.com/thyrocare.com" alt="Thyrocare Logo"
+                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                          <span style={{display:'none'}} className="demo-mega-logo-fallback">TC</span>
+                        </div>
                       </div>
                       <div className="demo-mega-partner-info">
                         <h4>Thyrocare</h4>
@@ -267,9 +285,15 @@ const Demo = () => {
                         <span className="demo-mega-partner-tag">CAP Accredited</span>
                       </div>
                     </div>
+                    {/* Metropolis Healthcare */}
                     <div className="demo-mega-partner-card">
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1530026405186-ed1f139313f3?auto=format&fit=crop&w=300&h=160&q=80" alt="Metropolis Healthcare" />
+                        <div className="demo-mega-partner-logo-overlay">
+                          <img src="https://logo.clearbit.com/metropolisindia.com" alt="Metropolis Logo"
+                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                          <span style={{display:'none'}} className="demo-mega-logo-fallback">MH</span>
+                        </div>
                       </div>
                       <div className="demo-mega-partner-info">
                         <h4>Metropolis Healthcare</h4>
