@@ -117,10 +117,30 @@ GENERAL RULES
 - Rely heavily on [USER DATABASE CONTEXT] if provided, to answer queries about bookings and reports.
 `;
 
+const jwt = require('jsonwebtoken');
+
+const optionalAuth = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        if (token && token !== 'null' && token !== 'undefined') {
+            jwt.verify(token, process.env.JWT_SEC || 'fallback_secret', (err, user) => {
+                if (!err && user) {
+                    req.user = user;
+                }
+                next();
+            });
+            return;
+        }
+    }
+    next();
+};
+
 // ─────────────────────────────────────────────────────────────
 // POST /api/chat  —  Main Clinical Chat Gateway
 // ─────────────────────────────────────────────────────────────
-router.post('/', verifyToken, aiSentinel, async (req, res) => {
+router.post('/', optionalAuth, aiSentinel, async (req, res) => {
+
     const { prompt, history, fileData, fileType, context } = req.body;
     const userName = req.user?.name || 'there';
 
