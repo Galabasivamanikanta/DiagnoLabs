@@ -433,16 +433,18 @@ router.post('/admin-login', async (req, res) => {
 
         const accessToken = jwt.sign(
             { id: user._id, role: user.role },
-            process.env.JWT_SEC,
+            process.env.JWT_SEC || 'diagnolabs_secure_jwt_secret_2024',
             { expiresIn: "3d" }
         );
 
         const { password: pw, ...info } = user._doc;
         res.status(200).json({ ...info, accessToken });
     } catch (err) {
-        res.status(500).json(err);
+        console.error("Admin Login Error Detailed:", err);
+        res.status(500).json({ message: err.message || "Admin Login Failed" });
     }
 });
+
 
 // ADMIN ACCOUNT RECOVERY
 router.post('/admin-recover', async (req, res) => {
