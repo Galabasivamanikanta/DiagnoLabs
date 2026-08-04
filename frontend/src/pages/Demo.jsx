@@ -242,9 +242,10 @@ const Demo = () => {
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=300&h=160&q=80" alt="Apollo Diagnostics" />
                         <div className="demo-mega-partner-logo-overlay">
-                          <img src="https://logo.clearbit.com/apollodiagnostics.in" alt="Apollo Logo"
-                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                          <span style={{display:'none'}} className="demo-mega-logo-fallback">AD</span>
+                          <div className="demo-partner-logo-badge" style={{background: 'linear-gradient(135deg, #0057B7, #003d82)'}}>
+                            <span className="demo-partner-logo-text">Apollo</span>
+                            <span className="demo-partner-logo-sub">Diagnostics</span>
+                          </div>
                         </div>
                       </div>
                       <div className="demo-mega-partner-info">
@@ -258,9 +259,10 @@ const Demo = () => {
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=300&h=160&q=80" alt="Dr. Lal PathLabs" />
                         <div className="demo-mega-partner-logo-overlay">
-                          <img src="https://logo.clearbit.com/lalpathlabs.com" alt="Dr Lal Logo"
-                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                          <span style={{display:'none'}} className="demo-mega-logo-fallback">DL</span>
+                          <div className="demo-partner-logo-badge" style={{background: 'linear-gradient(135deg, #b91c1c, #7f1d1d)'}}>
+                            <span className="demo-partner-logo-text">Dr. Lal</span>
+                            <span className="demo-partner-logo-sub">PathLabs</span>
+                          </div>
                         </div>
                       </div>
                       <div className="demo-mega-partner-info">
@@ -274,9 +276,10 @@ const Demo = () => {
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1581595219315-a187dd40c322?auto=format&fit=crop&w=300&h=160&q=80" alt="Thyrocare" />
                         <div className="demo-mega-partner-logo-overlay">
-                          <img src="https://logo.clearbit.com/thyrocare.com" alt="Thyrocare Logo"
-                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                          <span style={{display:'none'}} className="demo-mega-logo-fallback">TC</span>
+                          <div className="demo-partner-logo-badge" style={{background: 'linear-gradient(135deg, #0891b2, #0e7490)'}}>
+                            <span className="demo-partner-logo-text">Thyrocare</span>
+                            <span className="demo-partner-logo-sub">Technologies</span>
+                          </div>
                         </div>
                       </div>
                       <div className="demo-mega-partner-info">
@@ -290,9 +293,10 @@ const Demo = () => {
                       <div className="demo-mega-partner-img">
                         <img src="https://images.unsplash.com/photo-1530026405186-ed1f139313f3?auto=format&fit=crop&w=300&h=160&q=80" alt="Metropolis Healthcare" />
                         <div className="demo-mega-partner-logo-overlay">
-                          <img src="https://logo.clearbit.com/metropolisindia.com" alt="Metropolis Logo"
-                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                          <span style={{display:'none'}} className="demo-mega-logo-fallback">MH</span>
+                          <div className="demo-partner-logo-badge" style={{background: 'linear-gradient(135deg, #7c3aed, #5b21b6)'}}>
+                            <span className="demo-partner-logo-text">Metropolis</span>
+                            <span className="demo-partner-logo-sub">Healthcare</span>
+                          </div>
                         </div>
                       </div>
                       <div className="demo-mega-partner-info">

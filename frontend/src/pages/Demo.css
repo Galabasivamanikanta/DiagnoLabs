@@ -1512,35 +1512,42 @@
   position: absolute;
   bottom: 10px;
   left: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 10px;
-  padding: 6px 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* Branded text logo badge */
+.demo-partner-logo-badge {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 52px;
-  height: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 7px 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 90px;
 }
 
-.demo-mega-partner-logo-overlay img {
-  max-width: 80px;
-  max-height: 24px;
-  object-fit: contain;
-  width: auto !important;
-  height: auto !important;
-  transform: none !important;
+.demo-mega-partner-card:hover .demo-partner-logo-badge {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-.demo-mega-logo-fallback {
-  font-size: 0.85rem;
+.demo-partner-logo-text {
+  font-size: 0.82rem;
   font-weight: 900;
-  color: var(--demo-navy-main);
-  letter-spacing: 0.02em;
-  align-items: center;
-  justify-content: center;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+.demo-partner-logo-sub {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
 }
 
 
