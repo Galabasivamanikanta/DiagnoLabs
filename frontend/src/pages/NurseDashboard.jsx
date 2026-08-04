@@ -1,230 +1,334 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// Assuming API_BASE_URL is exported from '../config'
-// import { API_BASE_URL } from '../config';
-
-const API_BASE_URL = 'http://localhost:5000'; // fallback
+import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
+import { 
+    HeartPulse, Activity, PhoneCall, Stethoscope, CheckCircle2, 
+    Clock, Search, User, ShieldCheck, Send, AlertCircle, LogOut, ChevronRight, X, Plus
+} from 'lucide-react';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('queue');
-  const [queue, setQueue] = useState([]);
-  const [vitalsForm, setVitalsForm] = useState({ patient: '', bp: '', pulse: '', temp: '', o2: '' });
+  const { user, logout } = useContext(AuthContext);
 
-  useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/employee/nurse/queue`)
-      .then(res => setQueue(res.data))
-      .catch(() => {
-        setQueue([
-          { id: 1, patient: 'John Doe', test: 'Blood Draw', priority: 'High', room: 'A-102' },
-          { id: 2, patient: 'Emma Watson', test: 'Urine Sample', priority: 'Normal', room: 'B-205' },
-          { id: 3, patient: 'Michael Scott', test: 'ECG', priority: 'Normal', room: 'A-105' }
-        ]);
-      });
-  }, []);
+  const [activeTab, setActiveTab] = useState('queue'); // 'queue', 'vitals', 'followups', 'doctor-requests'
+  const [unitTemp, setUnitTemp] = useState('F'); // F or C
+
+  const [vitalsForm, setVitalsForm] = useState({ 
+    patient: 'John Doe (P-101)', bpSystolic: '120', bpDiastolic: '80', pulse: '72', temp: '98.6', weight: '70', o2: '98' 
+  });
+
+  const [followupForm, setFollowupForm] = useState({
+    patient: '', outcome: "Doctor's Advice Followed", notes: ''
+  });
+
+  const [showFollowupModal, setShowFollowupModal] = useState(false);
+
+  // Mock Data
+  const [queue, setQueue] = useState([
+    { id: 'N-201', patient: 'John Doe', test: 'IV Blood Draw & Vitals Check', priority: 'High', location: 'Home Visit - Jubilee Hills', doctorNote: 'Check BP before draw' },
+    { id: 'N-202', patient: 'Emma Watson', test: 'Pediatric Venipuncture Supervision', priority: 'Normal', location: 'Clinic Room A-102', doctorNote: 'Use butterfly needle' },
+    { id: 'N-203', patient: 'Michael Scott', test: 'Post-Report Vitals & ECG Check', priority: 'Normal', location: 'Clinic Room B-205', doctorNote: 'Monitor pulse' }
+  ]);
+
+  const [followups, setFollowups] = useState([
+    { id: 'F-501', patient: 'Suresh Raina', phone: '+91 98765 22114', test: 'Lipid Profile', status: 'Pending', note: 'Check if statin dosage started' },
+    { id: 'F-502', patient: 'Ananya Roy', phone: '+91 91234 44332', test: 'Thyroid Panel', status: 'Completed', note: 'Patient confirmed taking T4 supplement' }
+  ]);
+
+  const [doctorRequests] = useState([
+    { id: 'DR-99', doctor: 'Dr. Sarah Jenkins', patient: 'Charlie Brown', request: 'Record 24-hr Ambulatory BP trend before evening review', urgency: 'High' }
+  ]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     navigate('/adminlogin');
   };
 
   const handleVitalsSubmit = (e) => {
     e.preventDefault();
-    alert(`Vitals recorded for ${vitalsForm.patient}`);
-    setVitalsForm({ patient: '', bp: '', pulse: '', temp: '', o2: '' });
+    const isAbnormal = parseInt(vitalsForm.bpSystolic) > 140 || parseInt(vitalsForm.o2) < 95;
+    if (isAbnormal) {
+      alert(`⚠️ Vitals recorded for ${vitalsForm.patient}! Abnormal reading detected (BP: ${vitalsForm.bpSystolic}/${vitalsForm.bpDiastolic}, SpO2: ${vitalsForm.o2}%). Urgent alert transmitted to Doctor.`);
+    } else {
+      alert(`Vitals recorded for ${vitalsForm.patient}! Saved to patient health record.`);
+    }
+    setVitalsForm({ patient: '', bpSystolic: '', bpDiastolic: '', pulse: '', temp: '', weight: '', o2: '' });
+  };
+
+  const handleFollowupSubmit = (e) => {
+    e.preventDefault();
+    alert(`Follow-up log saved for ${followupForm.patient}! Outcome: [${followupForm.outcome}]. Recorded in Audit Trail.`);
+    setShowFollowupModal(false);
+    setFollowupForm({ patient: '', outcome: "Doctor's Advice Followed", notes: '' });
   };
 
   return (
-    <div style={styles.container}>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-          
-          :root {
-            --color-navy: #0a1e46;
-            --color-gold: #d4af37;
-            --color-gold-hover: #b8962d;
-            --text-light: #f0f4f8;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(212, 175, 55, 0.2);
-          }
-          
-          * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-          body { margin: 0; background-color: var(--color-navy); color: var(--text-light); }
-          
-          .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-          .glass-card:hover { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
-          
-          .btn {
-            background: var(--color-gold);
-            color: var(--color-navy);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-          }
-          .btn:hover { background: var(--color-gold-hover); }
-          
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-          th { color: var(--color-gold); font-weight: 600; }
-          tr:hover { background: rgba(255, 255, 255, 0.02); }
-          
-          .input-field {
-            width: 100%;
-            padding: 10px 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 6px;
-            color: white;
-            margin-bottom: 15px;
-            font-family: 'Inter';
-          }
-          .input-field:focus { outline: none; border-color: var(--color-gold); }
-        `}
-      </style>
-
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Sidebar */}
-      <aside style={styles.sidebar}>
-        <div style={styles.profile}>
-          <div style={styles.avatar}>Nu</div>
-          <h3 style={{ margin: '10px 0 5px' }}>Nurse Clara</h3>
-          <span style={styles.badge}>Senior Nurse</span>
+      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HeartPulse size={24} color="#003366" />
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+          </div>
+          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Nursing Workspace</span>
         </div>
-        <nav style={styles.nav}>
-          {['Dashboard', 'Sample Queue', 'Vitals', 'Patients', 'Schedule'].map(item => (
-            <a key={item} href="#" style={styles.navLink}>{item}</a>
-          ))}
-          <a href="#" onClick={handleLogout} style={{...styles.navLink, color: '#ff6b6b', marginTop: 'auto'}}>Logout</a>
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+          <button 
+            onClick={() => setActiveTab('queue')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'queue' ? '#f0f7ff' : 'transparent', color: activeTab === 'queue' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Activity size={18} /> Supervised Collection Queue ({queue.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('vitals')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'vitals' ? '#f0f7ff' : 'transparent', color: activeTab === 'vitals' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <HeartPulse size={18} /> Clinical Vitals Entry
+          </button>
+          <button 
+            onClick={() => setActiveTab('followups')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'followups' ? '#f0f7ff' : 'transparent', color: activeTab === 'followups' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <PhoneCall size={18} /> Patient Follow-ups ({followups.filter(f => f.status === 'Pending').length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('doctor-requests')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'doctor-requests' ? '#f0f7ff' : 'transparent', color: activeTab === 'doctor-requests' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Stethoscope size={18} /> Doctor Requests ({doctorRequests.length})
+          </button>
         </nav>
+
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
+            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'Nurse Clara'}</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Reg #RN-44091 • Senior Clinical Nurse</div>
+          </div>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main style={styles.main}>
-        <header style={styles.header}>
+      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        {/* Header bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '24px' }}>Nurse Dashboard</h1>
-            <p style={{ margin: '5px 0 0', opacity: 0.8 }}>Shift: Morning (08:00 AM - 04:00 PM)</p>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Nurse Executive Dashboard</h1>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Nurse Clara. Shift: Morning (08:00 AM - 04:00 PM).</p>
           </div>
-        </header>
-
-        {/* Stats Row */}
-        <div style={styles.statsRow}>
-          {[
-            { label: "Queue Size", value: queue.length },
-            { label: 'Samples Collected', value: '14' },
-            { label: 'Vitals Recorded', value: '22' },
-            { label: 'Patients Attended', value: '28' }
-          ].map((stat, i) => (
-            <div key={i} className="glass-card" style={styles.statCard}>
-              <h4 style={{ margin: '0 0 10px', color: 'var(--color-gold)', fontWeight: 400 }}>{stat.label}</h4>
-              <h2 style={{ margin: 0, fontSize: '32px' }}>{stat.value}</h2>
-            </div>
-          ))}
+          <button onClick={() => setActiveTab('vitals')} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={16} /> Quick Vitals Entry
+          </button>
         </div>
 
-        {/* Main Section */}
-        <div className="glass-card" style={{ marginTop: '30px' }}>
-          <div style={styles.tabs}>
-            <button 
-              style={activeTab === 'queue' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('queue')}
-            >Sample Collection Queue</button>
-            <button 
-              style={activeTab === 'vitals' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('vitals')}
-            >Vitals Recording</button>
-            <button 
-              style={activeTab === 'schedule' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('schedule')}
-            >My Schedule</button>
+        {/* Top KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Assigned Clinical Tasks</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{queue.length}</div>
           </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Vitals Recorded Today</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>22</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Follow-ups Pending</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#d97706', marginTop: '6px' }}>{followups.filter(f => f.status === 'Pending').length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Doctor Requests</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#2563eb', marginTop: '6px' }}>{doctorRequests.length}</div>
+          </div>
+        </div>
 
-          <div style={{ paddingTop: '20px' }}>
-            {activeTab === 'queue' && (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Patient Name</th>
-                    <th>Test</th>
-                    <th>Priority</th>
-                    <th>Room</th>
-                    <th>Action</th>
+        {/* Tab 1: Supervised Collection Queue */}
+        {activeTab === 'queue' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Supervised Clinical Sample Collection & Vitals Check Queue</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Task ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Clinical Requirement</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Location</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Doctor Instructions</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {queue.map(q => (
+                  <tr key={q.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{q.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{q.patient}</td>
+                    <td style={{ padding: '12px', color: '#334155' }}>{q.test}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{q.location}</td>
+                    <td style={{ padding: '12px', color: '#d97706', fontWeight: '600' }}>{q.doctorNote}</td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <button 
+                        onClick={() => {
+                          alert(`Clinical sample procedure completed for ${q.patient}! Sample transferred to collector.`);
+                          setQueue(prev => prev.filter(item => item.id !== q.id));
+                        }}
+                        style={{ padding: '6px 14px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}
+                      >
+                        Mark Complete
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {queue.map(q => (
-                    <tr key={q.id}>
-                      <td>{q.patient}</td>
-                      <td>{q.test}</td>
-                      <td style={{ color: q.priority === 'High' ? '#ff6b6b' : 'inherit' }}>{q.priority}</td>
-                      <td>{q.room}</td>
-                      <td><button className="btn" style={{ padding: '4px 10px', fontSize: '12px' }}>Collect</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-            {activeTab === 'vitals' && (
-              <form onSubmit={handleVitalsSubmit} style={{ maxWidth: '500px', margin: '0 auto' }}>
-                <h3 style={{ color: 'var(--color-gold)', marginTop: 0 }}>Record Patient Vitals</h3>
-                <input type="text" placeholder="Patient Search (ID or Name)" className="input-field" value={vitalsForm.patient} onChange={e => setVitalsForm({...vitalsForm, patient: e.target.value})} required />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                  <input type="text" placeholder="Blood Pressure (e.g. 120/80)" className="input-field" value={vitalsForm.bp} onChange={e => setVitalsForm({...vitalsForm, bp: e.target.value})} required />
-                  <input type="text" placeholder="Pulse (bpm)" className="input-field" value={vitalsForm.pulse} onChange={e => setVitalsForm({...vitalsForm, pulse: e.target.value})} required />
-                  <input type="text" placeholder="Temperature (°F)" className="input-field" value={vitalsForm.temp} onChange={e => setVitalsForm({...vitalsForm, temp: e.target.value})} required />
-                  <input type="text" placeholder="SpO2 (%)" className="input-field" value={vitalsForm.o2} onChange={e => setVitalsForm({...vitalsForm, o2: e.target.value})} required />
-                </div>
-                <button type="submit" className="btn" style={{ width: '100%', marginTop: '10px' }}>Save Vitals</button>
-              </form>
-            )}
+        {/* Tab 2: Vitals Entry Form */}
+        {activeTab === 'vitals' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '28px', maxWidth: '640px', margin: '0 auto', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: '800', color: '#0f172a' }}>Clinical Vitals Recording Entry</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '0.85rem', color: '#64748b' }}>Recorded vitals are automatically attached to the patient's booking file and logged in the HIPAA audit trail.</p>
 
-            {activeTab === 'schedule' && (
+            <form onSubmit={handleVitalsSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  <li style={styles.scheduleItem}><strong>08:00 AM</strong> - Shift Starts, Handover</li>
-                  <li style={styles.scheduleItem}><strong>09:00 AM</strong> - Ward A Rounds</li>
-                  <li style={styles.scheduleItem}><strong>11:00 AM</strong> - Sample Collections</li>
-                  <li style={styles.scheduleItem}><strong>01:00 PM</strong> - Lunch Break</li>
-                  <li style={styles.scheduleItem}><strong>02:00 PM</strong> - Ward B Rounds</li>
-                </ul>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>SELECT PATIENT</label>
+                <input type="text" required value={vitalsForm.patient} onChange={e => setVitalsForm({...vitalsForm, patient: e.target.value})} style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', fontSize: '0.9rem' }} placeholder="Search patient name or ID..." />
               </div>
-            )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>BLOOD PRESSURE (mmHg)</label>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <input type="number" required placeholder="Systolic (120)" value={vitalsForm.bpSystolic} onChange={e => setVitalsForm({...vitalsForm, bpSystolic: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                    <span style={{ fontSize: '1.2rem', color: '#94a3b8' }}>/</span>
+                    <input type="number" required placeholder="Diastolic (80)" value={vitalsForm.bpDiastolic} onChange={e => setVitalsForm({...vitalsForm, bpDiastolic: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>PULSE RATE (BPM)</label>
+                  <input type="number" required value={vitalsForm.pulse} onChange={e => setVitalsForm({...vitalsForm, pulse: e.target.value})} placeholder="e.g. 72" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>BODY TEMP ({unitTemp})</label>
+                    <button type="button" onClick={() => setUnitTemp(unitTemp === 'F' ? 'C' : 'F')} style={{ fontSize: '0.7rem', fontWeight: '800', color: '#003366', background: '#f0f7ff', border: 'none', borderRadius: '6px', padding: '2px 6px', cursor: 'pointer' }}>Toggle °{unitTemp === 'F' ? 'C' : 'F'}</button>
+                  </div>
+                  <input type="number" step="0.1" required value={vitalsForm.temp} onChange={e => setVitalsForm({...vitalsForm, temp: e.target.value})} placeholder="e.g. 98.6" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>OXYGEN SATURATION SpO2 (%)</label>
+                  <input type="number" required value={vitalsForm.o2} onChange={e => setVitalsForm({...vitalsForm, o2: e.target.value})} placeholder="e.g. 98" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+                </div>
+              </div>
+
+              <button type="submit" style={{ padding: '12px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', marginTop: '8px' }}>
+                Save Vitals Record & Notify Doctor
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Tab 3: Patient Follow-up Logger */}
+        {activeTab === 'followups' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Post-Report Patient Follow-up Call List</h3>
+              <button onClick={() => setShowFollowupModal(true)} style={{ padding: '8px 16px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>
+                + Log Follow-up Call
+              </button>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Follow-up ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Patient Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Phone</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Test Context</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {followups.map(f => (
+                  <tr key={f.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{f.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{f.patient}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{f.phone}</td>
+                    <td style={{ padding: '12px', color: '#334155' }}>{f.test}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: f.status === 'Completed' ? '#dcfce7' : '#fef3c7', color: f.status === 'Completed' ? '#166534' : '#92400e' }}>
+                        {f.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tab 4: Doctor Requests */}
+        {activeTab === 'doctor-requests' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Physician Coordination Requests</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {doctorRequests.map(dr => (
+                <div key={dr.id} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', background: '#f8fafc' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: '800', color: '#003366' }}>From: {dr.doctor}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#dc2626', background: '#fee2e2', padding: '2px 8px', borderRadius: '100px' }}>{dr.urgency} Urgency</span>
+                  </div>
+                  <p style={{ margin: '8px 0', fontSize: '0.85rem', color: '#334155' }}>Patient: <strong>{dr.patient}</strong> — {dr.request}</p>
+                  <button onClick={() => alert(`Completed Doctor Request [${dr.id}]. Confirmation sent back to ${dr.doctor}.`)} style={{ padding: '6px 14px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Send Confirmation Note to Doctor
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Log Follow-up Modal */}
+      {showFollowupModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#0f172a', fontWeight: '800' }}>Log Patient Follow-up Call Outcome</h3>
+            <form onSubmit={handleFollowupSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>PATIENT NAME</label>
+                <input type="text" required value={followupForm.patient} onChange={e => setFollowupForm({...followupForm, patient: e.target.value})} placeholder="e.g. Suresh Raina" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>CALL OUTCOME</label>
+                <select value={followupForm.outcome} onChange={e => setFollowupForm({...followupForm, outcome: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', background: 'white' }}>
+                  <option>Doctor's Advice Followed</option>
+                  <option>Needs Re-consultation</option>
+                  <option>Patient Unreachable / No Response</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>CLINICAL NOTES</label>
+                <textarea rows="3" value={followupForm.notes} onChange={e => setFollowupForm({...followupForm, notes: e.target.value})} placeholder="Add details from the call..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }}></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowFollowupModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Save Follow-up Log</button>
+              </div>
+            </form>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 };
 
-const styles = {
-  container: { display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-navy)' },
-  sidebar: { width: '250px', background: 'rgba(0,0,0,0.2)', padding: '30px 20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--glass-border)' },
-  profile: { textAlign: 'center', marginBottom: '40px' },
-  avatar: { width: '80px', height: '80px', borderRadius: '50%', background: 'var(--color-gold)', color: 'var(--color-navy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', margin: '0 auto' },
-  badge: { background: 'rgba(212,175,55,0.2)', color: 'var(--color-gold)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px' },
-  nav: { display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 },
-  navLink: { color: 'var(--text-light)', textDecoration: 'none', padding: '10px 15px', borderRadius: '8px', transition: 'background 0.3s', fontWeight: 500 },
-  main: { flex: 1, padding: '40px', overflowY: 'auto' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' },
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' },
-  statCard: { textAlign: 'center' },
-  tabs: { display: 'flex', gap: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' },
-  tab: { background: 'none', border: 'none', color: 'var(--text-light)', opacity: 0.6, fontSize: '16px', fontWeight: 600, cursor: 'pointer', padding: '10px 5px' },
-  activeTab: { background: 'none', border: 'none', color: 'var(--color-gold)', borderBottom: '2px solid var(--color-gold)', fontSize: '16px', fontWeight: 600, cursor: 'pointer', padding: '10px 5px' },
-  scheduleItem: { padding: '15px', borderBottom: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.02)' }
-};
-
 export default NurseDashboard;
+
