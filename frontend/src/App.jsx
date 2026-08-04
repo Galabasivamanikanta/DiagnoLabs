@@ -32,6 +32,7 @@ import SupportDashboard from './pages/SupportDashboard';
 import DeliveryDashboard from './pages/DeliveryDashboard';
 import QualityDashboard from './pages/QualityDashboard';
 import ITDashboard from './pages/ITDashboard';
+import StaffDashboard from './pages/StaffDashboard';
 
 const MainLayout = () => {
   const location = useLocation();
@@ -125,6 +126,7 @@ const MainLayout = () => {
         <Route path="/delivery/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['delivery_partner', 'admin']}><DeliveryDashboard /></ProtectedRoute>} />
         <Route path="/quality/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['quality_auditor', 'admin']}><QualityDashboard /></ProtectedRoute>} />
         <Route path="/it/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['it_specialist', 'admin']}><ITDashboard /></ProtectedRoute>} />
+        <Route path="/employee/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['employee', 'admin']}><StaffDashboard /></ProtectedRoute>} />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
