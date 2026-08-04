@@ -95,8 +95,8 @@ const getDiagnoLabsEmailTemplate = ({ title, recipientName, messageHtml, booking
 const sendEmail = async (to, subject, text, html) => {
     try {
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            console.log(`[MAIL MOCK] To: ${to}, Subject: ${subject}`);
-            return { success: true, mock: true };
+            console.warn(`[MAIL WARNING] EMAIL_USER or EMAIL_PASS is not set in environment variables. Email to ${to} skipped.`);
+            return { success: false, error: "EMAIL_USER or EMAIL_PASS environment variable is not configured on the backend server." };
         }
 
         const mailOptions = {
@@ -111,11 +111,11 @@ const sendEmail = async (to, subject, text, html) => {
         console.log('✅ DiagnoLabs HTML Email sent successfully to:', to, info.response);
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('❌ SMTP Error sending email (Falling back to console mock):', error.message);
-        // Fallback gracefully so registration / OTP verification is never blocked by SMTP issues
-        return { success: true, mock: true, warning: error.message };
+        console.error('❌ SMTP Error sending email:', error.message);
+        return { success: false, error: error.message };
     }
 };
+
 
 
 module.exports = { sendEmail, getDiagnoLabsEmailTemplate };
