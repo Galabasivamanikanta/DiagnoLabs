@@ -343,26 +343,38 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
         let existingUser = await User.findOne({ $or: [{ email }, { phone }] });
         if (existingUser) {
-            return res.status(400).json({ 
-                message: existingUser.role === 'patient' 
-                    ? "This email or phone number is already registered as a Patient. Please ask the employee to provide a different official email."
-                    : "This email or phone number is already assigned to another Staff member."
+            if (existingUser.role !== 'patient') {
+                return res.status(400).json({ 
+                    message: "This email or phone number is already assigned to another Staff member."
+                });
+            }
+            
+            // Upgrade existing Patient account to Staff account
+            existingUser.name = name || existingUser.name;
+            existingUser.email = email;
+            existingUser.phone = phone || existingUser.phone;
+            existingUser.role = role;
+            existingUser.employeeId = employeeId;
+            existingUser.password = tempPassword;
+            existingUser.isVerified = true;
+            existingUser.isFirstLogin = true;
+
+            await existingUser.save();
+        } else {
+            // If not existing, create a new User document
+            const newUser = new User({
+                name,
+                email,
+                phone,
+                role,
+                employeeId,
+                password: tempPassword,
+                isVerified: true,
+                isFirstLogin: true
             });
+
+            await newUser.save();
         }
-
-        // If not existing, create a new User document
-        const newUser = new User({
-            name,
-            email,
-            phone,
-            role,
-            employeeId,
-            password: tempPassword,
-            isVerified: true,
-            isFirstLogin: true
-        });
-
-        await newUser.save();
 
         clearOTP(email);
         clearOTP(phone);
