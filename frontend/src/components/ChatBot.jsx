@@ -313,9 +313,43 @@ const ChatBot = () => {
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [attachedFile, setAttachedFile] = useState(null);
-    const [showQuickPrompts, setShowQuickPrompts] = useState(true);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [issueCategory, setIssueCategory] = useState('Payment & Refunds');
+    const [issueDescription, setIssueDescription] = useState('');
+    const [isReporting, setIsReporting] = useState(false);
 
-    const [messages, setMessages] = useState([]);
+    const handleReportSubmit = async (e) => {
+        e.preventDefault();
+        if (!issueDescription.trim()) return;
+
+        setIsReporting(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(`${API_BASE_URL}/api/chat/report-issue`, {
+                subject: `ChatBot Issue: ${issueCategory}`,
+                description: issueDescription,
+                category: issueCategory
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const ticketMsg = {
+                id: getUniqueId(3),
+                text: `🚨 **Issue Logged & Auto-Routed!**\n\n• **Ticket ID:** #${res.data.ticketNumber}\n• **Category:** ${issueCategory}\n• **Assigned Workspace:** **${res.data.roleDisplayName}**\n\n${res.data.message}`,
+                sender: 'bot',
+                recommendations: [],
+                action: null
+            };
+
+            setMessages(prev => [...prev, ticketMsg]);
+            setShowReportModal(false);
+            setIssueDescription('');
+        } catch (err) {
+            alert("Failed to create ticket. Please try again.");
+        } finally {
+            setIsReporting(false);
+        }
+    };
 
     // Initialize initial greeting message according to role
     useEffect(() => {
@@ -608,23 +642,14 @@ const ChatBot = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                                    <AnimatePresence>
-                                        {isSpeaking && (
-                                            <motion.button
-                                                key="stop-voice"
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                whileTap={{ scale: 0.85 }}
-                                                onClick={stopSpeaking}
-                                                title="Stop voice"
-                                                style={{ background: 'rgba(239,68,68,0.22)', border: '1px solid rgba(239,68,68,0.5)', color: '#f87171', cursor: 'pointer', borderRadius: '8px', padding: '0.35rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', fontWeight: '800' }}
-                                            >
-                                                <VolumeX size={14} /> Stop
-                                            </motion.button>
-                                        )}
-                                    </AnimatePresence>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button 
+                                        onClick={() => setShowReportModal(true)} 
+                                        title="Report Problem & Auto-Route"
+                                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', fontSize: '0.72rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                        <AlertCircle size={14} /> Report
+                                    </button>
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
                                         onClick={() => { setIsMuted(m => !m); stopSpeaking(); }}
@@ -791,6 +816,47 @@ const ChatBot = () => {
                             </div>
                         </div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Issue Reporting Modal */}
+            <AnimatePresence>
+                {showReportModal && (
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ background: 'white', borderRadius: '24px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AlertCircle size={22} color="#dc2626" />
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Report Issue & Auto-Route</h3>
+                                </div>
+                                <X size={20} style={{ cursor: 'pointer', color: '#64748b' }} onClick={() => setShowReportModal(false)} />
+                            </div>
+                            <form onSubmit={handleReportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', display: 'block', marginBottom: '6px' }}>Issue Category</label>
+                                    <select value={issueCategory} onChange={e => setIssueCategory(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: '700', outline: 'none' }}>
+                                        <option value="Payment & Refunds">Payment & Refunds (→ Finance Manager)</option>
+                                        <option value="Technical Bug / Login Error">Technical Bug / Login Error (→ IT Support)</option>
+                                        <option value="Sample Collection Issue">Sample Collection Issue (→ Support & Collector)</option>
+                                        <option value="Quality & Disputed Report">Quality & Disputed Report (→ Quality Auditor)</option>
+                                        <option value="Delivery Problem">Delivery Problem (→ Delivery Partner)</option>
+                                        <option value="Inventory & Supplies">Inventory & Reagent Stock (→ Inventory Manager)</option>
+                                        <option value="General Query">General Query (→ Front Desk & Support)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', display: 'block', marginBottom: '6px' }}>Describe the Problem</label>
+                                    <textarea rows={3} placeholder="Please describe what happened..." value={issueDescription} onChange={e => setIssueDescription(e.target.value)} required style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', resize: 'none' }} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                                    <button type="button" onClick={() => setShowReportModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                                    <button type="submit" disabled={isReporting} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>
+                                        {isReporting ? 'Routing...' : 'Submit & Route'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 
