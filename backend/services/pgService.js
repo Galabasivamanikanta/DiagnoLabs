@@ -1,3 +1,6 @@
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+
 const getPgUrl = () => {
     if (process.env.POSTGRES_URL) return process.env.POSTGRES_URL;
     if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
@@ -6,6 +9,7 @@ const getPgUrl = () => {
     }
     return 'postgresql://diagnolabs_user:gMAJKmXqW5hcbgvKglOj8reTTpU6kTAG@dpg-d9op1pks728c73fkb1u0-a.oregon-postgres.render.com/diagnolabs?ssl=true';
 };
+
 
 const connectionString = getPgUrl();
 const isInternal = connectionString.includes('dpg-d9op1pks728c73fkb1u0-a/diagnolabs');
@@ -53,13 +57,12 @@ const initPgDb = async () => {
             `, ['ADM-001', 'diagnolabs.official@gmail.com', adminHashedPass, 'Siva (Master Admin)', '9000000001', 'admin', true, false]);
             console.log('✅ Master Admin ADM-001 created in PostgreSQL');
         } else {
-            // Update password & email to guarantee login works
-            await pool.query(`
-                UPDATE users 
-                SET password = $1, email = $2, role = $3, is_first_login = false 
-                WHERE employee_id = $4 OR email = $2
-            `, [adminHashedPass, 'diagnolabs.official@gmail.com', 'admin', 'ADM-001']);
+            await pool.query(
+                `UPDATE users SET password = $1, email = $2, role = $3, is_first_login = false WHERE employee_id = $4 OR email = $2`,
+                [adminHashedPass, 'diagnolabs.official@gmail.com', 'admin', 'ADM-001']
+            );
             console.log('✅ Master Admin ADM-001 verified & updated in PostgreSQL');
+
         }
 
         console.log('🎉 [PG-SUCCESS] Render PostgreSQL Database Ready & Master Admin Active');
