@@ -1,13 +1,11 @@
-try {
-    const dns = require('node:dns');
-    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-    if (dns.setDefaultResultOrder) {
-        dns.setDefaultResultOrder('ipv4first');
+if (!process.env.RENDER) {
+    try {
+        const dns = require('node:dns');
+        dns.setServers(['8.8.8.8', '8.8.4.4']);
+    } catch (e) {
+        console.warn('DNS server override skipped:', e.message);
     }
-} catch (e) {
-    console.warn('DNS server override notice:', e.message);
 }
-
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -20,10 +18,6 @@ const { Server } = require("socket.io");
 dotenv.config();
 
 const app = express();
-
-// SECURITY HEADERS (Temporarily disabled for debugging)
-// const helmet = require('helmet');
-// app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 app.disable('x-powered-by');
 
@@ -42,19 +36,14 @@ if (frontend_url) {
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, or server-to-server) or matched origins
-        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, "")) || process.env.NODE_ENV !== 'production') {
-            callback(null, true);
-        } else {
-            callback(null, true); // Allow all during production deployment
-        }
+        callback(null, true);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.use(express.json({ limit: '10mb' })); // Increased limit to support Base64 profile pictures
+app.use(express.json({ limit: '10mb' }));
 
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url}`);
@@ -64,27 +53,17 @@ app.use((req, res, next) => {
 // DATABASE CONNECTION
 const connectDB = async () => {
     try {
+        console.log('[DB-INIT] Connecting to MongoDB Atlas:', (process.env.MONGO_URI || '').substring(0, 30) + '...');
         await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000
+            serverSelectionTimeoutMS: 15000
         });
         console.log('[DB-SUCCESS] MongoDB Connected Successfully');
-        // Auto seed initial labs and tests if DB is empty
         seedInitialData();
     } catch (err) {
-        console.error('[DB-ERROR] MongoDB Connection Error:', err.message);
-        console.log('Attempting connection to local MongoDB fallback...');
-        try {
-            await mongoose.connect('mongodb://127.0.0.1:27017/diagnolabs', {
-                serverSelectionTimeoutMS: 3000
-            });
-            console.log('[DB-SUCCESS] Connected to Local MongoDB Fallback');
-            seedInitialData();
-        } catch (localErr) {
-            console.error('[DB-FATAL] Local MongoDB connection also failed:', localErr.message);
-            console.log('Keeping server alive in offline/unconnected mode.');
-        }
+        console.error('[DB-ERROR] MongoDB Connection Error Full Stack:', err);
     }
 };
+
 
 const seedInitialData = async () => {
     try {
