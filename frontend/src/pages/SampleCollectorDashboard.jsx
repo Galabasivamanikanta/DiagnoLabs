@@ -12,7 +12,7 @@ import {
     TrendingUp, Activity, Zap, Navigation, ChevronRight,
     Loader2, StickyNote, ArrowRight, IndianRupee, BadgeCheck,
     Timer, Bike, TestTube, FileSearch, X, Map,
-    ScanLine, Camera, CreditCard
+    ScanLine, Camera, CreditCard, Home
 } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
 
@@ -298,12 +298,20 @@ export default function SampleCollectorDashboard() {
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={fetchData}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'var(--border-light)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
-                    >
-                        <RefreshCw size={15} /> Refresh
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
+                        >
+                            <Home size={15} /> Book Test (Home)
+                        </button>
+                        <button
+                            onClick={fetchData}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'var(--border-light)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
+                        >
+                            <RefreshCw size={15} /> Refresh
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -353,10 +353,10 @@ const AdminDashboard = () => {
                     </button>
                 ))}
 
-                <div className="sidebar-section-label">System</div>
+                <div className="sidebar-section-label">Patient Portal</div>
                 <button className="sidebar-nav-item" onClick={() => navigate('/')}>
                     <div className="sidebar-nav-icon"><ExternalLink size={18} /></div>
-                    Visit Website
+                    Home (Book Test)
                 </button>
                 <button className="sidebar-nav-item" style={{ cursor: 'default' }}>
                     <div className="sidebar-nav-icon"><Settings size={18} /></div>
