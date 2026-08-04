@@ -49,7 +49,9 @@ const MainLayout = () => {
     '/delivery/dashboard',
     '/quality/dashboard',
     '/it/dashboard',
-    '/partner/dashboard'
+    '/partner/dashboard',
+    '/collector/dashboard',
+    '/employee/dashboard'
   ].some(path => location.pathname.startsWith(path));
 
   const showNavbar = !isDemoRoute && !isStandaloneDashboard;
