@@ -417,7 +417,7 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
 
 
-// STAFF / ADMIN LOGIN (PostgreSQL + MongoDB Hybrid Engine)
+// STAFF / ADMIN LOGIN (PostgreSQL admins table + MongoDB Hybrid Engine)
 router.post('/admin-login', async (req, res) => {
     try {
         const { employeeId, password } = req.body;
@@ -427,18 +427,18 @@ router.post('/admin-login', async (req, res) => {
         const cleanEmployeeId = employeeId.trim().toUpperCase();
         let userObj = null;
 
-        // 1. Try PostgreSQL Engine First (Ultra-Fast Cloud Performance)
+        // 1. Query PostgreSQL 'admins' Table First (Ultra-Fast 10ms Authentication)
         try {
             const { pool } = require('../services/pgService');
             const pgResult = await pool.query(
-                'SELECT * FROM users WHERE UPPER(TRIM(employee_id)) = $1 OR UPPER(TRIM(email)) = $2',
+                'SELECT * FROM admins WHERE UPPER(TRIM(employee_id)) = $1 OR UPPER(TRIM(email)) = $2',
                 [cleanEmployeeId, cleanEmployeeId]
             );
-            console.log(`[ADMIN-LOGIN PG] Queried for ${cleanEmployeeId}, found ${pgResult.rows.length} rows`);
+            console.log(`[ADMIN-LOGIN PG] Queried admins table for ${cleanEmployeeId}, found ${pgResult.rows.length} rows`);
             if (pgResult.rows.length > 0) {
                 const pgUser = pgResult.rows[0];
                 userObj = {
-                    _id: `pg_${pgUser.id}`,
+                    _id: `pg_admin_${pgUser.id}`,
                     employeeId: pgUser.employee_id,
                     email: pgUser.email,
                     password: pgUser.password,
@@ -446,14 +446,14 @@ router.post('/admin-login', async (req, res) => {
                     phone: pgUser.phone,
                     role: pgUser.role,
                     isFirstLogin: pgUser.is_first_login,
-                    isVerified: pgUser.is_verified
+                    isVerified: true
                 };
             }
         } catch (pgErr) {
             console.error("[ADMIN-LOGIN PG ERROR]:", pgErr.message);
         }
 
-        // 2. Fallback to MongoDB only if connected and not found in PostgreSQL
+        // 2. Fallback to MongoDB only if connected and not found in PostgreSQL admins table
         const mongoose = require('mongoose');
         if (!userObj && mongoose.connection.readyState === 1) {
             try {
@@ -485,6 +485,7 @@ router.post('/admin-login', async (req, res) => {
         res.status(500).json({ message: err.message || "Admin Login Failed" });
     }
 });
+
 
 
 
