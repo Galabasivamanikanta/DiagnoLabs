@@ -620,6 +620,13 @@ router.post('/admin-google', async (req, res) => {
             });
         }
 
+        // Enforce First Time Login with ID & Password
+        if (userObj.isFirstLogin) {
+            return res.status(403).json({
+                message: "First-time login requires your Employee ID and Temporary Password. Please use the standard login form."
+            });
+        }
+
         const accessToken = jwt.sign(
             { id: userObj._id, role: userObj.role },
             process.env.JWT_SEC || 'diagnolabs_secure_jwt_secret_2024',
