@@ -167,7 +167,13 @@ router.post('/google', async (req, res) => {
                 customerId = `DL-${year}${month}-${rnd}`;
                 existing = await User.findOne({ customerId });
             } while (existing);
-            user = await User.findByIdAndUpdate(user._id, { customerId }, { new: true });
+            user.customerId = customerId;
+            await user.save();
+        }
+
+        // BLOCK STAFF FROM PATIENT GOOGLE LOGIN
+        if (user.role !== 'patient') {
+            return res.status(403).json({ error: "Access Denied", message: "Staff members must use the Secure Admin Portal to log in." });
         }
 
         // GENERATE JWT TOKEN
