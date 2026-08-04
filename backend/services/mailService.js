@@ -106,6 +106,46 @@ const getDiagnoLabsEmailTemplate = ({ title, recipientName, messageHtml, booking
 
 const sendEmail = async (to, subject, text, html) => {
     try {
+        const axios = require('axios');
+        const emailContent = html || getDiagnoLabsEmailTemplate({ title: subject, messageHtml: `<p>${text}</p>` });
+
+        // 1. Resend HTTPS API (Port 443 - Unblockable on Render)
+        if (process.env.RESEND_API_KEY) {
+            console.log('🚀 Sending Email via Resend HTTPS API (Port 443)...');
+            const resendRes = await axios.post('https://api.resend.com/emails', {
+                from: 'DiagnoLabs Diagnostics <onboarding@resend.dev>',
+                to: [to],
+                subject: subject,
+                html: emailContent
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('✅ Resend HTTPS Email sent successfully:', resendRes.data.id);
+            return { success: true, messageId: resendRes.data.id };
+        }
+
+        // 2. Brevo (Sendinblue) HTTPS API (Port 443 - 300 free emails/day)
+        if (process.env.BREVO_API_KEY) {
+            console.log('🚀 Sending Email via Brevo HTTPS API (Port 443)...');
+            const brevoRes = await axios.post('https://api.brevo.com/v3/smtp/email', {
+                sender: { name: 'DiagnoLabs Diagnostics', email: (process.env.EMAIL_USER || 'diagnolabs.official@gmail.com').trim() },
+                to: [{ email: to }],
+                subject: subject,
+                htmlContent: emailContent
+            }, {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY.trim(),
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('✅ Brevo HTTPS Email sent successfully:', brevoRes.data.messageId);
+            return { success: true, messageId: brevoRes.data.messageId };
+        }
+
+        // 3. Nodemailer SMTP Fallback
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             console.warn(`[MAIL WARNING] EMAIL_USER or EMAIL_PASS is not set in environment variables. Email to ${to} skipped.`);
             return { success: false, error: "EMAIL_USER or EMAIL_PASS environment variable is not configured on the backend server." };
@@ -122,7 +162,7 @@ const sendEmail = async (to, subject, text, html) => {
                 pass: (process.env.EMAIL_PASS || '').replace(/\s+/g, '')
             },
             tls: {
-                servername: 'smtp.gmail.com', // SSL cert hostname match
+                servername: 'smtp.gmail.com',
                 rejectUnauthorized: false
             },
             connectionTimeout: 12000,
@@ -135,17 +175,18 @@ const sendEmail = async (to, subject, text, html) => {
             to,
             subject,
             text,
-            html: html || getDiagnoLabsEmailTemplate({ title: subject, messageHtml: `<p>${text}</p>` })
+            html: emailContent
         };
 
         const info = await transporter.sendMail(mailOptions);
         console.log('✅ DiagnoLabs HTML Email sent successfully to:', to, info.response);
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('❌ SMTP Error sending email:', error.message);
-        return { success: false, error: error.message };
+        console.error('❌ Error sending email:', error.response?.data || error.message);
+        return { success: false, error: error.response?.data?.message || error.message };
     }
 };
+
 
 
 
