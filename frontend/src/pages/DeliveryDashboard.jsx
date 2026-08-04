@@ -1,382 +1,217 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { 
+    Truck, MapPin, Navigation, CheckCircle2, AlertCircle, Clock, 
+    ShieldCheck, Camera, KeyRound, LogOut, Map, List, Phone, IndianRupee, X
+} from 'lucide-react';
+
+// Fix leaflet default icon in Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 const DeliveryDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Today\'s Deliveries');
-  const [deliveries, setDeliveries] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
 
-  // Mock data fallback
-  const mockDeliveries = [
-    { id: 'ORD-101', from: 'Central Lab', to: 'John Doe', testType: 'Blood Test', distance: '5 km', priority: 'High', status: 'Pending' },
-    { id: 'ORD-102', from: 'North Clinic', to: 'Jane Smith', testType: 'Urine Culture', distance: '12 km', priority: 'Medium', status: 'In Transit' },
-    { id: 'ORD-103', from: 'South Lab', to: 'Bob Wilson', testType: 'Thyroid Profile', distance: '3 km', priority: 'Low', status: 'Delivered' },
-  ];
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [showPodModal, setShowPodModal] = useState(null);
+  const [showIssueModal, setShowIssueModal] = useState(null);
+  const [otpInput, setOtpInput] = useState('');
+  const [issueReason, setIssueReason] = useState('Recipient Unavailable');
+  const [issueNote, setIssueNote] = useState('');
 
-  const mockPickups = [
-    { id: 'PU-201', address: '123 Main St, Apt 4B', timeSlot: '10:00 AM - 11:00 AM', samplesCount: 2 },
-    { id: 'PU-202', address: '456 Oak Rd', timeSlot: '12:00 PM - 01:00 PM', samplesCount: 1 },
-  ];
+  // Mock Delivery Assignments
+  const [deliveries, setDeliveries] = useState([
+    { id: 'DEL-501', recipient: 'Apollo Diagnostics Lab', type: 'Sample Transport (Blood/Urine)', address: 'Gachibowli Main Rd, Hyderabad', lat: 17.4401, lng: 78.3489, phone: '+91 98765 43210', status: 'In Transit', payout: 120 },
+    { id: 'DEL-502', recipient: 'Rahul Sharma', type: 'Physical Lab Report', address: 'Plot 42, Jubilee Hills, Hyderabad', lat: 17.4319, lng: 78.4071, phone: '+91 91234 56789', status: 'Assigned', payout: 80 },
+    { id: 'DEL-503', recipient: 'Vijaya Diagnostic Center', type: 'Supervised Sample Vial', address: 'Secunderabad Station Rd', lat: 17.4399, lng: 78.4983, phone: '+91 99887 76655', status: 'Delivered', payout: 150 }
+  ]);
 
-  const mockHistory = [
-    { date: '2026-08-03', id: 'ORD-099', from: 'East Lab', to: 'Alice Brown', status: 'Delivered', timeTaken: '45 mins' },
-    { date: '2026-08-03', id: 'ORD-098', from: 'Central Lab', to: 'Tom Clark', status: 'Delivered', timeTaken: '30 mins' },
-  ];
-
-  useEffect(() => {
-    const fetchDeliveries = async () => {
-      try {
-        const response = await fetch('/api/employee/delivery/assignments');
-        if (response.ok) {
-          const data = await response.json();
-          setDeliveries(data);
-        } else {
-          setDeliveries(mockDeliveries);
-        }
-      } catch (error) {
-        setDeliveries(mockDeliveries);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDeliveries();
-  }, []);
-
-  const handleStatusUpdate = (id, newStatus) => {
-    setDeliveries(deliveries.map(d => d.id === id ? { ...d, status: newStatus } : d));
-    // In a real app, this would be a PATCH to /api/employee/delivery/status
+  const handleLogout = () => {
+    logout();
+    navigate('/adminlogin');
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pending': return '#ff4d4d'; // Red
-      case 'In Transit': return '#ffa64d'; // Orange
-      case 'Delivered': return '#4dff4d'; // Green
-      default: return '#fff';
-    }
+  const handleStatusChange = (id, newStatus) => {
+    setDeliveries(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d));
+    alert(`Delivery [${id}] status updated to: ${newStatus}`);
   };
 
-  const styles = {
-    container: {
-      display: 'flex',
-      minHeight: '100vh',
-      backgroundColor: '#0a1128', // Dark Navy
-      color: '#ffffff',
-      fontFamily: "'Inter', sans-serif",
-    },
-    sidebar: {
-      width: '250px',
-      background: 'rgba(10, 17, 40, 0.7)',
-      backdropFilter: 'blur(10px)',
-      borderRight: '1px solid rgba(212, 175, 55, 0.2)', // Gold border
-      padding: '2rem 0',
-      display: 'flex',
-      flexDirection: 'column',
-    },
-    logo: {
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      color: '#d4af37', // Gold
-      textAlign: 'center',
-      marginBottom: '2rem',
-      padding: '0 1rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '10px'
-    },
-    navItem: {
-      padding: '1rem 2rem',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      borderLeft: '4px solid transparent',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-    },
-    navItemActive: {
-      background: 'rgba(212, 175, 55, 0.1)',
-      borderLeft: '4px solid #d4af37',
-      color: '#d4af37',
-    },
-    mainContent: {
-      flex: 1,
-      padding: '2rem',
-      overflowY: 'auto',
-    },
-    statsContainer: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '1.5rem',
-      marginBottom: '2rem',
-    },
-    statCard: {
-      background: 'rgba(255, 255, 255, 0.05)',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(212, 175, 55, 0.2)',
-      borderRadius: '12px',
-      padding: '1.5rem',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    },
-    statValue: {
-      fontSize: '2rem',
-      fontWeight: 'bold',
-      color: '#d4af37',
-      marginBottom: '0.5rem',
-    },
-    statLabel: {
-      fontSize: '0.9rem',
-      color: '#a0aabf',
-    },
-    tabContainer: {
-      display: 'flex',
-      gap: '1rem',
-      marginBottom: '2rem',
-      borderBottom: '1px solid rgba(255,255,255,0.1)',
-      paddingBottom: '0.5rem',
-    },
-    tab: {
-      padding: '0.5rem 1rem',
-      cursor: 'pointer',
-      color: '#a0aabf',
-      fontWeight: '500',
-      borderBottom: '2px solid transparent',
-      transition: 'all 0.3s',
-    },
-    tabActive: {
-      color: '#d4af37',
-      borderBottom: '2px solid #d4af37',
-    },
-    glassPanel: {
-      background: 'rgba(255, 255, 255, 0.03)',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(212, 175, 55, 0.1)',
-      borderRadius: '12px',
-      padding: '1.5rem',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-    },
-    th: {
-      textAlign: 'left',
-      padding: '1rem',
-      borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-      color: '#d4af37',
-      fontWeight: '600',
-    },
-    td: {
-      padding: '1rem',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    },
-    badge: {
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.8rem',
-      fontWeight: 'bold',
-      color: '#000'
-    },
-    button: {
-      background: 'transparent',
-      border: '1px solid #d4af37',
-      color: '#d4af37',
-      padding: '0.5rem 1rem',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      transition: 'all 0.3s',
-      marginRight: '0.5rem',
-    },
-    select: {
-      padding: '0.5rem',
-      background: 'rgba(255,255,255,0.05)',
-      border: '1px solid rgba(212, 175, 55, 0.3)',
-      borderRadius: '6px',
-      color: '#fff',
-      marginRight: '0.5rem'
-    }
+  const handlePodSubmit = (e) => {
+    e.preventDefault();
+    if (otpInput.length < 4) return alert("Please enter valid 4-digit OTP from recipient.");
+    alert(`Proof of Delivery VERIFIED for ${showPodModal.recipient}! Status marked Delivered. Payout credited.`);
+    setDeliveries(prev => prev.map(d => d.id === showPodModal.id ? { ...d, status: 'Delivered' } : d));
+    setShowPodModal(null);
+    setOtpInput('');
+  };
+
+  const handleIssueSubmit = (e) => {
+    e.preventDefault();
+    alert(`Delivery issue reported for ${showIssueModal.recipient}! Reason: [${issueReason}]. Front Desk notified to resolve.`);
+    setShowIssueModal(null);
+    setIssueNote('');
   };
 
   return (
-    <div style={styles.container}>
-      {/* Sidebar */}
-      <div style={styles.sidebar}>
-        <div style={styles.logo}>
-          📦 DiagnoLabs<br/>Delivery
-        </div>
-        {['Dashboard', 'My Deliveries', 'Pickup Queue', 'Route Map', 'History'].map(item => (
-          <div key={item} style={{...styles.navItem, ...(item === 'My Deliveries' ? styles.navItemActive : {})}}>
-            {item}
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: '32px' }}>
+      {/* Top Mobile Bar */}
+      <header style={{ background: '#003366', color: 'white', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Truck size={24} color="#38bdf8" />
+          <div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0 }}>DiagnoLabs Delivery</h2>
+            <span style={{ fontSize: '0.7rem', color: '#93c5fd' }}>Field Logistics Agent</span>
           </div>
-        ))}
-        <div style={{...styles.navItem, marginTop: 'auto', color: '#ff4d4d'}} onClick={() => window.location.href = '/adminlogin'}>
+        </div>
+        <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', padding: '6px 12px', color: 'white', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
           Logout
-        </div>
-      </div>
+        </button>
+      </header>
 
-      {/* Main Content */}
-      <div style={styles.mainContent}>
-        <div style={styles.statsContainer}>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>🚗 {deliveries.length}</div>
-            <div style={styles.statLabel}>Today's Deliveries</div>
+      {/* Main Container */}
+      <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+        {/* Top Field KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ background: 'white', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Active Deliveries</span>
+            <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#003366', marginTop: '2px' }}>{deliveries.filter(d => d.status !== 'Delivered').length}</div>
           </div>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>✅ {deliveries.filter(d => d.status === 'Delivered').length}</div>
-            <div style={styles.statLabel}>Completed</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>⏳ {mockPickups.length}</div>
-            <div style={styles.statLabel}>Pending Pickups</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>📍 42</div>
-            <div style={styles.statLabel}>KM Covered</div>
+          <div style={{ background: 'white', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Completed Drops</span>
+            <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#059669', marginTop: '2px' }}>{deliveries.filter(d => d.status === 'Delivered').length}</div>
           </div>
         </div>
 
-        <div style={styles.tabContainer}>
-          {['Today\'s Deliveries', 'Pickup Queue', 'Delivery History', 'My Stats'].map(tab => (
-            <div key={tab} style={{...styles.tab, ...(activeTab === tab ? styles.tabActive : {})}} onClick={() => setActiveTab(tab)}>
-              {tab}
+        {/* View Mode Toggle Switch */}
+        <div style={{ display: 'flex', background: '#e2e8f0', padding: '4px', borderRadius: '12px', marginBottom: '20px' }}>
+          <button onClick={() => setViewMode('list')} style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '10px', background: viewMode === 'list' ? 'white' : 'transparent', color: viewMode === 'list' ? '#003366' : '#64748b', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <List size={16} /> List View
+          </button>
+          <button onClick={() => setViewMode('map')} style={{ flex: 1, padding: '8px', border: 'none', borderRadius: '10px', background: viewMode === 'map' ? 'white' : 'transparent', color: viewMode === 'map' ? '#003366' : '#64748b', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <Map size={16} /> Route Map
+          </button>
+        </div>
+
+        {/* Map View */}
+        {viewMode === 'map' && (
+          <div style={{ height: '350px', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', marginBottom: '20px' }}>
+            <MapContainer center={[17.4401, 78.3489]} zoom={11} style={{ width: '100%', height: '100%' }}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {deliveries.map(d => (
+                <Marker key={d.id} position={[d.lat, d.lng]}>
+                  <Popup>
+                    <strong>{d.recipient}</strong><br/>{d.type}<br/>Status: {d.status}
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        )}
+
+        {/* Deliveries List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {deliveries.map(item => (
+            <div key={item.id} style={{ background: 'white', borderRadius: '16px', padding: '18px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontWeight: '800', color: '#003366', fontSize: '0.85rem' }}>{item.id}</span>
+                <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: item.status === 'Delivered' ? '#dcfce7' : (item.status === 'In Transit' ? '#e0f2fe' : '#fef3c7'), color: item.status === 'Delivered' ? '#166534' : (item.status === 'In Transit' ? '#0369a1' : '#92400e') }}>
+                  {item.status}
+                </span>
+              </div>
+
+              <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: '800', color: '#0f172a' }}>{item.recipient}</h3>
+              <div style={{ fontSize: '0.8rem', color: '#059669', fontWeight: '700', marginBottom: '8px' }}>{item.type}</div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.8rem', color: '#475569', marginBottom: '14px' }}>
+                <MapPin size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#003366' }} />
+                <span>{item.address}</span>
+              </div>
+
+              {/* Action Buttons Toolbar */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address)}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', padding: '8px 14px', background: '#003366', color: 'white', borderRadius: '10px', fontWeight: '800', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Navigation size={14} /> Maps Nav
+                </a>
+
+                {item.status === 'Assigned' && (
+                  <button onClick={() => handleStatusChange(item.id, 'In Transit')} style={{ padding: '8px 14px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Mark Picked Up
+                  </button>
+                )}
+
+                {item.status === 'In Transit' && (
+                  <button onClick={() => setShowPodModal(item)} style={{ padding: '8px 14px', background: '#059669', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <KeyRound size={14} /> Deliver with OTP
+                  </button>
+                )}
+
+                {item.status !== 'Delivered' && (
+                  <button onClick={() => setShowIssueModal(item)} style={{ padding: '8px 12px', background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '10px', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Issue
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
-
-        <div style={styles.glassPanel}>
-          {activeTab === 'Today\'s Deliveries' && (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Order #</th>
-                  <th style={styles.th}>From (Lab)</th>
-                  <th style={styles.th}>To (Patient)</th>
-                  <th style={styles.th}>Test Type</th>
-                  <th style={styles.th}>Distance</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveries.map(d => (
-                  <tr key={d.id}>
-                    <td style={styles.td}>{d.id}</td>
-                    <td style={styles.td}>{d.from}</td>
-                    <td style={styles.td}>{d.to}</td>
-                    <td style={styles.td}>{d.testType}</td>
-                    <td style={styles.td}>{d.distance}</td>
-                    <td style={styles.td}>
-                      <span style={{...styles.badge, backgroundColor: getStatusColor(d.status)}}>
-                        {d.status}
-                      </span>
-                    </td>
-                    <td style={styles.td}>
-                      {d.status !== 'Delivered' && (
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                          <select 
-                            style={styles.select}
-                            onChange={(e) => handleStatusUpdate(d.id, e.target.value)}
-                            value={d.status}
-                          >
-                            <option value="Pending">Pending</option>
-                            <option value="In Transit">In Transit</option>
-                            <option value="Delivered">Delivered</option>
-                          </select>
-                          <button 
-                            style={{...styles.button, background: '#d4af37', color: '#0a1128', padding: '0.5rem'}}
-                            onClick={() => {}}
-                          >
-                            Confirm
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          
-          {activeTab === 'Pickup Queue' && (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Pickup #</th>
-                  <th style={styles.th}>Address</th>
-                  <th style={styles.th}>Time Slot</th>
-                  <th style={styles.th}>Samples</th>
-                  <th style={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockPickups.map(p => (
-                  <tr key={p.id}>
-                    <td style={styles.td}>{p.id}</td>
-                    <td style={styles.td}>{p.address}</td>
-                    <td style={styles.td}>{p.timeSlot}</td>
-                    <td style={styles.td}>{p.samplesCount}</td>
-                    <td style={styles.td}>
-                      <button style={{...styles.button, background: '#4dff4d', color: '#000', borderColor: '#4dff4d'}}>Accept</button>
-                      <button style={{...styles.button, borderColor: '#ff4d4d', color: '#ff4d4d'}}>Reject</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {activeTab === 'Delivery History' && (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Date</th>
-                  <th style={styles.th}>Order #</th>
-                  <th style={styles.th}>Route</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Time Taken</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockHistory.map((h, i) => (
-                  <tr key={i}>
-                    <td style={styles.td}>{h.date}</td>
-                    <td style={styles.td}>{h.id}</td>
-                    <td style={styles.td}>{h.from} → {h.to}</td>
-                    <td style={styles.td}>
-                      <span style={{...styles.badge, backgroundColor: getStatusColor(h.status)}}>
-                        {h.status}
-                      </span>
-                    </td>
-                    <td style={styles.td}>{h.timeTaken}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {activeTab === 'My Stats' && (
-            <div style={{display: 'flex', gap: '2rem', justifyContent: 'center', marginTop: '2rem'}}>
-              <div style={styles.statCard}>
-                <div style={{...styles.statValue, color: '#4dff4d'}}>45</div>
-                <div style={styles.statLabel}>This Week Deliveries</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{...styles.statValue, color: '#4dff4d'}}>98%</div>
-                <div style={styles.statLabel}>On-Time %</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{...styles.statValue, color: '#ffa64d'}}>4.9 ⭐</div>
-                <div style={styles.statLabel}>Rating</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={styles.statValue}>₹ 4,500</div>
-                <div style={styles.statLabel}>Earnings</div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* Proof of Delivery OTP Modal */}
+      {showPodModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 12px', color: '#0f172a', fontWeight: '800' }}>Confirm Proof of Delivery</h3>
+            <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#64748b' }}>Enter 4-digit recipient OTP or upload handover photo for {showPodModal.recipient}.</p>
+
+            <form onSubmit={handlePodSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>RECIPIENT VERIFICATION OTP</label>
+                <input type="text" maxLength="4" required value={otpInput} onChange={e => setOtpInput(e.target.value)} placeholder="e.g. 4892" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', fontSize: '1.2rem', textAlign: 'center', letterSpacing: '4px', fontWeight: '800' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={() => setShowPodModal(null)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#059669', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Verify & Complete</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Report Issue Modal */}
+      {showIssueModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 12px', color: '#dc2626', fontWeight: '800' }}>Report Delivery Issue</h3>
+            <form onSubmit={handleIssueSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>REASON FOR NON-DELIVERY</label>
+                <select value={issueReason} onChange={e => setIssueReason(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', background: 'white', fontWeight: '700' }}>
+                  <option>Recipient Unavailable / Phone Unreachable</option>
+                  <option>Incorrect or Untraceable Address</option>
+                  <option>Item Damaged / Sample Leakage</option>
+                  <option>Recipient Refused Handover</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={() => setShowIssueModal(null)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#dc2626', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Transmit Report</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
