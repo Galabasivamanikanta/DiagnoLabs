@@ -12,7 +12,7 @@ const DemoGuard = ({ children }) => {
 
         const hasViewedDemo = localStorage.getItem('hasViewedDemo') === 'true';
         const isDemoRoute = location.pathname === '/demo';
-        const isPublicAuthRoute = ['/userlogin', '/register', '/partner/login', '/admin/login'].includes(location.pathname);
+        const isPublicAuthRoute = ['/userlogin', '/register', '/partner/login', '/adminlogin', '/admin/login'].includes(location.pathname);
 
         // If there is no logged-in user, and they haven't viewed the demo yet,
         // and they are not currently on the demo or auth pages, redirect to /demo
