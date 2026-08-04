@@ -600,6 +600,20 @@ const LabDashboard = () => {
                     </div>
                 </div>
 
+                {/* Onboarding License Verification Banner */}
+                {labDetails?.verificationStatus !== 'Verified' && (
+                    <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl mb-6 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <AlertCircle className="text-amber-600 shrink-0" size={20} />
+                            <div>
+                                <h4 className="text-xs font-bold text-amber-900">Lab Partner License & NABL Certification Review In Progress</h4>
+                                <p className="text-[11px] text-amber-700 mt-0.5">Your submitted lab documentation is being verified by DiagnoLabs System Admins. Booking reception is active; payout dispatches will unlock upon full verification.</p>
+                            </div>
+                        </div>
+                        <span className="bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">Pending Audit</span>
+                    </div>
+                )}
+
                 {/* ── WORKSPACE CONTENT ── */}
                 
                 {/* Tab 1: Workbench Queue */}
