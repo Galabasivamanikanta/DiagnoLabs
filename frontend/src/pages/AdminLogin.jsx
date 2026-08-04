@@ -77,21 +77,19 @@ const AdminLogin = () => {
                 
                 // Route based on role — all 14 roles correctly mapped
                 const role = userData.role;
-                if (role === 'admin') {
-                    navigate('/admin/dashboard');
-                } else if (role === 'lab_partner') {
-                    navigate('/partner/dashboard');
-                } else if (role === 'phlebotomist') {
-                    navigate('/collector/dashboard');
-                } else if ([
-                    'employee', 'doctor', 'nurse', 'receptionist',
-                    'inventory_manager', 'finance_manager', 'marketing_head',
-                    'support_staff', 'delivery_partner', 'quality_auditor', 'it_specialist'
-                ].includes(role)) {
-                    navigate('/admin/dashboard');
-                } else {
-                    navigate('/admin/dashboard');
-                }
+                if (role === 'admin') navigate('/admin/dashboard');
+                else if (role === 'lab_partner') navigate('/partner/dashboard');
+                else if (['phlebotomist', 'nurse'].includes(role)) navigate('/collector/dashboard');
+                else if (role === 'doctor') navigate('/doctor/dashboard');
+                else if (role === 'receptionist') navigate('/reception/dashboard');
+                else if (role === 'inventory_manager') navigate('/inventory/dashboard');
+                else if (role === 'finance_manager') navigate('/finance/dashboard');
+                else if (role === 'marketing_head') navigate('/marketing/dashboard');
+                else if (role === 'support_staff') navigate('/support/dashboard');
+                else if (role === 'delivery_partner') navigate('/delivery/dashboard');
+                else if (role === 'quality_auditor') navigate('/quality/dashboard');
+                else if (role === 'it_specialist') navigate('/it/dashboard');
+                else navigate('/admin/dashboard'); // default fallback for 'employee' or unknown
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Invalid ID or password.');
@@ -112,21 +110,19 @@ const AdminLogin = () => {
             manualLogin(userData);
 
             const role = userData.role;
-            if (role === 'admin') {
-                navigate('/admin/dashboard');
-            } else if (role === 'lab_partner') {
-                navigate('/partner/dashboard');
-            } else if (role === 'phlebotomist') {
-                navigate('/collector/dashboard');
-            } else if ([
-                'employee', 'doctor', 'nurse', 'receptionist',
-                'inventory_manager', 'finance_manager', 'marketing_head',
-                'support_staff', 'delivery_partner', 'quality_auditor', 'it_specialist'
-            ].includes(role)) {
-                navigate('/admin/dashboard');
-            } else {
-                navigate('/admin/dashboard');
-            }
+            if (role === 'admin') navigate('/admin/dashboard');
+            else if (role === 'lab_partner') navigate('/partner/dashboard');
+            else if (['phlebotomist', 'nurse'].includes(role)) navigate('/collector/dashboard');
+            else if (role === 'doctor') navigate('/doctor/dashboard');
+            else if (role === 'receptionist') navigate('/reception/dashboard');
+            else if (role === 'inventory_manager') navigate('/inventory/dashboard');
+            else if (role === 'finance_manager') navigate('/finance/dashboard');
+            else if (role === 'marketing_head') navigate('/marketing/dashboard');
+            else if (role === 'support_staff') navigate('/support/dashboard');
+            else if (role === 'delivery_partner') navigate('/delivery/dashboard');
+            else if (role === 'quality_auditor') navigate('/quality/dashboard');
+            else if (role === 'it_specialist') navigate('/it/dashboard');
+            else navigate('/admin/dashboard'); // default fallback for 'employee' or unknown
         } catch (err) {
             setError(err.response?.data?.message || 'Google Admin Login Failed. Email not authorized.');
         } finally {

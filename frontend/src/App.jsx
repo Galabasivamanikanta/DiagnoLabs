@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import Navbar from './components/Navbar';
 import ChatBot from './components/ChatBot';
@@ -21,9 +21,17 @@ import { AuthProvider } from './context/AuthContext';
 import DemoGuard from './components/DemoGuard';
 import Demo from './pages/Demo';
 import AdminLoginForm from './pages/AdminLogin';
-import { useLocation } from 'react-router-dom';
 
-
+import DoctorDashboard from './pages/DoctorDashboard';
+import NurseDashboard from './pages/NurseDashboard';
+import ReceptionDashboard from './pages/ReceptionDashboard';
+import InventoryDashboard from './pages/InventoryDashboard';
+import FinanceDashboard from './pages/FinanceDashboard';
+import MarketingDashboard from './pages/MarketingDashboard';
+import SupportDashboard from './pages/SupportDashboard';
+import DeliveryDashboard from './pages/DeliveryDashboard';
+import QualityDashboard from './pages/QualityDashboard';
+import ITDashboard from './pages/ITDashboard';
 
 const MainLayout = () => {
   const location = useLocation();
@@ -90,6 +98,18 @@ const MainLayout = () => {
           </ProtectedRoute>
         } />
 
+        {/* Role-specific Dashboards */}
+        <Route path="/doctor/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['doctor', 'admin']}><DoctorDashboard /></ProtectedRoute>} />
+        <Route path="/nurse/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['nurse', 'admin']}><NurseDashboard /></ProtectedRoute>} />
+        <Route path="/reception/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['receptionist', 'admin']}><ReceptionDashboard /></ProtectedRoute>} />
+        <Route path="/inventory/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['inventory_manager', 'admin']}><InventoryDashboard /></ProtectedRoute>} />
+        <Route path="/finance/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['finance_manager', 'admin']}><FinanceDashboard /></ProtectedRoute>} />
+        <Route path="/marketing/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['marketing_head', 'admin']}><MarketingDashboard /></ProtectedRoute>} />
+        <Route path="/support/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['support_staff', 'admin']}><SupportDashboard /></ProtectedRoute>} />
+        <Route path="/delivery/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['delivery_partner', 'admin']}><DeliveryDashboard /></ProtectedRoute>} />
+        <Route path="/quality/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['quality_auditor', 'admin']}><QualityDashboard /></ProtectedRoute>} />
+        <Route path="/it/dashboard" element={<ProtectedRoute fallback="/adminlogin" roles={['it_specialist', 'admin']}><ITDashboard /></ProtectedRoute>} />
+
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -110,6 +130,3 @@ function App() {
 }
 
 export default App;
-
-
-
