@@ -217,9 +217,6 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
             systemInstruction: `${SYSTEM_INSTRUCTION}\n\nCURRENT ACTIVE ROLE PERSONA:\n${rolePersonaInstruction}`
         });
 
-
-
-
         // ── Build conversation history ──────────────────────────
         const contents = [];
 
@@ -239,10 +236,31 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
         // ── Build current user message ──────────────────────────
         const currentParts = [];
 
-        // Inject context (e.g. "user just completed booking for HbA1c")
         let fullPrompt = prompt || '';
         if (context) {
             fullPrompt = `[APP CONTEXT: ${context}]\n\n${fullPrompt}`;
+        }
+
+        // ── 🧠 INTERNAL AI SELF-LEARNING KNOWLEDGE RETRIEVAL ──
+        const AIChatMemory = require('../models/AIChatMemory');
+        try {
+            const words = (prompt || '').toLowerCase().split(' ').filter(w => w.length > 3);
+            const learnedMemories = await AIChatMemory.find({
+                $or: [
+                    { keywords: { $in: words } },
+                    { queryPattern: { $regex: prompt || '', $options: 'i' } }
+                ]
+            }).sort({ confidenceScore: -1, usageCount: -1 }).limit(3);
+
+            if (learnedMemories.length > 0) {
+                let learnedContext = `[INTERNAL AI SELF-LEARNING KNOWLEDGE BANK]:\nThe AI engine has internally learned these verified resolution patterns:\n`;
+                learnedMemories.forEach(m => {
+                    learnedContext += `• Learned Pattern: "${m.queryPattern}" → Solution: "${m.learnedResponse}" (Verified by Doctor/Staff: ${m.verifiedByDoctor}, Confidence: ${m.confidenceScore})\n`;
+                });
+                fullPrompt = `${learnedContext}\n\n${fullPrompt}`;
+            }
+        } catch (memErr) {
+            console.log("[AI-SELF-LEARNING] Memory search note:", memErr.message);
         }
 
         // Fetch User Database Context
@@ -258,9 +276,7 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
                     recentBookings.forEach(b => {
                         dbContext += `- Booking ID: ${b._id}, Date: ${b.appointmentDate?.toISOString().split('T')[0]}, Tests: ${b.testDetails.map(t => t.testName).join(', ')}, Status: ${b.status}, Has Report: ${!!b.reportUrl}\n`;
                         
-                        // Identify latest report for direct analysis
                         if (!latestReportPath && b.reportUrl) {
-                            // Extract filename from URL (e.g. http://localhost:5000/uploads/123.pdf -> 123.pdf)
                             const fileName = b.reportUrl.split('/uploads/').pop();
                             if (fileName) {
                                 const filePath = path.join(__dirname, '../uploads', fileName);
@@ -329,6 +345,27 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
         const responseText = result.response.text();
 
         console.log(`[AI-CLINICAL] Response generated (${responseText.length} chars)`);
+
+        // 🧠 Auto-Learn & Capture Query Pattern in Background
+        if (prompt && prompt.length > 8) {
+            try {
+                const AIChatMemory = require('../models/AIChatMemory');
+                const words = prompt.toLowerCase().split(' ').filter(w => w.length > 3);
+                await AIChatMemory.findOneAndUpdate(
+                    { queryPattern: prompt },
+                    { 
+                        $set: { learnedResponse: responseText.slice(0, 300), category: activeRole, sourceRole: activeRole },
+                        $addToSet: { keywords: { $each: words } },
+                        $inc: { usageCount: 1 }
+                    },
+                    { upsert: true, new: true }
+                );
+                console.log(`[AI-SELF-LEARNING] Auto-learned pattern: "${prompt.slice(0, 30)}..."`);
+            } catch (autoLearnErr) {
+                console.log("[AI-SELF-LEARNING] Background memory store note:", autoLearnErr.message);
+            }
+        }
+
         res.json({ reply: responseText });
 
     } catch (err) {
@@ -337,6 +374,45 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
             error: 'Clinical Engine Error',
             details: err.message || 'Unexpected error communicating with the AI engine.'
         });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/chat/learn-feedback — Doctor/Staff Learning & Training Gateway
+// ─────────────────────────────────────────────────────────────
+router.post('/learn-feedback', optionalAuth, async (req, res) => {
+    try {
+        const { queryPattern, correctedResponse, verifiedByDoctor, category } = req.body;
+        const AIChatMemory = require('../models/AIChatMemory');
+
+        const words = (queryPattern || '').toLowerCase().split(' ').filter(w => w.length > 3);
+        const sourceRole = (req.user?.role || 'doctor').toLowerCase();
+
+        const memory = await AIChatMemory.findOneAndUpdate(
+            { queryPattern: queryPattern },
+            {
+                $set: { 
+                    learnedResponse: correctedResponse, 
+                    verifiedByDoctor: !!verifiedByDoctor, 
+                    category: category || 'Medical',
+                    sourceRole: sourceRole
+                },
+                $addToSet: { keywords: { $each: words } },
+                $inc: { confidenceScore: 2.0, usageCount: 1 }
+            },
+            { upsert: true, new: true }
+        );
+
+        console.log(`[AI-SELF-LEARNING] Verified Memory Saved! Pattern: "${queryPattern}" | Verified By Doctor: ${!!verifiedByDoctor}`);
+
+        res.json({
+            success: true,
+            message: `AI Engine successfully learned new verified pattern!`,
+            memory: memory
+        });
+    } catch (err) {
+        console.error('[LEARN-FEEDBACK-ERROR]', err);
+        res.status(500).json({ error: 'Failed to update AI Memory', details: err.message });
     }
 });
 
