@@ -36,10 +36,26 @@ import ITDashboard from './pages/ITDashboard';
 const MainLayout = () => {
   const location = useLocation();
   const isDemoRoute = location.pathname === '/demo';
+  const isStandaloneDashboard = [
+    '/admin/dashboard',
+    '/doctor/dashboard',
+    '/nurse/dashboard',
+    '/reception/dashboard',
+    '/inventory/dashboard',
+    '/finance/dashboard',
+    '/marketing/dashboard',
+    '/support/dashboard',
+    '/delivery/dashboard',
+    '/quality/dashboard',
+    '/it/dashboard',
+    '/partner/dashboard'
+  ].some(path => location.pathname.startsWith(path));
+
+  const showNavbar = !isDemoRoute && !isStandaloneDashboard;
 
   return (
     <>
-      {!isDemoRoute && <Navbar />}
+      {showNavbar && <Navbar />}
       {!isDemoRoute && <ChatBot />}
       <Routes>
         <Route path="/demo" element={<Demo />} />
