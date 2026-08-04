@@ -449,14 +449,16 @@ router.post('/admin-login', async (req, res) => {
             console.warn("[PG-LOOKUP WARNING]:", pgErr.message);
         }
 
-        // 2. Fallback to MongoDB if not found in PostgreSQL
-        if (!userObj) {
+        // 2. Fallback to MongoDB only if connected and not found in PostgreSQL
+        const mongoose = require('mongoose');
+        if (!userObj && mongoose.connection.readyState === 1) {
             const mongoUser = await User.findOne({ employeeId: cleanEmployeeId });
             if (mongoUser) {
                 const { password: pw, ...info } = mongoUser._doc;
                 userObj = { ...info, password: mongoUser.password };
             }
         }
+
 
         if (!userObj) return res.status(401).json("Invalid Employee ID!");
 

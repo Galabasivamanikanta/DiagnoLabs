@@ -1,15 +1,23 @@
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
+const getPgUrl = () => {
+    if (process.env.POSTGRES_URL) return process.env.POSTGRES_URL;
+    if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+    if (process.env.RENDER) {
+        return 'postgresql://diagnolabs_user:gMAJKmXqW5hcbgvKglOj8reTTpU6kTAG@dpg-d9op1pks728c73fkb1u0-a/diagnolabs';
+    }
+    return 'postgresql://diagnolabs_user:gMAJKmXqW5hcbgvKglOj8reTTpU6kTAG@dpg-d9op1pks728c73fkb1u0-a.oregon-postgres.render.com/diagnolabs?ssl=true';
+};
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://diagnolabs_user:gMAJKmXqW5hcbgvKglOj8reTTpU6kTAG@dpg-d9op1pks728c73fkb1u0-a.oregon-postgres.render.com/diagnolabs?ssl=true';
+const connectionString = getPgUrl();
+const isInternal = connectionString.includes('dpg-d9op1pks728c73fkb1u0-a/diagnolabs');
 
 const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: isInternal ? false : { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000
 });
+
 
 const initPgDb = async () => {
     try {
