@@ -81,6 +81,9 @@ export default function SampleCollectorDashboard() {
     const [mapModal, setMapModal] = useState(null);
     const [scanningBookingId, setScanningBookingId] = useState(null);
     const [paymentModal, setPaymentModal] = useState(null);
+    const [issueModal, setIssueModal] = useState(null);
+    const [issueReason, setIssueReason] = useState('Patient Unavailable');
+    const [issueNote, setIssueNote] = useState('');
     const [proofUploading, setProofUploading] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('Cash');
     const fileInputRef = useRef(null); // { address, lat, lng, patientName }
@@ -567,6 +570,13 @@ export default function SampleCollectorDashboard() {
                                                 </button>
                                             )}
 
+                                            {/* Report Issue Button */}
+                                            {!isCollected && (
+                                                <button onClick={() => setIssueModal(booking)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                    <AlertCircle size={13} /> Report Issue
+                                                </button>
+                                            )}
+
                                             {isCollected && (
                                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.78rem' }}>
                                                     <CheckCircle size={13} /> {booking.status}
@@ -624,6 +634,44 @@ export default function SampleCollectorDashboard() {
 
                         <button onClick={() => collectPayment(paymentModal._id)} disabled={updatingId === paymentModal._id} style={{ width: '100%', padding: '1rem', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                             {updatingId === paymentModal._id ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={18} />} Mark as Paid
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Report Issue Modal */}
+            {issueModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }} onClick={() => setIssueModal(null)}>
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', width: '100%', maxWidth: '420px', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#e11d48', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={20} /> Report Collection Issue</h3>
+                            <button onClick={() => setIssueModal(null)} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.4rem', cursor: 'pointer' }}><X size={16} /></button>
+                        </div>
+
+                        <div style={{ marginBottom: '1.25rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.4rem', textTransform: 'uppercase' }}>Issue Reason</label>
+                            <select value={issueReason} onChange={e => setIssueReason(e.target.value)} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', fontWeight: '700', outline: 'none' }}>
+                                <option value="Patient Unavailable">Patient Unavailable / Unreachable</option>
+                                <option value="Incorrect Address">Incorrect / Untraceable Address</option>
+                                <option value="Refused Collection">Patient Refused Sample Collection</option>
+                                <option value="Safety Concern">Field Safety Concern</option>
+                            </select>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '0.4rem', textTransform: 'uppercase' }}>Operational Notes</label>
+                            <textarea rows="3" value={issueNote} onChange={e => setIssueNote(e.target.value)} placeholder="Provide additional details for Front Desk & Admin..." style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid var(--border)', outline: 'none' }}></textarea>
+                        </div>
+
+                        <button 
+                            onClick={() => {
+                                alert(`Issue reported for Booking #${issueModal._id.slice(-6).toUpperCase()}! Front Desk & Admin notified to reschedule.`);
+                                setIssueModal(null);
+                                setIssueNote('');
+                            }}
+                            style={{ width: '100%', padding: '0.9rem', background: '#e11d48', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.95rem', cursor: 'pointer' }}
+                        >
+                            Transmit Issue Report
                         </button>
                     </div>
                 </div>
