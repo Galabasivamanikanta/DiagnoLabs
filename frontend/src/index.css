@@ -707,3 +707,99 @@ html, body {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   UNIVERSAL CSS GRID & DEVICE SCALING ENGINE (PIN-TO-PIN RESPONSIVE)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 1. Universal Grid System */
+.grid-auto, .responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure flex & grid children never overflow container */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.grid-1, .grid-2, .grid-3, .grid-4, .grid-auto, .card, section, div, main, header, footer {
+  min-width: 0;
+}
+
+/* 2. Universal Table Safety Wrapper */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-responsive, [class*="table-container"], [style*="overflow"] {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 3. Small Screen Micro-Scaling Engine (< 480px Smartphones) */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px; /* Slightly scale down baseline typography so text fits perfectly */
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .container, [class*="container"] {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Compact button padding on micro screens */
+  .btn, button, [role="button"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Auto wrap all inline flex headers */
+  [style*="display: flex"], [style*="display:flex"] {
+    flex-wrap: wrap;
+  }
+
+  /* Prevent long text strings or URLs from forcing horizontal scroll */
+  p, h1, h2, h3, h4, h5, h6, span, a, td, th {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Scale down large modal padding */
+  [style*="padding: '2.5rem'"], [style*="padding: 2.5rem"],
+  [style*="padding: '2rem'"], [style*="padding: 2rem"] {
+    padding: 1.25rem !important;
+  }
+}
+
+/* 4. Ultra-Small Devices (< 360px) */
+@media (max-width: 360px) {
+  html {
+    font-size: 13px;
+  }
+
+  .btn {
+    width: 100% !important;
+  }
+}
+
