@@ -11,8 +11,8 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const { sendVerificationOTP, verifyOTP, clearOTP } = require('../services/otpService');
 
 
-const generateId = (prefix) => {
-    return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+const generateId = () => {
+    return `EMP-${Math.floor(10000 + Math.random() * 90000)}`;
 };
 
 const generatePassword = () => {
@@ -333,27 +333,10 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
     try {
         const { name, email, phone, role } = req.body;
         
-        const prefixMap = {
-            'admin':             'ADM',
-            'lab_partner':       'LAB',
-            'doctor':            'DOC',
-            'phlebotomist':      'PHB',
-            'nurse':             'NRS',
-            'receptionist':      'RCP',
-            'inventory_manager': 'INV',
-            'finance_manager':   'FIN',
-            'marketing_head':    'MKT',
-            'support_staff':     'SUP',
-            'delivery_partner':  'DEL',
-            'quality_auditor':   'QAL',
-            'it_specialist':     'IT',
-            'employee':          'EMP'
-        };
-        const empPrefix = prefixMap[role] || 'EMP';
-        let employeeId = generateId(empPrefix).toUpperCase();
+        let employeeId = generateId();
         let idExists = await User.findOne({ employeeId });
         while (idExists) {
-            employeeId = generateId(empPrefix).toUpperCase();
+            employeeId = generateId();
             idExists = await User.findOne({ employeeId });
         }
 
