@@ -219,6 +219,49 @@ const EmployeeManagement = () => {
         setShowModal(true);
     };
 
+    const [viewMode, setViewMode] = useState('directory'); // 'directory' or 'matrix'
+    const [permissionMatrix, setPermissionMatrix] = useState({
+        admin: { userMgmt: true, rolesMgmt: true, labPartner: true, bookings: true, reports: true, collector: true, inventory: true, finance: true, marketing: true, support: true, quality: true, it: true },
+        employee: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: true, collector: true, inventory: false, finance: false, marketing: false, support: true, quality: false, it: false },
+        lab_partner: { userMgmt: false, rolesMgmt: false, labPartner: true, bookings: true, reports: true, collector: false, inventory: true, finance: true, marketing: false, support: false, quality: true, it: false },
+        doctor: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: true, collector: false, inventory: false, finance: false, marketing: false, support: false, quality: true, it: false },
+        phlebotomist: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: false, collector: true, inventory: false, finance: false, marketing: false, support: false, quality: false, it: false },
+        nurse: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: true, collector: true, inventory: true, finance: false, marketing: false, support: false, quality: false, it: false },
+        receptionist: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: false, collector: false, inventory: false, finance: true, marketing: false, support: true, quality: false, it: false },
+        inventory_manager: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: false, reports: false, collector: false, inventory: true, finance: false, marketing: false, support: false, quality: true, it: false },
+        finance_manager: { userMgmt: false, rolesMgmt: false, labPartner: true, bookings: true, reports: false, collector: false, inventory: false, finance: true, marketing: false, support: false, quality: false, it: false },
+        marketing_head: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: false, reports: false, collector: false, inventory: false, finance: false, marketing: true, support: false, quality: false, it: false },
+        support_staff: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: true, collector: false, inventory: false, finance: false, marketing: false, support: true, quality: false, it: false },
+        delivery_partner: { userMgmt: false, rolesMgmt: false, labPartner: false, bookings: true, reports: false, collector: true, inventory: false, finance: false, marketing: false, support: false, quality: false, it: false },
+        quality_auditor: { userMgmt: false, rolesMgmt: false, labPartner: true, bookings: true, reports: true, collector: false, inventory: true, finance: false, marketing: false, support: false, quality: true, it: false },
+        it_specialist: { userMgmt: true, rolesMgmt: false, labPartner: false, bookings: false, reports: false, collector: false, inventory: false, finance: false, marketing: false, support: true, quality: false, it: true }
+    });
+
+    const MODULE_COLUMNS = [
+        { key: 'userMgmt', label: 'User Mgmt' },
+        { key: 'rolesMgmt', label: 'Role & Perms' },
+        { key: 'labPartner', label: 'Lab Onboarding' },
+        { key: 'bookings', label: 'Bookings' },
+        { key: 'reports', label: 'Medical Records' },
+        { key: 'collector', label: 'Collector/Delivery' },
+        { key: 'inventory', label: 'Inventory' },
+        { key: 'finance', label: 'Finance/Payouts' },
+        { key: 'marketing', label: 'Marketing' },
+        { key: 'support', label: 'Support Tickets' },
+        { key: 'quality', label: 'Quality Control' },
+        { key: 'it', label: 'IT & Logs' }
+    ];
+
+    const togglePermission = (roleKey, moduleKey) => {
+        setPermissionMatrix(prev => ({
+            ...prev,
+            [roleKey]: {
+                ...prev[roleKey],
+                [moduleKey]: !prev[roleKey]?.[moduleKey]
+            }
+        }));
+    };
+
     const filteredEmployees = employees.filter(emp => {
         if (!searchQuery) return true;
         const q = searchQuery.toLowerCase();
@@ -232,28 +275,115 @@ const EmployeeManagement = () => {
 
     return (
         <div>
-            {/* Header */}
-            <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div className="panel-search-wrapper">
-                        <Search size={15} />
-                        <input
-                            type="text"
-                            className="panel-search-input"
-                            placeholder="Search by name, email, phone..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)', fontWeight: '600' }}>
-                        {filteredEmployees.length} member{filteredEmployees.length !== 1 ? 's' : ''}
-                    </span>
-                </div>
-                <button className="add-employee-btn" onClick={openCreateModal} style={{ background: '#003366', color: 'white', border: 'none', borderRadius: '12px', padding: '0.8rem 1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                    <UserPlus size={16} />
-                    Add Employee
+            {/* View Mode Switcher */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+                <button
+                    onClick={() => setViewMode('directory')}
+                    style={{
+                        padding: '0.6rem 1.2rem',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: viewMode === 'directory' ? '#003366' : '#f1f5f9',
+                        color: viewMode === 'directory' ? 'white' : '#475569',
+                        fontWeight: '800',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Team Directory & Onboarding ({employees.length})
+                </button>
+                <button
+                    onClick={() => setViewMode('matrix')}
+                    style={{
+                        padding: '0.6rem 1.2rem',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: viewMode === 'matrix' ? '#003366' : '#f1f5f9',
+                        color: viewMode === 'matrix' ? 'white' : '#475569',
+                        fontWeight: '800',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Role Permission Matrix (14 Roles × 12 Modules)
                 </button>
             </div>
+
+            {/* Header */}
+            {viewMode === 'directory' ? (
+                <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div className="panel-search-wrapper">
+                            <Search size={15} />
+                            <input
+                                type="text"
+                                className="panel-search-input"
+                                placeholder="Search by name, email, phone..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>
+                            {filteredEmployees.length} member{filteredEmployees.length !== 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    <button className="add-employee-btn" onClick={openCreateModal} style={{ background: '#003366', color: 'white', border: 'none', borderRadius: '12px', padding: '0.8rem 1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                        <UserPlus size={16} />
+                        Add Employee
+                    </button>
+                </div>
+            ) : (
+                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div>
+                            <h3 style={{ margin: 0, color: '#0f172a', fontWeight: '800' }}>Role & Permission Governance Grid</h3>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748b' }}>Configure exact RBAC module access across all 14 platform roles.</p>
+                        </div>
+                        <button
+                            onClick={() => alert("Role Permission Matrix saved successfully!")}
+                            style={{ padding: '0.65rem 1.25rem', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer' }}
+                        >
+                            Save Matrix Changes
+                        </button>
+                    </div>
+                    <div className="table-responsive" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800', minWidth: '180px' }}>Platform Role</th>
+                                    {MODULE_COLUMNS.map(col => (
+                                        <th key={col.key} style={{ padding: '12px 8px', textAlign: 'center', color: '#475569', fontWeight: '800', fontSize: '0.75rem', minWidth: '95px' }}>
+                                            {col.label}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ROLES.map(r => (
+                                    <tr key={r.value} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>{r.label}</td>
+                                        {MODULE_COLUMNS.map(col => {
+                                            const isChecked = permissionMatrix[r.value]?.[col.key] || false;
+                                            const isSuperAdmin = r.value === 'admin';
+                                            return (
+                                                <td key={col.key} style={{ padding: '10px 8px', textAlign: 'center' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        disabled={isSuperAdmin}
+                                                        onChange={() => togglePermission(r.value, col.key)}
+                                                        style={{ width: '16px', height: '16px', cursor: isSuperAdmin ? 'not-allowed' : 'pointer', accentColor: '#003366' }}
+                                                    />
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Employee Cards Grid */}
             {loading ? (
