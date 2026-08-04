@@ -227,26 +227,6 @@ const SearchResults = () => {
                                         overflow: 'hidden'
                                     }}>
                                         {/* Accuracy Ribbon */}
-                                        {test.lab?.accuracyScore && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '20px', right: '20px',
-                                                background: test.lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : 'var(--warning)',
-                                                color: 'white',
-                                                padding: '4px 0',
-                                                width: '130px',
-                                                textAlign: 'center',
-                                                whiteSpace: 'nowrap',
-                                                borderRadius: '100px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: '900',
-                                                zIndex: 5,
-                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                                            }}>
-                                                {test.lab.accuracyScore}% ACCURATE
-                                            </div>
-                                        )}
-
                                         <div style={{ flex: 1, minWidth: '240px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
                                                 <div style={{
@@ -266,10 +246,24 @@ const SearchResults = () => {
                                                 <div>
                                                     <h3 style={{ margin: 0, fontSize: 'clamp(1rem, 3.5vw, 1.8rem)', color: '#0f172a', fontWeight: '900', letterSpacing: '-0.3px', lineHeight: 1.2 }}>{test.testName}</h3>
                                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                                             <span style={{ padding: '0.2rem 0.6rem', background: test.lab.isVerified ? 'rgba(30, 64, 175, 0.1)' : 'rgba(234, 179, 8, 0.1)', color: test.lab.isVerified ? 'var(--primary-hover)' : '#ca8a04', borderRadius: '100px', fontSize: '0.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                                 {test.lab.isVerified ? 'Premium NABL' : 'Community Discovery'}
                                                             </span>
+                                                            {test.lab?.accuracyScore !== undefined && (
+                                                                <span style={{
+                                                                    padding: '0.2rem 0.6rem',
+                                                                    background: test.lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (test.lab.accuracyScore >= 75 ? '#ca8a04' : '#d97706'),
+                                                                    color: 'white',
+                                                                    borderRadius: '100px',
+                                                                    fontSize: '0.6rem',
+                                                                    fontWeight: '900',
+                                                                    textTransform: 'uppercase',
+                                                                    letterSpacing: '0.5px'
+                                                                }}>
+                                                                    {test.lab.accuracyScore}% ACCURATE
+                                                                </span>
+                                                            )}
                                                             <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                                 <MapPin size={11} /> {test.lab.city}
                                                             </span>

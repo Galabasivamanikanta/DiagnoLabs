@@ -234,28 +234,9 @@ const NearbySearch = () => {
                             height: '100%',
                             border: lab.category === 'Premium' ? '1px solid rgba(245, 158, 11, 0.4)' : (lab.category === 'Scalable' ? '1px solid rgba(148, 163, 184, 0.4)' : '1px solid rgba(194, 65, 12, 0.3)')
                         }}>
-                            {/* High-Accuracy Label Overlay */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '20px', right: '20px',
-                                background: lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (lab.accuracyScore >= 75 ? '#ca8a04' : 'var(--warning)'),
-                                color: 'white',
-                                padding: '4px 0',
-                                width: '130px',
-                                textAlign: 'center',
-                                whiteSpace: 'nowrap',
-                                borderRadius: '100px',
-                                fontSize: '0.75rem',
-                                fontWeight: '900',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                zIndex: 1010
-                            }}>
-                                {lab.accuracyScore}% ACCURATE
-                            </div>
-
                             {/* Trust & Status Row */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                     {lab.category && (
                                         <div style={{ 
                                             padding: '0.4rem 0.8rem', 
@@ -285,6 +266,19 @@ const NearbySearch = () => {
                                     }}>
                                         <ShieldCheck size={14} /> {lab.isVerified ? 'NABL Partner' : 'Community Discovery'}
                                     </div>
+                                    {lab.accuracyScore !== undefined && (
+                                        <div style={{
+                                            background: lab.accuracyScore >= 90 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : (lab.accuracyScore >= 75 ? '#ca8a04' : '#d97706'),
+                                            color: 'white',
+                                            padding: '0.4rem 0.8rem',
+                                            borderRadius: '100px',
+                                            fontSize: '0.65rem',
+                                            fontWeight: '900',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                        }}>
+                                            {lab.accuracyScore}% ACCURATE
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ 
                                     display: 'flex', 
