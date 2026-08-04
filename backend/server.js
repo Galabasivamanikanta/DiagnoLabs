@@ -253,10 +253,17 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message || "An internal server error occurred." });
 });
 
-// ------------------------------------------------
+// DATABASE CONNECTION & SERVER STARTUP
+const startServer = async () => {
+    await connectDB();
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[GATEWAY] DiagnoLabs Clinical Services Active on Port ${PORT}`);
-});
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`[GATEWAY] DiagnoLabs Clinical Services Active on Port ${PORT}`);
+    });
+};
+
+startServer();
 
 module.exports = app;
+
+
