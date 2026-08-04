@@ -21,6 +21,9 @@ dotenv.config();
 
 const app = express();
 
+// Trust reverse proxy for accurate IP tracking in rate limiters (Render/Cloudflare)
+app.set('trust proxy', 1);
+
 app.disable('x-powered-by');
 
 const PORT = process.env.PORT || 5000;
