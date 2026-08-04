@@ -1,29 +1,29 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns');
 
-// Force Node.js DNS resolution policy to IPv4 first globally
-if (dns.setDefaultResultOrder) {
-    dns.setDefaultResultOrder('ipv4first');
+// Configure Google Public DNS for reliable IPv4 resolution on Cloud Containers
+try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+    if (dns.setDefaultResultOrder) {
+        dns.setDefaultResultOrder('ipv4first');
+    }
+} catch (e) {
+    console.warn("DNS Server override notice:", e.message);
 }
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // Use STARTTLS on Port 587 for Cloud Hosting compatibility
-    auth: {
-        user: (process.env.EMAIL_USER || '').trim(),
-        pass: (process.env.EMAIL_PASS || '').replace(/\s+/g, '')
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    lookup: (hostname, options, callback) => {
-        dns.lookup(hostname, { family: 4 }, callback);
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000
-});
+// Dynamically resolve Gmail SMTP IPv4 address to bypass Cloud IPv6 routing errors
+const getGmailIpv4Host = () => {
+    return new Promise((resolve) => {
+        dns.resolve4('smtp.gmail.com', (err, addresses) => {
+            if (!err && addresses && addresses.length > 0) {
+                resolve(addresses[0]);
+            } else {
+                resolve('192.178.211.108'); // High-availability Gmail IPv4 fallback
+            }
+        });
+    });
+};
+
 
 
 
@@ -111,8 +111,27 @@ const sendEmail = async (to, subject, text, html) => {
             return { success: false, error: "EMAIL_USER or EMAIL_PASS environment variable is not configured on the backend server." };
         }
 
+        const gmailIp = await getGmailIpv4Host();
+
+        const transporter = nodemailer.createTransport({
+            host: gmailIp,
+            port: 587,
+            secure: false, // STARTTLS
+            auth: {
+                user: (process.env.EMAIL_USER || '').trim(),
+                pass: (process.env.EMAIL_PASS || '').replace(/\s+/g, '')
+            },
+            tls: {
+                servername: 'smtp.gmail.com', // SSL cert hostname match
+                rejectUnauthorized: false
+            },
+            connectionTimeout: 12000,
+            greetingTimeout: 12000,
+            socketTimeout: 12000
+        });
+
         const mailOptions = {
-            from: `"DiagnoLabs Diagnostics" <${process.env.EMAIL_USER}>`,
+            from: `"DiagnoLabs Diagnostics" <${process.env.EMAIL_USER.trim()}>`,
             to,
             subject,
             text,
@@ -127,6 +146,7 @@ const sendEmail = async (to, subject, text, html) => {
         return { success: false, error: error.message };
     }
 };
+
 
 
 
