@@ -414,7 +414,7 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
         const emailHtml = `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
           <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-bottom: 4px solid #0a1e46;">
-            <img src="\${frontendUrl}/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
+            <img src="https://diagnolabs-platform.vercel.app/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
           </div>
           <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
             <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Welcome to the Team, ${name}!</h2>
@@ -661,7 +661,7 @@ router.post('/admin-recover', async (req, res) => {
         const emailHtml = `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
           <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-bottom: 4px solid #0a1e46;">
-            <img src="\${frontendUrl}/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
+            <img src="https://diagnolabs-platform.vercel.app/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
           </div>
           <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
             <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Account Recovered</h2>
