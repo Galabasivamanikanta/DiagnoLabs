@@ -81,7 +81,8 @@ export const AuthProvider = ({ children }) => {
             return { success: true, user: userData };
         } catch (err) {
             console.error("Google login failed", err);
-            return { success: false, message: "Google Authentication failed" };
+            const errMsg = err.response?.data?.message || err.response?.data?.error || "Google Authentication failed. Please try again.";
+            return { success: false, message: errMsg };
         }
     };
 

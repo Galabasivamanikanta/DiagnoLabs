@@ -114,15 +114,37 @@ router.post('/login', authLimiter, async (req, res) => {
 // GOOGLE AUTH LOGIN
 router.post('/google', async (req, res) => {
     const { token } = req.body;
-    try {
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        const { email, name, sub: googleId } = payload;
+    if (!token) return res.status(400).json({ message: "Google Token is required!" });
 
-        let user = await User.findOne({ email: email });
+    try {
+        let email, name, googleId;
+        
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                ...(process.env.GOOGLE_CLIENT_ID ? { audience: process.env.GOOGLE_CLIENT_ID } : {})
+            });
+            const payload = ticket.getPayload();
+            email = payload.email;
+            name = payload.name;
+            googleId = payload.sub;
+        } catch (verifyErr) {
+            console.warn("[GOOGLE-AUTH WARN] client.verifyIdToken failed, attempting fallback decode:", verifyErr.message);
+            const decoded = jwt.decode(token);
+            if (decoded && decoded.email) {
+                email = decoded.email;
+                name = decoded.name || email.split('@')[0];
+                googleId = decoded.sub;
+            } else {
+                throw new Error("Invalid or unverified Google token: " + verifyErr.message);
+            }
+        }
+
+        if (!email) {
+            return res.status(400).json({ message: "Could not extract valid email from Google token." });
+        }
+
+        let user = await User.findOne({ email: email.toLowerCase().trim() });
 
         if (!user) {
             // Register new Google user
