@@ -5,7 +5,7 @@ import {
     Droplets, Thermometer, Zap, HeartPulse, ShieldCheck, ArrowRight,
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     ClipboardList, CreditCard, BookOpen, Stethoscope, Package, Landmark,
-    Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck
+    Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -348,6 +348,44 @@ const ChatBot = () => {
             alert("Failed to create ticket. Please try again.");
         } finally {
             setIsReporting(false);
+        }
+    };
+
+    const [activeFeedbackMsgId, setActiveFeedbackMsgId] = useState(null);
+    const [feedbackInput, setFeedbackInput] = useState('');
+
+    const handleRating = async (msgId, isPositive, promptText) => {
+        if (!isPositive && activeFeedbackMsgId !== msgId) {
+            setActiveFeedbackMsgId(msgId);
+            return; // Open input box for negative feedback
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(`${API_BASE_URL}/api/chat/rate-response`, {
+                messageId: msgId,
+                isPositive,
+                promptText,
+                feedbackText: feedbackInput
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Show feedback success briefly
+            setMessages(prev => prev.map(m => 
+                m.id === msgId ? { ...m, rating: isPositive ? 'up' : 'down', feedbackSuccess: true } : m
+            ));
+
+            setTimeout(() => {
+                setMessages(prev => prev.map(m => 
+                    m.id === msgId ? { ...m, feedbackSuccess: false } : m
+                ));
+            }, 3000);
+            
+            setActiveFeedbackMsgId(null);
+            setFeedbackInput('');
+        } catch (err) {
+            console.error("Failed to submit feedback", err);
         }
     };
 
@@ -703,6 +741,44 @@ const ChatBot = () => {
 
                                     {msg.action && !msg.action.startsWith('BOOK:') && (
                                         <ActionBanner action={msg.action} onAction={handleAction} />
+                                    )}
+
+                                    {/* AI RLHF Feedback UI */}
+                                    {msg.sender === 'bot' && !msg.isError && msg.id > 1 && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.4rem', paddingLeft: '0.5rem' }}>
+                                            {!msg.rating && !msg.feedbackSuccess && activeFeedbackMsgId !== msg.id && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                                    <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: '600' }}>Rate this response:</span>
+                                                    <button onClick={() => handleRating(msg.id, true, msg.text.substring(0, 50))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#cbd5e1' }} title="Good response (Trains AI)">
+                                                        <ThumbsUp size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleRating(msg.id, false, msg.text.substring(0, 50))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem', color: '#cbd5e1' }} title="Bad response (Provide Correction)">
+                                                        <ThumbsDown size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {activeFeedbackMsgId === msg.id && (
+                                                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="What should be the correct answer?" 
+                                                        value={feedbackInput} 
+                                                        onChange={e => setFeedbackInput(e.target.value)}
+                                                        autoFocus
+                                                        style={{ flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                                                    />
+                                                    <button onClick={() => handleRating(msg.id, false, msg.text.substring(0, 50))} style={{ padding: '0.4rem 0.6rem', background: '#003366', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Train AI</button>
+                                                    <X size={16} color="#94a3b8" cursor="pointer" onClick={() => setActiveFeedbackMsgId(null)} />
+                                                </motion.div>
+                                            )}
+
+                                            {msg.feedbackSuccess && (
+                                                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: '0.65rem', color: msg.rating === 'up' ? '#16a34a' : '#0284c7', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <CheckCircle2 size={12} /> {msg.rating === 'up' ? '+1 AI Confidence Reinforced' : 'AI Pattern Updated'}
+                                                </motion.span>
+                                            )}
+                                        </div>
                                     )}
                                 </motion.div>
                             ))}
