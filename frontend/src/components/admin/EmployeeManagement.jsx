@@ -142,7 +142,8 @@ const EmployeeManagement = () => {
                 otp: otp
             });
             if (res.status === 200) {
-                setStep(3);
+                // OTP is verified, directly submit to backend (password is auto-generated in backend)
+                await handleSubmit({ preventDefault: () => {} });
             } else {
                 setOtpError("Invalid OTP. Please try again.");
             }
@@ -155,7 +156,7 @@ const EmployeeManagement = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         
         
 
@@ -197,7 +198,7 @@ const EmployeeManagement = () => {
             phone: emp.phone,
             role: emp.role
         });
-        setStep(3); // Skip OTP phase during edit mode
+        setStep(1); // During edit mode, remain on step 1 to edit metadata
         setShowModal(true);
     };
 
@@ -461,73 +462,6 @@ const EmployeeManagement = () => {
                                         </div>
                                     )}
 
-                                    {/* ── STEP 3: SET PASSWORD ── */}
-                                    {step === 3 && (
-                                        <>
-                                            {/* Verification Badge (Only if created new user and bypassed step 1&2) */}
-                                            {!editMode && (
-                                                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#065f46', fontSize: '0.8rem', fontWeight: '700' }}>
-                                                    <CheckCircle size={16} /> Email verified successfully. Please configure credentials.
-                                                </div>
-                                            )}
-
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>
-                                                    {editMode ? 'New Password (optional)' : 'Password'}
-                                                </label>
-                                                <div style={{ position: 'relative' }}>
-                                                    <input
-                                                        type={showPassword ? "text" : "password"}
-                                                        style={{ width: '100%', padding: '0.8rem 1rem', paddingRight: '2.5rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
-                                                        name="password"
-                                                        value={formData.password}
-                                                        onChange={handleInputChange}
-                                                        required={!editMode}
-                                                        placeholder={editMode ? "Leave blank to keep current password" : "Min. 6 characters"}
-                                                    />
-                                                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {!editMode && (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                                    <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Confirm Password</label>
-                                                    <div style={{ position: 'relative' }}>
-                                                        <input
-                                                            type={showConfirmPassword ? "text" : "password"}
-                                                            style={{ width: '100%', padding: '0.8rem 1rem', paddingRight: '2.5rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem' }}
-                                                            value={confirmPassword}
-                                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                                            required
-                                                            placeholder="Confirm your password"
-                                                        />
-                                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {editMode && (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                                    <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase' }}>Choose Role</label>
-                                                    <select
-                                                        style={{ width: '100%', padding: '0.8rem 1rem', border: '1px solid #cbd5e1', borderRadius: '10px', outline: 'none', fontSize: '0.95rem', background: 'white' }}
-                                                        name="role"
-                                                        value={formData.role}
-                                                        onChange={handleInputChange}
-                                                    >
-                                                        {ROLES.map(r => (
-                                                            <option key={r.value} value={r.value}>{r.label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-
                                 </div>
 
                                 <div style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
@@ -542,17 +476,15 @@ const EmployeeManagement = () => {
                                         </button>
                                     )}
 
-
-
-                                    {step === 2 && (
-                                        <button type="button" onClick={handleVerifyOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white' }}>
-                                            {verifying ? 'Verifying...' : 'Next Step'}
+                                    {step === 1 && editMode && (
+                                        <button type="button" onClick={(e) => handleSubmit(e)} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white' }}>
+                                            Save Metadata
                                         </button>
                                     )}
 
-                                    {step === 3 && (
-                                        <button type="submit" style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white' }}>
-                                            {editMode ? 'Save Metadata' : 'Register Employee'}
+                                    {step === 2 && (
+                                        <button type="button" onClick={handleVerifyOtp} disabled={verifying} style={{ padding: '0.75rem 1.5rem', border: 'none', borderRadius: '10px', background: '#003366', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', color: 'white' }}>
+                                            {verifying ? 'Verifying...' : 'Verify & Register Employee'}
                                         </button>
                                     )}
                                 </div>
