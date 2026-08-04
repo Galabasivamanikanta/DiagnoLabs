@@ -6,7 +6,8 @@ import App from './App.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Use environment variable or default project Google Client ID
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "194235670787-fsmgv6gqkm7hu6upn7qk79kcph7iu5p6.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1039843577523-740slld5cn3ihke92r5r1rcs0a42gb6s.apps.googleusercontent.com";
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
