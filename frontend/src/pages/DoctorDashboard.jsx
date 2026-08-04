@@ -1,234 +1,287 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// Assuming API_BASE_URL is exported from '../config'
-// import { API_BASE_URL } from '../config';
-
-const API_BASE_URL = 'http://localhost:5000'; // fallback
+import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
+import { 
+    Stethoscope, FileText, AlertTriangle, MessageSquare, CheckCircle, 
+    Clock, Search, User, ShieldCheck, Send, AlertCircle, LogOut, ChevronRight, X
+} from 'lucide-react';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('patients');
-  const [patients, setPatients] = useState([]);
-  const [testResults, setTestResults] = useState([]);
-  const [selectedResult, setSelectedResult] = useState(null);
+  const { user, logout } = useContext(AuthContext);
 
-  useEffect(() => {
-    // Fetch patients
-    axios.get(`${API_BASE_URL}/api/employee/doctor/patients`)
-      .then(res => setPatients(res.data))
-      .catch(() => {
-        // Fallback mock data
-        setPatients([
-          { id: 1, name: 'Alice Smith', testType: 'Blood Panel', status: 'Waiting' },
-          { id: 2, name: 'Bob Johnson', testType: 'MRI', status: 'In Progress' }
-        ]);
-      });
+  const [activeTab, setActiveTab] = useState('queue'); // 'queue', 'bot-escalations', 'patients', 'prescriptions'
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedBotChat, setSelectedBotChat] = useState(null);
+  const [interpretationNote, setInterpretationNote] = useState('');
+  const [classification, setClassification] = useState('Normal');
+  const [docReply, setDocReply] = useState('');
 
-    // Fetch test results
-    axios.get(`${API_BASE_URL}/api/employee/doctor/test-results`)
-      .then(res => setTestResults(res.data))
-      .catch(() => {
-        setTestResults([
-          { id: 101, patient: 'Charlie Brown', test: 'Complete Blood Count', result: 'Normal', date: '2026-08-04' },
-          { id: 102, patient: 'Diana Prince', test: 'Lipid Panel', result: 'High Cholesterol', date: '2026-08-03' }
-        ]);
-      });
-  }, []);
+  // Mock Data for Doctor Priority Queue
+  const [reportsQueue, setReportsQueue] = useState([
+    { id: 'REP-401', patient: 'Charlie Brown', age: 45, gender: 'Male', test: 'Complete Blood Count (CBC)', status: 'CRITICAL', date: '2026-08-04', urgent: true, consent: true, keyFindings: 'Hemoglobin 6.8 g/dL (Severely Low), Platelets 85,000 /uL' },
+    { id: 'REP-402', patient: 'Diana Prince', age: 34, gender: 'Female', test: 'Lipid Profile & HbA1c', status: 'ABNORMAL', date: '2026-08-04', urgent: false, consent: true, keyFindings: 'HbA1c 8.4% (Uncontrolled Diabetes), Total Cholesterol 260 mg/dL' },
+    { id: 'REP-403', patient: 'Edward Nygma', age: 52, gender: 'Male', test: 'Thyroid Function Test (T3, T4, TSH)', status: 'NORMAL', date: '2026-08-04', urgent: false, consent: true, keyFindings: 'TSH 2.4 uIU/mL, Free T4 1.2 ng/dL' }
+  ]);
+
+  // AI Chatbot Escalations needing Doctor review
+  const [chatEscalations, setChatEscalations] = useState([
+    { id: 'ESC-881', patient: 'Siddharth Rao', time: '10 mins ago', userQuery: 'I have sharp chest pain on the left side radiating to my arm. What should I do?', aiResponse: 'This requires immediate medical attention. Escalating your query to our Chief Physician.', status: 'Pending Review', symptoms: 'Chest pain, Numbness' },
+    { id: 'ESC-882', patient: 'Anita Sharma', time: '35 mins ago', userQuery: 'My HbA1c is 9.2%. Do I need insulin adjustment right away?', aiResponse: 'High blood sugar detected. Escalated to Endocrinology Specialist for review.', status: 'Pending Review', symptoms: 'High Blood Sugar' }
+  ]);
+
+  const [patients] = useState([
+    { id: 'P-101', name: 'Charlie Brown', phone: '+91 98765 11223', consent: true, totalTests: 4, lastConsultation: '2026-08-04' },
+    { id: 'P-102', name: 'Diana Prince', phone: '+91 98765 33445', consent: true, totalTests: 2, lastConsultation: '2026-08-02' }
+  ]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     navigate('/adminlogin');
   };
 
-  return (
-    <div style={styles.container}>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-          
-          :root {
-            --color-navy: #0a1e46;
-            --color-navy-light: #153268;
-            --color-gold: #d4af37;
-            --color-gold-hover: #b8962d;
-            --text-light: #f0f4f8;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(212, 175, 55, 0.2);
-          }
-          
-          * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-          body { margin: 0; background-color: var(--color-navy); color: var(--text-light); }
-          
-          .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-          .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          }
-          
-          .btn {
-            background: var(--color-gold);
-            color: var(--color-navy);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-          }
-          .btn:hover { background: var(--color-gold-hover); }
-          .btn-outline {
-            background: transparent;
-            color: var(--color-gold);
-            border: 1px solid var(--color-gold);
-          }
-          .btn-outline:hover { background: rgba(212, 175, 55, 0.1); }
-          
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-          th { color: var(--color-gold); font-weight: 600; }
-          tr:hover { background: rgba(255, 255, 255, 0.02); }
-        `}
-      </style>
+  const submitReportReview = (e) => {
+    e.preventDefault();
+    alert(`Medical Interpretation submitted for ${selectedReport.patient}! Classification: [${classification}]. Patient notified via email.`);
+    setReportsQueue(prev => prev.map(r => r.id === selectedReport.id ? { ...r, status: classification, reviewed: true } : r));
+    setSelectedReport(null);
+    setInterpretationNote('');
+  };
 
+  const resolveChatEscalation = (id) => {
+    alert(`Doctor response transmitted to patient. Chat Escalation [${id}] resolved.`);
+    setChatEscalations(prev => prev.filter(c => c.id !== id));
+    setSelectedBotChat(null);
+    setDocReply('');
+  };
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Sidebar */}
-      <aside style={styles.sidebar}>
-        <div style={styles.profile}>
-          <div style={styles.avatar}>Dr</div>
-          <h3 style={{ margin: '10px 0 5px' }}>Dr. Sarah Jenkins</h3>
-          <span style={styles.badge}>Chief Physician</span>
+      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Stethoscope size={24} color="#003366" />
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+          </div>
+          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Physician Portal</span>
         </div>
-        <nav style={styles.nav}>
-          {['Dashboard', 'Patients', 'Test Results', 'Prescriptions', 'Schedule', 'Reports'].map(item => (
-            <a key={item} href="#" style={styles.navLink}>{item}</a>
-          ))}
-          <a href="#" onClick={handleLogout} style={{...styles.navLink, color: '#ff6b6b', marginTop: 'auto'}}>Logout</a>
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+          <button 
+            onClick={() => setActiveTab('queue')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'queue' ? '#f0f7ff' : 'transparent', color: activeTab === 'queue' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <FileText size={18} /> Priority Report Queue ({reportsQueue.filter(r => !r.reviewed).length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('bot-escalations')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'bot-escalations' ? '#f0f7ff' : 'transparent', color: activeTab === 'bot-escalations' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <MessageSquare size={18} /> AI Chat Escalations ({chatEscalations.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('patients')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'patients' ? '#f0f7ff' : 'transparent', color: activeTab === 'patients' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <User size={18} /> My Patients Timeline
+          </button>
         </nav>
+
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
+            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'Dr. Sarah Jenkins'}</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Reg #MCI-88902 • Chief Physician</div>
+          </div>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main style={styles.main}>
-        {/* Header */}
-        <header style={styles.header}>
+      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        {/* Top Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '24px' }}>Welcome back, Dr. Jenkins</h1>
-            <p style={{ margin: '5px 0 0', opacity: 0.8 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Review Workspace</h1>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Dr. Jenkins. Medical HIPAA Audit Logging is Active.</p>
           </div>
-          <div style={styles.bell}>🔔</div>
-        </header>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '100px', fontWeight: '800', fontSize: '0.8rem' }}>
+            <ShieldCheck size={16} /> Patient Consent Enforcement Active
+          </div>
+        </div>
 
-        {/* Stats Row */}
-        <div style={styles.statsRow}>
-          {[
-            { label: "Today's Patients", value: '24' },
-            { label: 'Pending Reports', value: '7' },
-            { label: 'Prescriptions Issued', value: '18' },
-            { label: 'Appointments', value: '6' }
-          ].map((stat, i) => (
-            <div key={i} className="glass-card" style={styles.statCard}>
-              <h4 style={{ margin: '0 0 10px', color: 'var(--color-gold)', fontWeight: 400 }}>{stat.label}</h4>
-              <h2 style={{ margin: 0, fontSize: '32px' }}>{stat.value}</h2>
+        {/* Top KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Reports Pending Review</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{reportsQueue.filter(r => !r.reviewed).length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #fee2e2', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>Flagged Critical Results</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>{reportsQueue.filter(r => r.status === 'CRITICAL').length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>AI Chatbot Escalations</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#d97706', marginTop: '6px' }}>{chatEscalations.length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Total Patients Reviewed</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>142</div>
+          </div>
+        </div>
+
+        {/* Priority Report Queue */}
+        {activeTab === 'queue' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Priority Lab Report Review Queue (Urgency Sorted)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Report ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Diagnostic Test</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Key Findings</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Urgency Level</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportsQueue.map(r => (
+                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: r.status === 'CRITICAL' ? '#fff5f5' : 'white' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{r.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{r.patient} <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({r.age}y / {r.gender})</span></td>
+                    <td style={{ padding: '12px', color: '#334155' }}>{r.test}</td>
+                    <td style={{ padding: '12px', color: r.status === 'CRITICAL' ? '#dc2626' : '#475569', fontWeight: r.status === 'CRITICAL' ? '700' : '400' }}>{r.keyFindings}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ 
+                        padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800',
+                        background: r.status === 'CRITICAL' ? '#fee2e2' : (r.status === 'ABNORMAL' ? '#fef3c7' : '#dcfce7'),
+                        color: r.status === 'CRITICAL' ? '#dc2626' : (r.status === 'ABNORMAL' ? '#92400e' : '#15803d'),
+                        border: r.status === 'CRITICAL' ? '1px solid #fca5a5' : 'none'
+                      }}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <button onClick={() => setSelectedReport(r)} style={{ padding: '6px 14px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                        Review Report
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* AI Chatbot Escalations */}
+        {activeTab === 'bot-escalations' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>AI Medical Health Chatbot Escalation Stream</h3>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>Patient conversations flagged for physician review due to urgent symptoms or complex clinical queries.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {chatEscalations.map(esc => (
+                <div key={esc.id} style={{ border: '1px solid #e2e8f0', borderRadius: '14px', padding: '18px', background: '#f8fafc' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: '800', color: '#003366', fontSize: '0.95rem' }}>{esc.patient}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{esc.time}</span>
+                  </div>
+                  <div style={{ background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', marginBottom: '10px' }}>
+                    User Query: "{esc.userQuery}"
+                  </div>
+                  <div style={{ background: '#f0f7ff', color: '#003366', padding: '8px 12px', borderRadius: '8px', fontSize: '0.8rem', marginBottom: '14px' }}>
+                    AI Response: "{esc.aiResponse}"
+                  </div>
+                  <button onClick={() => setSelectedBotChat(esc)} style={{ padding: '8px 16px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                    Respond & Resolve Escalation
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Tabs Content */}
-        <div className="glass-card" style={{ marginTop: '30px' }}>
-          <div style={styles.tabs}>
-            <button 
-              style={activeTab === 'patients' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('patients')}
-            >Patients Today</button>
-            <button 
-              style={activeTab === 'results' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('results')}
-            >Test Results</button>
-            <button 
-              style={activeTab === 'prescriptions' ? styles.activeTab : styles.tab}
-              onClick={() => setActiveTab('prescriptions')}
-            >Prescriptions</button>
           </div>
+        )}
 
-          <div style={{ paddingTop: '20px' }}>
-            {activeTab === 'patients' && (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Patient Name</th>
-                    <th>Test Type</th>
-                    <th>Status</th>
-                    <th>Action</th>
+        {/* Patient Timeline */}
+        {activeTab === 'patients' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Patient Directory (Consent Verified)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Patient ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Consent Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Total Tests</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Last Consultation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {patients.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{p.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{p.name}</td>
+                    <td style={{ padding: '12px' }}><span style={{ padding: '4px 10px', background: '#dcfce7', color: '#166534', borderRadius: '100px', fontWeight: '800', fontSize: '0.75rem' }}>Active Consent</span></td>
+                    <td style={{ padding: '12px' }}>{p.totalTests}</td>
+                    <td style={{ padding: '12px' }}>{p.lastConsultation}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {patients.map(p => (
-                    <tr key={p.id}>
-                      <td>{p.name}</td>
-                      <td>{p.testType}</td>
-                      <td><span style={styles.statusBadge}>{p.status}</span></td>
-                      <td><button className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '12px' }}>View</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {activeTab === 'results' && (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Patient</th>
-                    <th>Test</th>
-                    <th>Result</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {testResults.map(r => (
-                    <tr key={r.id}>
-                      <td>{r.patient}</td>
-                      <td>{r.test}</td>
-                      <td style={{ color: r.result.includes('High') ? '#ff6b6b' : '#51cf66' }}>{r.result}</td>
-                      <td>{r.date}</td>
-                      <td><button className="btn" onClick={() => setSelectedResult(r)} style={{ padding: '4px 10px', fontSize: '12px' }}>Review</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            
-            {activeTab === 'prescriptions' && (
-               <div>
-                  <p style={{opacity: 0.7}}>No recent prescriptions to display.</p>
-               </div>
-            )}
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
       </main>
 
-      {/* Modal */}
-      {selectedResult && (
-        <div style={styles.modalOverlay}>
-          <div className="glass-card" style={styles.modal}>
-            <h2 style={{ color: 'var(--color-gold)', marginTop: 0 }}>Review Test Result</h2>
-            <div style={{ margin: '20px 0' }}>
-              <p><strong>Patient:</strong> {selectedResult.patient}</p>
-              <p><strong>Test:</strong> {selectedResult.test}</p>
-              <p><strong>Result:</strong> <span style={{ color: selectedResult.result.includes('High') ? '#ff6b6b' : '#51cf66' }}>{selectedResult.result}</span></p>
-              <p><strong>Date:</strong> {selectedResult.date}</p>
+      {/* Report Review & Annotation Modal */}
+      {selectedReport && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '640px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, color: '#0f172a', fontWeight: '800' }}>Clinical Interpretation: {selectedReport.patient}</h3>
+              <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button className="btn btn-outline" onClick={() => setSelectedResult(null)}>Close</button>
-              <button className="btn" onClick={() => setSelectedResult(null)}>Acknowledge</button>
+            
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '14px', borderRadius: '12px', marginBottom: '16px', fontSize: '0.85rem' }}>
+              <div><strong>Test:</strong> {selectedReport.test}</div>
+              <div style={{ marginTop: '4px' }}><strong>Key Findings:</strong> {selectedReport.keyFindings}</div>
+            </div>
+
+            <form onSubmit={submitReportReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>CLASSIFICATION</label>
+                <select value={classification} onChange={e => setClassification(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', background: 'white' }}>
+                  <option value="Normal">Normal</option>
+                  <option value="Abnormal">Abnormal (Follow-up Recommended)</option>
+                  <option value="CRITICAL">CRITICAL (Immediate Urgent Care Alert)</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>PHYSICIAN INTERPRETATION & RECOMMENDATIONS</label>
+                <textarea required rows="4" value={interpretationNote} onChange={e => setInterpretationNote(e.target.value)} placeholder="Add clinical guidance, prescribed dosage, or recommended follow-up tests..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }}></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setSelectedReport(null)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Submit Interpretation</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* AI Bot Escalation Response Modal */}
+      {selectedBotChat && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '520px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 14px', color: '#0f172a', fontWeight: '800' }}>Respond to AI Chat Escalation</h3>
+            <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '14px' }}>Patient: <strong>{selectedBotChat.patient}</strong> | Query: "{selectedBotChat.userQuery}"</p>
+            <textarea rows="4" value={docReply} onChange={e => setDocReply(e.target.value)} placeholder="Type official physician guidance to send directly to patient chat..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}></textarea>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+              <button type="button" onClick={() => setSelectedBotChat(null)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+              <button type="button" onClick={() => resolveChatEscalation(selectedBotChat.id)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Send Advice & Close</button>
             </div>
           </div>
         </div>
@@ -237,25 +290,5 @@ const DoctorDashboard = () => {
   );
 };
 
-const styles = {
-  container: { display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-navy)' },
-  sidebar: { width: '250px', background: 'rgba(0,0,0,0.2)', padding: '30px 20px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--glass-border)' },
-  profile: { textAlign: 'center', marginBottom: '40px' },
-  avatar: { width: '80px', height: '80px', borderRadius: '50%', background: 'var(--color-gold)', color: 'var(--color-navy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', margin: '0 auto' },
-  badge: { background: 'rgba(212,175,55,0.2)', color: 'var(--color-gold)', padding: '4px 10px', borderRadius: '12px', fontSize: '12px' },
-  nav: { display: 'flex', flexDirection: 'column', gap: '15px', flex: 1 },
-  navLink: { color: 'var(--text-light)', textDecoration: 'none', padding: '10px 15px', borderRadius: '8px', transition: 'background 0.3s', fontWeight: 500, ':hover': { background: 'var(--glass-bg)' } },
-  main: { flex: 1, padding: '40px', overflowY: 'auto' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' },
-  bell: { background: 'var(--glass-bg)', padding: '10px', borderRadius: '50%', cursor: 'pointer', border: '1px solid var(--glass-border)' },
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' },
-  statCard: { textAlign: 'center' },
-  tabs: { display: 'flex', gap: '20px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' },
-  tab: { background: 'none', border: 'none', color: 'var(--text-light)', opacity: 0.6, fontSize: '16px', fontWeight: 600, cursor: 'pointer', padding: '10px 5px' },
-  activeTab: { background: 'none', border: 'none', color: 'var(--color-gold)', borderBottom: '2px solid var(--color-gold)', fontSize: '16px', fontWeight: 600, cursor: 'pointer', padding: '10px 5px' },
-  statusBadge: { background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' },
-  modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 30, 70, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { width: '400px', maxWidth: '90%' }
-};
-
 export default DoctorDashboard;
+
