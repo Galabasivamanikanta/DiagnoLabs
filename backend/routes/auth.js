@@ -6,6 +6,16 @@ const jwt = require('jsonwebtoken');
 const { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../middleware/auth');
 const { sendCustomerIdNotification } = require('../services/customerIdNotification');
 const { sendEmail } = require('../services/mailService');
+const rateLimit = require('express-rate-limit');
+
+// Strict Auth Limiter: Max 10 requests per 15 minutes per IP
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 10,
+    message: "Too many login attempts from this IP, please try again after 15 minutes.",
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const { sendVerificationOTP, verifyOTP, clearOTP } = require('../services/otpService');
@@ -19,8 +29,8 @@ const generatePassword = () => {
     return Math.random().toString(36).slice(-8);
 };
 
-// REGISTER USER
-router.post('/register', async (req, res) => {
+// REGISTER (Only Patients)
+router.post('/register', authLimiter, async (req, res) => {
     try {
         let role = 'patient';
         if (req.body.email && req.body.email.endsWith('@DiagnoLabs.ac.in')) {
@@ -67,8 +77,8 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// LOGIN USER
-router.post('/login', async (req, res) => {
+// LOGIN (Patient & Admin via MongoDB)
+router.post('/login', authLimiter, async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email });
         if (!user) return res.status(401).json("Wrong credentials!");
@@ -327,8 +337,8 @@ router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
 // ADMIN PROVISIONING & LOGIN (MISSION SECRET)
 // ==========================================
 
-// ADMIN PROVISION NEW STAFF
-router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
+// REGISTER ADMIN / STAFF (Restricted to authenticated Admins only)
+router.post('/admin-register', verifyTokenAndAdmin, authLimiter, async (req, res) => {
     try {
         const { name, email, phone, role } = req.body;
         
@@ -470,7 +480,7 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
 
 // STAFF / ADMIN LOGIN (PostgreSQL admins table + MongoDB Hybrid Engine)
-router.post('/admin-login', async (req, res) => {
+router.post('/admin-login', authLimiter, async (req, res) => {
     try {
         const { employeeId, password } = req.body;
         

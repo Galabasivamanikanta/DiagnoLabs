@@ -13,6 +13,9 @@ const dotenv = require('dotenv');
 const path = require('path');
 const http = require('http');
 const { Server } = require("socket.io");
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 
 dotenv.config();
 
@@ -42,7 +45,22 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// SECURITY MIDDLEWARE
+app.use(helmet());
+
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 200, // Limit each IP to 200 requests per `window` (here, per 15 minutes)
+    message: "Too many requests from this IP, please try again after 15 minutes",
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
+app.use(globalLimiter);
+
 app.use(express.json({ limit: '10mb' }));
+
+// NoSQL Injection Protection
+app.use(mongoSanitize());
 
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url}`);

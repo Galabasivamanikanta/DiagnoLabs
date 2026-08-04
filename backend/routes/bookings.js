@@ -86,6 +86,11 @@ router.get('/my-lab', verifyToken, async (req, res) => {
 
 // GET LAB'S BOOKINGS (For Lab Partner Dashboard)
 router.get('/lab/:labId', verifyToken, async (req, res) => {
+    // SECURITY PATCH: Block normal patients from fetching lab bookings (IDOR Protection)
+    if (req.user.role === 'patient') {
+        return res.status(403).json("Access Denied: Only authorized staff and lab partners can view this data.");
+    }
+    
     try {
         let bookings = [];
         const mongoose = require('mongoose');
