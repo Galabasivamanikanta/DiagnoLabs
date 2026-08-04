@@ -27,9 +27,7 @@ router.post('/register', async (req, res) => {
             role = 'admin';
         }
 
-        // HASH THE PASSWORD
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+        // PASSWORD WILL BE HASHED BY MONGOOSE PRE-SAVE HOOK
 
         // GENERATE UNIQUE CUSTOMER ID: DL-[YEAR][MONTH]-[2 CHARS]
         // Pattern: DL-202607-Ab  (Reg Year + Reg Month + 2 random characters)
@@ -52,10 +50,11 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             name: req.body.name,
             email: req.body.email,
-            password: hashedPassword,
+            password: req.body.password, // Pre-save hook hashes this
             phone: req.body.phone,
             role: role,
-            customerId
+            customerId,
+            isVerified: true
         });
         const savedUser = await newUser.save();
         
