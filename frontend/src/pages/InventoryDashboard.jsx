@@ -1,249 +1,387 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
+import { 
+    Package, AlertTriangle, Truck, Download, Plus, Check, X, 
+    Search, Filter, ShoppingCart, Clock, CheckCircle2, AlertCircle, LogOut
+} from 'lucide-react';
 
 const InventoryDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Stock Overview');
-  const [stock, setStock] = useState([]);
-  
-  const mockStock = [
-    { id: 1, name: 'Latex Gloves (Medium)', category: 'PPE', quantity: 450, minLevel: 200, status: 'OK' },
-    { id: 2, name: 'Syringes 5ml', category: 'Consumables', quantity: 150, minLevel: 200, status: 'Low' },
-    { id: 3, name: 'Blood Collection Tubes (Red)', category: 'Tubes', quantity: 20, minLevel: 100, status: 'Critical' },
-    { id: 4, name: 'Isopropyl Alcohol Pads', category: 'Consumables', quantity: 800, minLevel: 300, status: 'OK' },
-    { id: 5, name: 'Microscope Slides', category: 'Lab Supplies', quantity: 50, minLevel: 100, status: 'Low' },
-    { id: 6, name: 'Petri Dishes', category: 'Lab Supplies', quantity: 400, minLevel: 150, status: 'OK' },
-    { id: 7, name: 'Face Masks (N95)', category: 'PPE', quantity: 30, minLevel: 100, status: 'Critical' },
-    { id: 8, name: 'Pipette Tips (200ul)', category: 'Lab Supplies', quantity: 1000, minLevel: 500, status: 'OK' },
-    { id: 9, name: 'Urine Specimen Containers', category: 'Containers', quantity: 120, minLevel: 200, status: 'Low' },
-    { id: 10, name: 'Tourniquets', category: 'Consumables', quantity: 45, minLevel: 50, status: 'Low' },
-  ];
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
 
-  const mockReorders = [
-    { id: 201, item: 'Blood Collection Tubes (Red)', supplier: 'MedEquip Inc', qty: 500, date: '2026-08-01', status: 'Pending' },
-    { id: 202, item: 'Face Masks (N95)', supplier: 'HealthCorp', qty: 1000, date: '2026-08-02', status: 'Shipped' },
-  ];
+  const [activeTab, setActiveTab] = useState('requests'); // 'requests', 'stock', 'suppliers', 'po'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequests, setSelectedRequests] = useState([]);
+  const [showPOModal, setShowPOModal] = useState(false);
+  const [poForm, setPoForm] = useState({ item: 'Blood Collection Tubes (Red)', supplier: 'MedEquip Inc', qty: '500', price: '4500' });
 
-  const mockExpiry = [
-    { id: 301, item: 'Reagent Kit A', batch: 'B7892', expiryDate: '2026-08-15', daysRemaining: 11 },
-    { id: 302, item: 'Control Solution B', batch: 'C1029', expiryDate: '2026-09-20', daysRemaining: 47 },
-    { id: 303, item: 'Rapid Test Strips', batch: 'R4451', expiryDate: '2026-08-25', daysRemaining: 21 },
-  ];
+  // Mock Lab Restock Requests
+  const [restockRequests, setRestockRequests] = useState([
+    { id: 'REQ-901', labName: 'Apollo Diagnostics - Gachibowli', item: 'Blood Collection Tubes (Red)', requestedQty: 500, currentStock: 20, urgency: 'High', date: '2026-08-04', status: 'Pending' },
+    { id: 'REQ-902', labName: 'Vijaya Diagnostic Center - Secunderabad', item: 'N95 Respirator Masks', requestedQty: 300, currentStock: 30, urgency: 'High', date: '2026-08-04', status: 'Pending' },
+    { id: 'REQ-903', labName: 'Metropolis Labs - Hitec City', item: 'Syringes 5ml (Luer Lock)', requestedQty: 1000, currentStock: 150, urgency: 'Medium', date: '2026-08-03', status: 'Approved' }
+  ]);
 
-  const mockSuppliers = [
-    { id: 401, name: 'MedEquip Inc', contact: 'sales@medequip.com', items: 'Tubes, Needles', lastOrder: '2026-08-01' },
-    { id: 402, name: 'HealthCorp', contact: 'orders@healthcorp.com', items: 'PPE', lastOrder: '2026-08-02' },
-    { id: 403, name: 'BioLab Supply', contact: 'supply@biolab.com', items: 'Reagents, Kits', lastOrder: '2026-07-15' },
-  ];
+  const [stock] = useState([
+    { id: 1, name: 'Latex Gloves (Medium)', category: 'PPE', quantity: 450, maxLevel: 1000, minLevel: 200, status: 'OK' },
+    { id: 2, name: 'Syringes 5ml (Luer Lock)', category: 'Consumables', quantity: 150, maxLevel: 1000, minLevel: 200, status: 'Low' },
+    { id: 3, name: 'Blood Collection Tubes (Red)', category: 'Tubes', quantity: 20, maxLevel: 500, minLevel: 100, status: 'Critical' },
+    { id: 4, name: 'Isopropyl Alcohol Swabs', category: 'Consumables', quantity: 800, maxLevel: 1000, minLevel: 300, status: 'OK' },
+    { id: 5, name: 'N95 Respirator Masks', category: 'PPE', quantity: 30, maxLevel: 500, minLevel: 100, status: 'Critical' }
+  ]);
 
-  useEffect(() => {
-    // Fetch from API
-    fetch('/api/employee/inventory/stock')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.length > 0) setStock(data);
-        else setStock(mockStock);
-      })
-      .catch(() => setStock(mockStock));
-  }, []);
+  const [suppliers] = useState([
+    { id: 401, name: 'MedEquip Inc', contact: 'sales@medequip.com', phone: '+91 98765 00112', categories: 'Tubes, Syringes', leadTime: '2 Days', rating: '4.9 ★' },
+    { id: 402, name: 'HealthCorp Supplies', contact: 'orders@healthcorp.com', phone: '+91 98765 00223', categories: 'PPE, Masks', leadTime: '1 Day', rating: '4.8 ★' },
+    { id: 403, name: 'BioLab Reagents', contact: 'supply@biolab.com', phone: '+91 98765 00334', categories: 'Assay Kits, Solvents', leadTime: '3 Days', rating: '4.7 ★' }
+  ]);
+
+  const [purchaseOrders, setPurchaseOrders] = useState([
+    { id: 'PO-8801', item: 'Blood Collection Tubes (Red)', supplier: 'MedEquip Inc', qty: 500, totalCost: '₹4,500', status: 'Shipped', date: '2026-08-03' },
+    { id: 'PO-8802', item: 'N95 Masks', supplier: 'HealthCorp Supplies', qty: 1000, totalCost: '₹12,000', status: 'Ordered', date: '2026-08-04' }
+  ]);
 
   const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/adminlogin';
+    logout();
+    navigate('/adminlogin');
   };
 
-  const sidebarItems = ['Dashboard', 'Stock Overview', 'Reorder Management', 'Expiry Tracker', 'Suppliers', 'Reports'];
+  const handleApproveRequest = (id) => {
+    alert(`Restock Request [${id}] APPROVED! Dispatch order generated.`);
+    setRestockRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
+  };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'OK': return { bg: 'rgba(46, 204, 113, 0.1)', color: '#2ecc71' };
-      case 'Low': return { bg: 'rgba(241, 196, 15, 0.1)', color: '#f1c40f' };
-      case 'Critical': return { bg: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c' };
-      default: return { bg: 'rgba(136, 146, 176, 0.1)', color: '#8892b0' };
-    }
+  const handleRejectRequest = (id) => {
+    alert(`Restock Request [${id}] REJECTED.`);
+    setRestockRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
+  };
+
+  const handleBulkApprove = () => {
+    if (selectedRequests.length === 0) return alert("Please select restock requests to bulk approve.");
+    alert(`Bulk Approved ${selectedRequests.length} Restock Requests! Dispatch orders queued.`);
+    setRestockRequests(prev => prev.map(r => selectedRequests.includes(r.id) ? { ...r, status: 'Approved' } : r));
+    setSelectedRequests([]);
+  };
+
+  const handlePOSubmit = (e) => {
+    e.preventDefault();
+    const newPO = {
+      id: `PO-${Math.floor(8000 + Math.random()*1000)}`,
+      item: poForm.item,
+      supplier: poForm.supplier,
+      qty: poForm.qty,
+      totalCost: `₹${parseInt(poForm.price).toLocaleString('en-IN')}`,
+      status: 'Ordered',
+      date: '2026-08-04'
+    };
+    setPurchaseOrders([newPO, ...purchaseOrders]);
+    alert(`Purchase Order [${newPO.id}] submitted to ${poForm.supplier}! Tracking initiated.`);
+    setShowPOModal(false);
+  };
+
+  const exportCSVReport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Item Name,Category,Quantity,Min Level,Status\n"
+      + stock.map(s => `"${s.name}","${s.category}",${s.quantity},${s.minLevel},"${s.status}"`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "DiagnoLabs_Inventory_Stock_Report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0a192f', color: '#e6f1ff', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Sidebar */}
-      <div style={{ width: '250px', background: 'rgba(2, 12, 27, 0.7)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(212, 175, 55, 0.2)', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-        <h2 style={{ color: '#d4af37', marginBottom: '40px', fontWeight: 'bold' }}>DiagnoLabs</h2>
-        <div style={{ flex: 1 }}>
-          {sidebarItems.map(item => {
-            const mappedTab = item === 'Dashboard' ? 'Stock Overview' : item;
-            return (
-              <div 
-                key={item} 
-                style={{ padding: '15px 10px', margin: '5px 0', cursor: 'pointer', borderRadius: '8px', background: activeTab === mappedTab ? 'rgba(212, 175, 55, 0.15)' : 'transparent', color: activeTab === mappedTab ? '#d4af37' : '#8892b0', transition: 'all 0.3s' }}
-                onClick={() => setActiveTab(mappedTab)}
-              >
-                {item === 'Stock Overview' && item !== 'Dashboard' ? 'Stock' : item === 'Reorder Management' ? 'Reorders' : item}
-              </div>
-            );
-          })}
+      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Package size={24} color="#003366" />
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+          </div>
+          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Warehouse & Supply Chain</span>
         </div>
-        <div onClick={handleLogout} style={{ padding: '15px 10px', cursor: 'pointer', color: '#ff6b6b', borderRadius: '8px', transition: 'all 0.3s' }}>
-          Logout
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+          <button 
+            onClick={() => setActiveTab('requests')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'requests' ? '#f0f7ff' : 'transparent', color: activeTab === 'requests' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <ShoppingCart size={18} /> Lab Restock Requests ({restockRequests.filter(r => r.status === 'Pending').length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('stock')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'stock' ? '#f0f7ff' : 'transparent', color: activeTab === 'stock' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Package size={18} /> Stock Level Grid ({stock.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('po')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'po' ? '#f0f7ff' : 'transparent', color: activeTab === 'po' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Truck size={18} /> Purchase Orders ({purchaseOrders.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('suppliers')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'suppliers' ? '#f0f7ff' : 'transparent', color: activeTab === 'suppliers' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Truck size={18} /> Verified Suppliers ({suppliers.length})
+          </button>
+        </nav>
+
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
+            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'Inventory Manager'}</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Supply Chain Lead</div>
+          </div>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <LogOut size={16} /> Logout
+          </button>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1 style={{ color: '#ccd6f6', margin: 0 }}>Inventory Manager</h1>
+      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        {/* Top Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Inventory & Procurement Control Console</h1>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Manage supplies, reorder thresholds, and vendor dispatches across network lab partners.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={exportCSVReport} style={{ padding: '10px 18px', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Download size={16} /> Export CSV Report
+            </button>
+            <button onClick={() => setShowPOModal(true)} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Plus size={16} /> Create Purchase Order
+            </button>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
-          {[
-            { label: 'Total Items', value: '142' },
-            { label: 'Low Stock Alerts', value: '4', color: '#f1c40f' },
-            { label: 'Pending Reorders', value: '8' },
-            { label: 'Expiring Soon', value: '2', color: '#e74c3c' }
-          ].map((stat, i) => (
-            <div key={i} style={{ background: 'rgba(17, 34, 64, 0.6)', backdropFilter: 'blur(10px)', border: '1px solid rgba(212, 175, 55, 0.1)', borderRadius: '15px', padding: '25px', display: 'flex', flexDirection: 'column' }}>
-              <span style={{ color: '#8892b0', fontSize: '14px', marginBottom: '10px' }}>{stat.label}</span>
-              <span style={{ color: stat.color || '#d4af37', fontSize: '32px', fontWeight: 'bold' }}>{stat.value}</span>
-            </div>
-          ))}
+        {/* Top KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #fee2e2', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>Low Stock Alerts</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>{stock.filter(s => s.status !== 'OK').length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Pending Restock Requests</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#d97706', marginTop: '6px' }}>{restockRequests.filter(r => r.status === 'Pending').length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Active Vendors / Suppliers</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{suppliers.length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Monthly Procurement Spend</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>₹1,45,000</div>
+          </div>
         </div>
 
-        {/* Tabs Content */}
-        <div style={{ background: 'rgba(17, 34, 64, 0.6)', backdropFilter: 'blur(10px)', border: '1px solid rgba(212, 175, 55, 0.1)', borderRadius: '15px', padding: '30px' }}>
-          
-          {activeTab === 'Stock Overview' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: '#ccd6f6', margin: 0 }}>Stock Overview</h3>
+        {/* Tab 1: Lab Restock Requests Queue */}
+        {activeTab === 'requests' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Incoming Lab Restock Requests Queue</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#64748b' }}>Review restock requests raised by onboarded Lab Partners.</p>
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(212, 175, 55, 0.2)', color: '#8892b0', textAlign: 'left' }}>
-                    <th style={{ padding: '15px' }}>Item Name</th>
-                    <th style={{ padding: '15px' }}>Category</th>
-                    <th style={{ padding: '15px' }}>Quantity</th>
-                    <th style={{ padding: '15px' }}>Min Level</th>
-                    <th style={{ padding: '15px' }}>Status</th>
-                    <th style={{ padding: '15px' }}>Action</th>
+              <button onClick={handleBulkApprove} style={{ padding: '8px 16px', background: '#059669', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer' }}>
+                Bulk Approve Selected ({selectedRequests.length})
+              </button>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'center', width: '40px' }}>
+                    <input type="checkbox" onChange={e => setSelectedRequests(e.target.checked ? restockRequests.map(r => r.id) : [])} />
+                  </th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Req ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Lab Partner</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Item Requested</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Requested Qty</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Urgency</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {restockRequests.map(req => (
+                  <tr key={req.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <input type="checkbox" checked={selectedRequests.includes(req.id)} onChange={e => setSelectedRequests(e.target.checked ? [...selectedRequests, req.id] : selectedRequests.filter(id => id !== req.id))} />
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{req.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{req.labName}</td>
+                    <td style={{ padding: '12px', color: '#334155' }}>{req.item}</td>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#0f172a' }}>{req.requestedQty} units</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: req.urgency === 'High' ? '#fee2e2' : '#fef3c7', color: req.urgency === 'High' ? '#dc2626' : '#92400e' }}>
+                        {req.urgency}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      {req.status === 'Pending' ? (
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                          <button onClick={() => handleApproveRequest(req.id)} style={{ padding: '6px 12px', background: '#059669', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>Approve</button>
+                          <button onClick={() => handleRejectRequest(req.id)} style={{ padding: '6px 12px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>Reject</button>
+                        </div>
+                      ) : (
+                        <span style={{ fontWeight: '800', fontSize: '0.8rem', color: req.status === 'Approved' ? '#059669' : '#dc2626' }}>{req.status}</span>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {stock.map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(230, 241, 255, 0.05)' }}>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{item.name}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{item.category}</td>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{item.quantity}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{item.minLevel}</td>
-                      <td style={{ padding: '15px' }}>
-                        <span style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '12px', background: getStatusColor(item.status).bg, color: getStatusColor(item.status).color }}>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tab 2: Stock Level Grid */}
+        {activeTab === 'stock' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Central Warehouse Stock Progress Level</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Item Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Category</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Current Quantity</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Stock Level Visual</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stock.map(item => {
+                  const pct = Math.min(100, Math.round((item.quantity / item.maxLevel) * 100));
+                  return (
+                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{item.name}</td>
+                      <td style={{ padding: '12px', color: '#64748b' }}>{item.category}</td>
+                      <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{item.quantity} units</td>
+                      <td style={{ padding: '12px', width: '220px' }}>
+                        <div style={{ background: '#e2e8f0', borderRadius: '100px', height: '10px', overflow: 'hidden' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: item.status === 'OK' ? '#059669' : (item.status === 'Low' ? '#d97706' : '#dc2626'), borderRadius: '100px' }}></div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: item.status === 'OK' ? '#dcfce7' : (item.status === 'Low' ? '#fef3c7' : '#fee2e2'), color: item.status === 'OK' ? '#166534' : (item.status === 'Low' ? '#92400e' : '#dc2626') }}>
                           {item.status}
                         </span>
                       </td>
-                      <td style={{ padding: '15px' }}>
-                        {(item.status === 'Low' || item.status === 'Critical') && (
-                          <button style={{ padding: '6px 12px', background: 'transparent', border: '1px solid #d4af37', color: '#d4af37', borderRadius: '5px', cursor: 'pointer' }}>Reorder</button>
-                        )}
-                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-          {activeTab === 'Reorder Management' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ color: '#ccd6f6', margin: 0 }}>Reorders</h3>
-                <button style={{ padding: '8px 16px', background: '#d4af37', color: '#020c1b', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>+ New Reorder</button>
+        {/* Tab 3: Purchase Orders */}
+        {activeTab === 'po' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Active Purchase Orders (Procurement Stream)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>PO Number</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Item Description</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplier</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Total Cost</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Delivery Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchaseOrders.map(po => (
+                  <tr key={po.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{po.id}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{po.item}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{po.supplier}</td>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#059669' }}>{po.totalCost}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: po.status === 'Shipped' ? '#e0f2fe' : '#f1f5f9', color: po.status === 'Shipped' ? '#0369a1' : '#475569' }}>
+                        {po.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tab 4: Suppliers */}
+        {activeTab === 'suppliers' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Verified Supplier Directory</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplier Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Contact Email</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplied Categories</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Lead Time</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Vendor Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suppliers.map(sup => (
+                  <tr key={sup.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{sup.name}</td>
+                    <td style={{ padding: '12px', color: '#475569' }}>{sup.contact}</td>
+                    <td style={{ padding: '12px', color: '#334155' }}>{sup.categories}</td>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{sup.leadTime}</td>
+                    <td style={{ padding: '12px', fontWeight: '800', color: '#d97706' }}>{sup.rating}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+
+      {/* Purchase Order Modal */}
+      {showPOModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#0f172a', fontWeight: '800' }}>Place New Purchase Order (PO)</h3>
+            <form onSubmit={handlePOSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>ITEM TO PROCURE</label>
+                <input type="text" required value={poForm.item} onChange={e => setPoForm({...poForm, item: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(212, 175, 55, 0.2)', color: '#8892b0', textAlign: 'left' }}>
-                    <th style={{ padding: '15px' }}>Item</th>
-                    <th style={{ padding: '15px' }}>Supplier</th>
-                    <th style={{ padding: '15px' }}>Qty Ordered</th>
-                    <th style={{ padding: '15px' }}>Date</th>
-                    <th style={{ padding: '15px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockReorders.map(order => (
-                    <tr key={order.id} style={{ borderBottom: '1px solid rgba(230, 241, 255, 0.05)' }}>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{order.item}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{order.supplier}</td>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{order.qty}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{order.date}</td>
-                      <td style={{ padding: '15px' }}>
-                         <span style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '12px', background: order.status === 'Shipped' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(241, 196, 15, 0.1)', color: order.status === 'Shipped' ? '#2ecc71' : '#f1c40f' }}>
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'Expiry Tracker' && (
-            <div>
-              <h3 style={{ color: '#ccd6f6', marginBottom: '20px' }}>Expiry Tracker</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(212, 175, 55, 0.2)', color: '#8892b0', textAlign: 'left' }}>
-                    <th style={{ padding: '15px' }}>Item</th>
-                    <th style={{ padding: '15px' }}>Batch</th>
-                    <th style={{ padding: '15px' }}>Expiry Date</th>
-                    <th style={{ padding: '15px' }}>Days Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockExpiry.map(exp => (
-                    <tr key={exp.id} style={{ borderBottom: '1px solid rgba(230, 241, 255, 0.05)' }}>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{exp.item}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{exp.batch}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{exp.expiryDate}</td>
-                      <td style={{ padding: '15px' }}>
-                         <span style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '12px', background: exp.daysRemaining < 30 ? 'rgba(231, 76, 60, 0.1)' : 'rgba(46, 204, 113, 0.1)', color: exp.daysRemaining < 30 ? '#e74c3c' : '#2ecc71', fontWeight: exp.daysRemaining < 30 ? 'bold' : 'normal' }}>
-                          {exp.daysRemaining} days
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'Suppliers' && (
-            <div>
-              <h3 style={{ color: '#ccd6f6', marginBottom: '20px' }}>Suppliers</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(212, 175, 55, 0.2)', color: '#8892b0', textAlign: 'left' }}>
-                    <th style={{ padding: '15px' }}>Name</th>
-                    <th style={{ padding: '15px' }}>Contact</th>
-                    <th style={{ padding: '15px' }}>Items Supplied</th>
-                    <th style={{ padding: '15px' }}>Last Order</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockSuppliers.map(sup => (
-                    <tr key={sup.id} style={{ borderBottom: '1px solid rgba(230, 241, 255, 0.05)' }}>
-                      <td style={{ padding: '15px', color: '#e6f1ff' }}>{sup.name}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{sup.contact}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{sup.items}</td>
-                      <td style={{ padding: '15px', color: '#a8b2d1' }}>{sup.lastOrder}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>SELECT SUPPLIER</label>
+                <select value={poForm.supplier} onChange={e => setPoForm({...poForm, supplier: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', background: 'white' }}>
+                  {suppliers.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>QUANTITY</label>
+                  <input type="number" required value={poForm.qty} onChange={e => setPoForm({...poForm, qty: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>TOTAL COST (₹)</label>
+                  <input type="number" required value={poForm.price} onChange={e => setPoForm({...poForm, price: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowPOModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Submit Purchase Order</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 export default InventoryDashboard;
+
