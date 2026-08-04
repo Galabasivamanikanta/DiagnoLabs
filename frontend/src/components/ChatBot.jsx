@@ -1,20 +1,22 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import {
     MessageSquare, Send, Bot, Sparkles, ChevronDown, RefreshCw,
     Mic, MicOff, Paperclip, FileText, X, Loader2, FlaskConical,
     Droplets, Thermometer, Zap, HeartPulse, ShieldCheck, ArrowRight,
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
-    ClipboardList, CreditCard, BookOpen
+    ClipboardList, CreditCard, BookOpen, Stethoscope, Package, Landmark,
+    Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
 import useDevice from '../hooks/useDevice';
 
 // ─────────────────────────────────────────────────────────────
-// Helpers
+// Helpers & Role Configurations
 // ─────────────────────────────────────────────────────────────
 
 let msgIdCounter = 0;
@@ -23,29 +25,25 @@ const getUniqueId = (offset = 0) => {
     return Date.now() + msgIdCounter + offset;
 };
 
-/** Strip all control tokens before speaking / displaying clean text */
 const cleanText = (text) =>
     text
         .replace(/\[RECOMMEND:[^\]]+\]/gi, '')
         .replace(/\[ACTION:[^\]]+\]/gi, '')
-        .replace(/\*\*(.*?)\*\*/g, '$1')   // remove bold markdown for TTS
+        .replace(/\*\*(.*?)\*\*/g, '$1')
         .replace(/\*(.*?)\*/g, '$1')
         .replace(/#{1,6}\s/g, '')
         .trim();
 
-/** Parse every [RECOMMEND: X] token → array of test names */
 const parseRecommendations = (text) => {
     const matches = [...text.matchAll(/\[RECOMMEND:\s*([^\]]+)\]/gi)];
     return matches.map(m => m[1].trim());
 };
 
-/** Parse the first [ACTION: X] token */
 const parseAction = (text) => {
     const match = text.match(/\[ACTION:\s*([^\]]+)\]/i);
     return match ? match[1].trim() : null;
 };
 
-/** Icon per test name */
 const testIcon = (name = '') => {
     const n = name.toLowerCase();
     if (n.includes('blood') || n.includes('cbc') || n.includes('haemoglobin')) return <Droplets size={18} className="text-rose-500" />;
@@ -59,20 +57,169 @@ const testIcon = (name = '') => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Quick-prompt chips shown at the bottom
+// Role-Specific Chatbot Configurations
 // ─────────────────────────────────────────────────────────────
-const QUICK_PROMPTS = [
-    { label: '🤒 I have fever', text: 'I have been having high fever for 2 days, what tests do I need?' },
-    { label: '🩸 Diabetes check', text: 'I want to check my blood sugar and HbA1c levels.' },
-    { label: '🧪 Full body checkup', text: 'Tell me about full body health checkup tests available.' },
-    { label: '💊 Medicine query', text: 'I am taking metformin, can you tell me about it?' },
-    { label: '📋 Book a test', text: 'I want to book a Complete Blood Count test.' },
-    { label: '📄 My reports', text: 'I want to view my lab reports and booking status.' },
-];
+const ROLE_CHAT_CONFIGS = {
+    patient: {
+        title: 'Patient Health AI Assistant',
+        subtitle: 'Symptom Triage & Test Guide',
+        icon: <Sparkles size={22} style={{ color: '#38bdf8' }} />,
+        badgeColor: '#0284c7',
+        greeting: `Hello! 👋 I'm your **DiagnoLabs Personal Health Assistant**.\n\nHow can I assist your health journey today?\n• 🤒 Analyze symptoms & suggest lab tests\n• 📄 Explain your digital lab report values\n• 💊 Medicine guidance & pre-test fasting rules\n• 📅 Fast test booking & lab appointment scheduling`,
+        prompts: [
+            { label: '🤒 Symptom Analysis', text: 'I have fever and fatigue for 2 days, what tests do I need?' },
+            { label: '📄 Explain My Report', text: 'Can you analyze my recent blood test report values?' },
+            { label: '💊 Pre-Test Fasting', text: 'Do I need 12 hours fasting before my Lipid Profile test?' },
+            { label: '🩸 Diabetes Check', text: 'Suggest the best diagnostic package for Diabetes screening.' }
+        ]
+    },
+    doctor: {
+        title: 'Doctor AI Clinical Copilot',
+        subtitle: 'Clinical Decision Support',
+        icon: <Stethoscope size={22} style={{ color: '#38bdf8' }} />,
+        badgeColor: '#003366',
+        greeting: `Welcome Doctor! 🩺 I'm your **Clinical AI Copilot**.\n\nI can assist you with:\n• 📋 Quick digital prescription template generation\n• 🔬 Differential diagnosis from lab parameters\n• 🩸 Patient vitals & lab report summaries\n• 💊 Drug-lab test interaction warnings`,
+        prompts: [
+            { label: '📋 Draft Rx Template', text: 'Draft a standard prescription for Type-2 Diabetes follow-up.' },
+            { label: '🔬 Differential Diagnosis', text: 'Patient has Elevated TSH (8.5) and Low Free T4. What is the diagnosis?' },
+            { label: '⚠️ Drug-Lab Interaction', text: 'Does Metformin or Biotin interfere with Thyroid panel tests?' },
+            { label: '📄 Report Summary', text: 'Summarize the key abnormal parameters for my morning patient list.' }
+        ]
+    },
+    nurse: {
+        title: 'Nurse Clinical Assistant AI',
+        subtitle: 'Vitals & Care Coordination',
+        icon: <HeartPulse size={22} style={{ color: '#ec4899' }} />,
+        badgeColor: '#db2777',
+        greeting: `Hello Nurse! 🩺 I'm your **Clinical Care Assistant**.\n\nReady to help with your shift:\n• 🩸 Patient vitals entry guidelines (BP, SpO2, Pulse)\n• 💉 Clinical IV draw & sterile collection protocol\n• 📋 Room queue prioritization & patient triage\n• 📄 Post-collection patient instruction checklist`,
+        prompts: [
+            { label: '🩸 Vitals Normal Ranges', text: 'What are the normal SpO2 and Blood Pressure ranges for senior patients?' },
+            { label: '💉 Sterile IV Protocol', text: 'Remind me of the step-by-step sterile protocol for pediatric IV draws.' },
+            { label: '📋 Triage Patient Queue', text: 'How should I prioritize patients in the collection room queue?' }
+        ]
+    },
+    phlebotomist: {
+        title: 'Phlebotomist Navigator AI',
+        subtitle: 'Sample Collection & GPS Guide',
+        icon: <Droplets size={22} style={{ color: '#e11d48' }} />,
+        badgeColor: '#e11d48',
+        greeting: `Hey Collector! 🩸 I'm your **Field Navigation AI**.\n\nLet's get sample collections completed:\n• 📍 Home address GPS navigation tips\n• 📦 Barcode scanning & sample container color guide\n• 🔑 Patient 4-digit OTP collection confirmation\n• ❄️ Cold-chain sample temperature maintenance`,
+        prompts: [
+            { label: '📦 Tube Color Guide', text: 'Which color tube is used for HbA1c vs Serum Lipid Profile?' },
+            { label: '🔑 OTP Verification', text: 'How do I handle a patient who lost their 4-digit collection OTP?' },
+            { label: '❄️ Cold-Chain Temp', text: 'What is the required temperature for transporting Blood culture samples?' }
+        ]
+    },
+    inventory_manager: {
+        title: 'Inventory & Supply Chain AI',
+        subtitle: 'Reagent & Stock Optimizer',
+        icon: <Package size={22} style={{ color: '#d97706' }} />,
+        badgeColor: '#d97706',
+        greeting: `Welcome Inventory Manager! 📦 I'm your **Supply Chain Assistant**.\n\nI can help you with:\n• ⚠️ Low-stock reagent alerts & automated reorder drafts\n• 📅 Vendor supplier contact directory & lead time tracking\n• ⏳ Expiry date tracking for blood collection tubes\n• 📊 Procurement spend forecasting`,
+        prompts: [
+            { label: '⚠️ Check Low Stock', text: 'Which reagents are below minimum reorder threshold today?' },
+            { label: '📦 Vendor PO Draft', text: 'Draft a purchase order for 500 Blood Collection EDTA Tubes.' },
+            { label: '⏳ Expiry Alert', text: 'Show batch items expiring within 30 days.' }
+        ]
+    },
+    finance_manager: {
+        title: 'Finance & Tax AI Copilot',
+        subtitle: 'Financial Operations & Payouts',
+        icon: <Landmark size={22} style={{ color: '#059669' }} />,
+        badgeColor: '#059669',
+        greeting: `Greetings Finance Manager! 💳 I'm your **Financial Intelligence Assistant**.\n\nHow can I assist with accounts today?\n• 🧾 18% GST Tax Invoice calculation for Lab Partners & B2C\n• 💰 Lab Partner commission payout settlement formula\n• 🔄 Patient refund escrow approval workflow\n• 📊 Monthly P&L revenue vs payout reconciliation`,
+        prompts: [
+            { label: '🧾 GST 18% Calculation', text: 'How is 18% GST split between CGST and SGST on lab invoices?' },
+            { label: '💰 Payout Formula', text: 'Explain the platform commission take-rate deduction for Lab Payouts.' },
+            { label: '🔄 Refund Escrow', text: 'What are the required compliance steps to approve a Razorpay refund?' }
+        ]
+    },
+    marketing_head: {
+        title: 'Growth & Marketing AI',
+        subtitle: 'Campaign & Retention Assistant',
+        icon: <Megaphone size={22} style={{ color: '#2563eb' }} />,
+        badgeColor: '#2563eb',
+        greeting: `Welcome Growth Lead! 📢 I'm your **Marketing Copilot**.\n\nLet's drive platform adoption:\n• 🎫 Create high-converting coupon code ideas ('DIAGNO20')\n• 📧 Draft Nodemailer email/SMS broadcast copy\n• 🎁 Configure patient referral rewards (₹150 cash back)\n• 📈 Calculate blended campaign ROI & conversion funnel`,
+        prompts: [
+            { label: '📧 Draft Email Broadcast', text: 'Write a promotional email broadcast for Full Body Checkup 20% Off.' },
+            { label: '🎫 Coupon Ideas', text: 'Suggest 3 promo coupon codes for senior citizen health drives.' },
+            { label: '📈 Funnel Optimization', text: 'How can I improve the conversion rate from site clicks to test bookings?' }
+        ]
+    },
+    support_staff: {
+        title: 'Support Helpdesk Copilot AI',
+        subtitle: 'Omnichannel Ticket Assistant',
+        icon: <LifeBuoy size={22} style={{ color: '#0284c7' }} />,
+        badgeColor: '#0284c7',
+        greeting: `Hello Support Executive! 🎧 I'm your **Helpdesk Copilot**.\n\nI can help resolve tickets faster:\n• 💬 1-Click quick reply templates (Refund, Collector Delay, Report Status)\n• 🚨 Inter-department ticket escalation guidance (Finance / IT / Admin)\n• ⏱️ SLA breach prevention & priority sorting\n• 🌟 Patient CSAT satisfaction rating booster tips`,
+        prompts: [
+            { label: '💬 Refund Reply Template', text: 'Give me a standard quick reply for a patient asking about refund status.' },
+            { label: '🚨 Escalation Rules', text: 'When should I escalate a payment ticket to Accounts vs IT Specialist?' },
+            { label: '⏱️ SLA Breach Priority', text: 'How do I triage Critical priority tickets nearing SLA expiration?' }
+        ]
+    },
+    delivery_partner: {
+        title: 'Delivery Field Logistics AI',
+        subtitle: 'Report & Sample Transport Guide',
+        icon: <Truck size={22} style={{ color: '#0284c7' }} />,
+        badgeColor: '#0284c7',
+        greeting: `Hey Delivery Agent! 🚚 I'm your **Logistics Copilot**.\n\nLet's complete your drops on time:\n• 📍 Route map navigation & address lookup\n• 🔑 Recipient 4-digit OTP proof of delivery\n• ⚠️ Report delivery issue (Recipient Unavailable, Address Wrong)\n• 💰 Daily delivery earnings summary`,
+        prompts: [
+            { label: '🔑 Proof of Delivery', text: 'What do I do if the recipient cannot find their 4-digit delivery OTP?' },
+            { label: '⚠️ Recipient Unavailable', text: 'How do I log a non-delivery report for an unreachable phone number?' },
+            { label: '📍 Route Optimization', text: 'Tips for completing 5 drops in Gachibowli route in minimum distance.' }
+        ]
+    },
+    quality_auditor: {
+        title: 'QC & NABL Compliance AI',
+        subtitle: 'Lab Quality Assurance',
+        icon: <ShieldCheck size={22} style={{ color: '#059669' }} />,
+        badgeColor: '#059669',
+        greeting: `Welcome Quality Auditor! 🔬 I'm your **NABL Compliance Specialist**.\n\nI can assist with lab quality audits:\n• 📋 4-Step Lab Audit Checklist (Hygiene, Calibration, SLA, Pathologist)\n• ⚠️ Root cause investigation for disputed/mismatched test reports\n• 📜 NABL & ISO 9001 certification renewal tracking\n• 🚫 Draft Lab Suspension / Blacklist recommendations for Admin`,
+        prompts: [
+            { label: '📋 Audit Checklist Specs', text: 'What are the core NABL requirements for analyzer calibration logs?' },
+            { label: '⚠️ Mismatched Results', text: 'Step-by-step root cause investigation for mismatched Cholesterol values.' },
+            { label: '🚫 Blacklist Draft', text: 'Draft a formal lab suspension notice for repeated SLA failures.' }
+        ]
+    },
+    it_specialist: {
+        title: 'DevOps & Systems AI Copilot',
+        subtitle: 'Technical Infrastructure Support',
+        icon: <Cpu size={22} style={{ color: '#003366' }} />,
+        badgeColor: '#003366',
+        greeting: `Greetings SysAdmin / IT Engineer! 💻 I'm your **DevOps Assistant**.\n\nMonitoring technical health:\n• 📟 Analyze system error logs & API 500 stack traces\n• 🔑 OAuth 2.0 JWT token callback troubleshooting\n• ⚡ Service latency checks (Vite, Node API, Database, SMTP)\n• 🔓 Technical account lockout removal guidance`,
+        prompts: [
+            { label: '📟 Debug Log Error', text: 'Explain cause: Nodemailer SMTP timeout (5000ms) on worker instance.' },
+            { label: '🔑 OAuth 500 Callback', text: 'How to troubleshoot Google OAuth 2.0 JWT callback token mismatch?' },
+            { label: '⚡ DB Latency Check', text: 'What is the optimal latency threshold for PostgreSQL database connection pools?' }
+        ]
+    },
+    admin: {
+        title: 'Admin System Copilot AI',
+        subtitle: 'Platform Management & Governance',
+        icon: <Crown size={22} style={{ color: '#d4af37' }} />,
+        badgeColor: '#003366',
+        greeting: `Greetings Administrator! 👑 I'm your **System Master Copilot**.\n\nFull platform governance support:\n• 👤 User onboarding & RBAC role assignments\n• 🏥 Lab Partner onboarding & accreditation sign-off\n• 🚫 Final approval of Lab Blacklist recommendations\n• 📈 Platform-wide revenue, booking, & SLA metrics`,
+        prompts: [
+            { label: '👤 RBAC Role Assignment', text: 'What are the data access boundaries for Support Staff vs Finance Manager?' },
+            { label: '🏥 Lab Onboarding', text: 'What documents are required to approve a new Lab Partner application?' },
+            { label: '📊 Platform Metrics', text: 'Summarize today\'s platform-wide booking volume and active staff counts.' }
+        ]
+    },
+    employee: {
+        title: 'Front Desk Operations AI',
+        subtitle: 'Reception & Patient Check-In',
+        icon: <UserCheck size={22} style={{ color: '#003366' }} />,
+        badgeColor: '#003366',
+        greeting: `Welcome Front Desk Team! 📋 I'm your **Reception Assistant**.\n\nHelping you manage walk-in patients:\n• 📝 Quick walk-in patient registration\n• 📅 Appointment check-in & room assignment\n• 🧾 Printing patient payment receipts\n• 🩸 Coordinating sample collection queue`,
+        prompts: [
+            { label: '📝 Walk-In Patient Registration', text: 'How do I register a new walk-in patient for a Thyroid Profile?' },
+            { label: '📅 Appointment Check-In', text: 'What is the procedure for checking in an online booked patient?' },
+            { label: '🧾 Receipt Printing', text: 'How to generate and print a payment receipt at the front desk?' }
+        ]
+    }
+};
 
-// ─────────────────────────────────────────────────────────────
-// Sub-component: Recommendation Card(s)
-// ─────────────────────────────────────────────────────────────
 const RecommendationCards = ({ tests, onBook }) => (
     <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -88,7 +235,7 @@ const RecommendationCards = ({ tests, onBook }) => (
                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justify: 'space-between',
                 gap: '0.75rem'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1 }}>
@@ -124,9 +271,6 @@ const RecommendationCards = ({ tests, onBook }) => (
     </motion.div>
 );
 
-// ─────────────────────────────────────────────────────────────
-// Sub-component: Action Banner
-// ─────────────────────────────────────────────────────────────
 const ActionBanner = ({ action, onAction }) => {
     const configs = {
         CHECKOUT: { icon: <CreditCard size={16} />, label: 'Proceed to Checkout', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -151,54 +295,61 @@ const ActionBanner = ({ action, onAction }) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Main ChatBot Component
+// Main Dynamic Role-Aware ChatBot Component
 // ─────────────────────────────────────────────────────────────
 const ChatBot = () => {
     const navigate = useNavigate();
     const { isMobile } = useDevice();
+    const { user } = useContext(AuthContext);
+
+    // Determine current user's role
+    const currentRole = (user?.role || user?.role_name || 'patient').toLowerCase();
+    const roleConfig = ROLE_CHAT_CONFIGS[currentRole] || ROLE_CHAT_CONFIGS.patient;
 
     const [isOpen, setIsOpen] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);   // TTS toggle
-    const [isSpeaking, setIsSpeaking] = useState(false); // speaking state
+    const [isMuted, setIsMuted] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [attachedFile, setAttachedFile] = useState(null);
     const [showQuickPrompts, setShowQuickPrompts] = useState(true);
 
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            text: `Hello! 👋 I'm the **DiagnoLabs Clinical AI**.\n\nI can help you with:\n• 🤒 Symptoms → Test recommendations\n• 📅 Booking diagnostic tests\n• 🧪 Analysing your lab reports\n• 💊 Medicine guidance\n• 📋 Pre-test preparation tips\n\nDescribe your symptoms or choose a quick option below!`,
-            sender: 'bot',
-            recommendations: [],
-            action: null
-        }
-    ]);
+    const [messages, setMessages] = useState([]);
+
+    // Initialize initial greeting message according to role
+    useEffect(() => {
+        setMessages([
+            {
+                id: 1,
+                text: roleConfig.greeting,
+                sender: 'bot',
+                recommendations: [],
+                action: null
+            }
+        ]);
+    }, [currentRole]);
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const recognitionRef = useRef(null);
     const synthRef = useRef(window.speechSynthesis);
 
-    // Auto-scroll
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
-    // Stop speech when chat closes
     useEffect(() => {
         if (!isOpen) stopSpeaking();
     }, [isOpen]);
 
-    // ── Speech Recognition setup ──────────────────────────────
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return;
         const rec = new SpeechRecognition();
         rec.continuous = false;
         rec.interimResults = false;
-        rec.lang = 'en-IN';   // Indian English accent
+        rec.lang = 'en-IN';
         rec.onresult = (e) => {
             const transcript = e.results[0][0].transcript;
             setInputValue(transcript);
@@ -223,7 +374,6 @@ const ChatBot = () => {
         }
     };
 
-    // ── Text-to-Speech ─────────────────────────────────────────
     const speak = useCallback((text) => {
         if (isMuted || !synthRef.current) return;
         synthRef.current.cancel();
@@ -231,16 +381,13 @@ const ChatBot = () => {
         utterance.lang = 'en-IN';
         utterance.rate = 0.92;
         utterance.pitch = 1.1;
-        // Force a female voice — try multiple strategies
         const voices = synthRef.current.getVoices();
         const femaleVoice =
             voices.find(v => v.name === 'Google UK English Female') ||
             voices.find(v => v.name === 'Google US English Female') ||
             voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
-            voices.find(v => v.name.toLowerCase().includes('zira')) ||  // Windows female
-            voices.find(v => v.name.toLowerCase().includes('samantha')) || // macOS female
-            voices.find(v => v.name.toLowerCase().includes('hazel')) ||
-            voices.find(v => v.name.toLowerCase().includes('aria')) ||
+            voices.find(v => v.name.toLowerCase().includes('zira')) ||
+            voices.find(v => v.name.toLowerCase().includes('samantha')) ||
             voices.find(v => v.lang === 'en-IN') ||
             voices.find(v => v.lang.startsWith('en'));
         if (femaleVoice) utterance.voice = femaleVoice;
@@ -255,7 +402,6 @@ const ChatBot = () => {
         setIsSpeaking(false);
     };
 
-    // ── File Upload ────────────────────────────────────────────
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -274,30 +420,22 @@ const ChatBot = () => {
         reader.readAsDataURL(file);
     };
 
-    // ── Book action ────────────────────────────────────────────
     const handleBook = (testName) => {
         navigate(`/search?q=${encodeURIComponent(testName)}`);
     };
 
-    // ── Action banner handler ──────────────────────────────────
     const handleAction = (action) => {
         if (action === 'CHECKOUT') navigate('/checkout');
-        else if (action === 'PREP_DONE') navigate('/patient/dashboard');
-        else if (action === 'REPORT_ANALYZED') navigate('/patient/dashboard');
+        else if (action === 'PREP_DONE') navigate('/patient/history');
+        else if (action === 'REPORT_ANALYZED') navigate('/patient/history');
         else if (action === 'MED_INFO') navigate('/search');
     };
 
-    // ── Determine app context to inject into prompt ────────────
     const buildContext = () => {
         const path = window.location.pathname;
-        if (path.includes('checkout')) return 'User is currently on the Checkout / Payment page.';
-        if (path.includes('patient/dashboard')) return 'User is on their Patient Dashboard viewing bookings and reports.';
-        if (path.includes('lab/')) return 'User is viewing a Lab detail page.';
-        if (path.includes('search')) return 'User is on the Search Results page browsing diagnostic tests.';
-        return null;
+        return `Current User Role: [${currentRole.toUpperCase()}]. User Name: [${user?.name || 'User'}]. Active Path: [${path}].`;
     };
 
-    // ── Send message ───────────────────────────────────────────
     const handleSend = async (overrideText) => {
         const text = (overrideText || inputValue).trim();
         if (!text && !attachedFile) return;
@@ -324,6 +462,7 @@ const ChatBot = () => {
                 prompt: text,
                 history: chatHistory,
                 context: buildContext(),
+                userRole: currentRole,
                 ...(attachedFile && {
                     fileData: attachedFile.data,
                     fileType: attachedFile.mimeType
@@ -354,14 +493,13 @@ const ChatBot = () => {
             setMessages(prev => [...prev, botMsg]);
             speak(cleanedText);
 
-            // Auto-navigate for BOOK actions after a brief delay
             if (action && action.startsWith('BOOK:')) {
                 const testName = action.replace('BOOK:', '').trim();
                 setTimeout(() => navigate(`/search?q=${encodeURIComponent(testName)}`), 2000);
             }
 
         } catch (err) {
-            const errMsg = err.response?.data?.details || 'Unable to reach the clinical AI. Please try again.';
+            const errMsg = err.response?.data?.details || 'Unable to reach the clinical AI copilot. Please try again.';
             const errBotMsg = {
                 id: getUniqueId(2),
                 text: `⚠️ ${errMsg}`,
@@ -381,7 +519,7 @@ const ChatBot = () => {
         stopSpeaking();
         setMessages([{
             id: Date.now(),
-            text: `Conversation reset. How can I help you today? 😊`,
+            text: `Conversation reset. How can I assist you as **${roleConfig.title}** today? 😊`,
             sender: 'bot',
             recommendations: [],
             action: null
@@ -389,7 +527,6 @@ const ChatBot = () => {
         setShowQuickPrompts(true);
     };
 
-    // ── Render message content (supports basic markdown bold) ──
     const renderText = (text) => {
         const parts = text.split(/\*\*(.*?)\*\*/g);
         return parts.map((part, i) =>
@@ -401,9 +538,6 @@ const ChatBot = () => {
         );
     };
 
-    // ─────────────────────────────────────────────────────────────
-    // JSX
-    // ─────────────────────────────────────────────────────────────
     return (
         <>
             {/* FAB Button */}
@@ -411,18 +545,18 @@ const ChatBot = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={() => setIsOpen(o => !o)}
-                aria-label="Open Clinical AI Chat"
+                aria-label="Open AI Copilot Chat"
                 style={{
                     position: 'fixed',
                     bottom: isMobile ? '5rem' : '2rem',
                     right: isMobile ? '1rem' : '2rem',
-                    width: isMobile ? '60px' : '60px',
-                    height: isMobile ? '60px' : '60px',
+                    width: '60px',
+                    height: '60px',
                     borderRadius: '18px',
-                    background: 'linear-gradient(135deg, #0ea5e9, var(--primary))',
+                    background: 'linear-gradient(135deg, #003366, #0ea5e9)',
                     color: 'white', border: '2px solid rgba(255,255,255,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 24px -4px rgba(37,99,235,0.4)',
+                    boxShadow: '0 8px 24px -4px rgba(0,51,102,0.4)',
                     cursor: 'pointer', zIndex: 1500
                 }}
             >
@@ -457,25 +591,24 @@ const ChatBot = () => {
                             zIndex: 1500, border: '1px solid rgba(226,232,240,0.8)'
                         }}
                     >
-                        {/* ── Header ── */}
-                        <div style={{ padding: '1.25rem 1.5rem', background: '#0f172a', color: 'white', flexShrink: 0 }}>
+                        {/* Header */}
+                        <div style={{ padding: '1.25rem 1.5rem', background: '#003366', color: 'white', flexShrink: 0 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                                    <div style={{ width: '42px', height: '42px', borderRadius: '13px', background: 'rgba(56,189,248,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Sparkles size={22} style={{ color: '#38bdf8' }} />
+                                    <div style={{ width: '42px', height: '42px', borderRadius: '13px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {roleConfig.icon}
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: '800', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            Clinical AI
-                                            <span style={{ width: '7px', height: '7px', background: 'var(--success)', borderRadius: '50%', display: 'inline-block' }} />
+                                            {roleConfig.title}
+                                            <span style={{ width: '7px', height: '7px', background: '#4ade80', borderRadius: '50%', display: 'inline-block' }} />
                                         </div>
-                                        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            DiagnoLabs · Gemini Powered
+                                        <div style={{ fontSize: '0.68rem', color: '#93c5fd', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            {roleConfig.subtitle} · Gemini Powered
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                                    {/* Stop Voice — only shown while speaking */}
                                     <AnimatePresence>
                                         {isSpeaking && (
                                             <motion.button
@@ -492,21 +625,19 @@ const ChatBot = () => {
                                             </motion.button>
                                         )}
                                     </AnimatePresence>
-                                    {/* Mute / Unmute TTS */}
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
                                         onClick={() => { setIsMuted(m => !m); stopSpeaking(); }}
                                         title={isMuted ? 'Unmute voice' : 'Mute voice'}
-                                        style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: isMuted ? 'rgba(255,255,255,0.3)' : '#38bdf8', cursor: 'pointer', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}
+                                        style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: isMuted ? 'rgba(255,255,255,0.4)' : '#38bdf8', cursor: 'pointer', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}
                                     >
                                         {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
                                     </motion.button>
-                                    {/* Reset */}
                                     <motion.button
                                         whileTap={{ scale: 0.85 }}
                                         onClick={handleReset}
                                         title="Reset conversation"
-                                        style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}
+                                        style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}
                                     >
                                         <RefreshCw size={17} />
                                     </motion.button>
@@ -514,7 +645,7 @@ const ChatBot = () => {
                             </div>
                         </div>
 
-                        {/* ── Messages ── */}
+                        {/* Messages */}
                         <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {messages.map(msg => (
                                 <motion.div
@@ -523,16 +654,15 @@ const ChatBot = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     style={{ alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '88%' }}
                                 >
-                                    {/* Bubble */}
                                     <div style={{
                                         padding: '0.9rem 1.1rem',
                                         borderRadius: msg.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                                         background: msg.sender === 'user'
-                                            ? 'linear-gradient(135deg,var(--primary),#0ea5e9)'
+                                            ? 'linear-gradient(135deg, #003366, #0ea5e9)'
                                             : (msg.isError ? '#fff1f2' : 'white'),
                                         color: msg.sender === 'user' ? 'white' : '#1e293b',
                                         boxShadow: msg.sender === 'user'
-                                            ? '0 8px 20px -5px rgba(37,99,235,0.35)'
+                                            ? '0 8px 20px -5px rgba(0,51,102,0.35)'
                                             : '0 3px 8px rgba(0,0,0,0.06)',
                                         fontSize: '0.9rem',
                                         fontWeight: '500',
@@ -542,19 +672,16 @@ const ChatBot = () => {
                                         {renderText(msg.text)}
                                     </div>
 
-                                    {/* Recommendation Cards */}
                                     {msg.recommendations?.length > 0 && (
                                         <RecommendationCards tests={msg.recommendations} onBook={handleBook} />
                                     )}
 
-                                    {/* Action Banner */}
                                     {msg.action && !msg.action.startsWith('BOOK:') && (
                                         <ActionBanner action={msg.action} onAction={handleAction} />
                                     )}
                                 </motion.div>
                             ))}
 
-                            {/* Loading */}
                             {isLoading && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -562,22 +689,22 @@ const ChatBot = () => {
                                     style={{ alignSelf: 'flex-start' }}
                                 >
                                     <div style={{ padding: '0.75rem 1.25rem', borderRadius: '16px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                        <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
-                                        <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>Clinical AI thinking...</span>
+                                        <Loader2 size={15} style={{ animation: 'spin 1s linear infinite', color: '#003366' }} />
+                                        <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>AI Copilot analyzing...</span>
                                     </div>
                                 </motion.div>
                             )}
 
-                            {/* Quick Prompts */}
+                            {/* Dynamic Role Quick Prompts */}
                             <AnimatePresence>
-                                {showQuickPrompts && !isLoading && (
+                                {showQuickPrompts && !isLoading && roleConfig.prompts?.length > 0 && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 5 }}
                                         style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.25rem' }}
                                     >
-                                        {QUICK_PROMPTS.map((q, i) => (
+                                        {roleConfig.prompts.map((q, i) => (
                                             <button
                                                 key={i}
                                                 onClick={() => handleSend(q.text)}
@@ -587,8 +714,8 @@ const ChatBot = () => {
                                                     border: '1px solid #cbd5e1',
                                                     borderRadius: '20px',
                                                     fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    color: '#334155',
+                                                    fontWeight: '700',
+                                                    color: '#003366',
                                                     cursor: 'pointer',
                                                     transition: 'all 0.15s'
                                                 }}
@@ -603,9 +730,8 @@ const ChatBot = () => {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* ── Input Area ── */}
+                        {/* Input Area */}
                         <div style={{ padding: '1rem 1.25rem', background: 'white', borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
-                            {/* Attached file pill */}
                             <AnimatePresence>
                                 {attachedFile && (
                                     <motion.div
@@ -623,29 +749,25 @@ const ChatBot = () => {
                                 )}
                             </AnimatePresence>
 
-                            {/* Input Row */}
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.45rem 0.6rem', background: '#f8fafc', borderRadius: '18px', border: '1.5px solid #e2e8f0' }}>
-                                {/* File attach */}
                                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} accept="image/*,.pdf" />
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    title="Attach prescription or report"
-                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: attachedFile ? '#dbeafe' : 'transparent', border: 'none', cursor: 'pointer', color: attachedFile ? 'var(--primary)' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                                    title="Attach document or image"
+                                    style={{ width: '36px', height: '36px', borderRadius: '12px', background: attachedFile ? '#dbeafe' : 'transparent', border: 'none', cursor: 'pointer', color: attachedFile ? '#003366' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                 >
                                     <Paperclip size={18} />
                                 </button>
 
-                                {/* Text input */}
                                 <input
                                     type="text"
-                                    placeholder={isListening ? '🎙️ Listening...' : 'Type symptoms or ask anything...'}
+                                    placeholder={isListening ? '🎙️ Listening...' : `Ask ${roleConfig.title}...`}
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
                                     style={{ flex: 1, border: 'none', background: 'transparent', fontSize: '0.9rem', fontWeight: '500', color: '#0f172a', outline: 'none', padding: '0.1rem 0' }}
                                 />
 
-                                {/* Mic button */}
                                 <motion.button
                                     whileTap={{ scale: 0.85 }}
                                     onClick={toggleListening}
@@ -658,12 +780,11 @@ const ChatBot = () => {
                                     }
                                 </motion.button>
 
-                                {/* Send button */}
                                 <motion.button
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => handleSend()}
                                     disabled={isLoading}
-                                    style={{ width: '40px', height: '40px', borderRadius: '14px', background: 'linear-gradient(135deg,#0ea5e9,var(--primary))', color: 'white', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 14px -3px rgba(37,99,235,0.4)', flexShrink: 0, opacity: isLoading ? 0.6 : 1 }}
+                                    style={{ width: '40px', height: '40px', borderRadius: '14px', background: 'linear-gradient(135deg, #003366, #0ea5e9)', color: 'white', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 14px -3px rgba(0,51,102,0.4)', flexShrink: 0, opacity: isLoading ? 0.6 : 1 }}
                                 >
                                     <Send size={17} />
                                 </motion.button>
