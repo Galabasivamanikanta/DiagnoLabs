@@ -11,10 +11,12 @@ const transporter = nodemailer.createTransport({
     tls: {
         rejectUnauthorized: false
     },
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 8000
+    family: 4, // Force IPv4 to resolve IPv6 ENETUNREACH errors on Render cloud
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
+
 
 
 const getDiagnoLabsEmailTemplate = ({ title, recipientName, messageHtml, bookingDetails, actionUrl, actionText }) => {
