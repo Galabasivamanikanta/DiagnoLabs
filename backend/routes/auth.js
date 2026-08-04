@@ -451,7 +451,9 @@ router.post('/admin-login', async (req, res) => {
             }
         } catch (pgErr) {
             console.error("[ADMIN-LOGIN PG ERROR]:", pgErr.message);
+            return res.status(500).json({ message: "PostgreSQL Error: " + pgErr.message });
         }
+
 
         // 2. Fallback to MongoDB only if connected and not found in PostgreSQL admins table
         const mongoose = require('mongoose');
