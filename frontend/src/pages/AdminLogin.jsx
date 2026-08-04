@@ -75,12 +75,23 @@ const AdminLogin = () => {
             } else {
                 manualLogin(userData);
                 
-                // Route based on specific role mappings
+                // Route based on role — all 14 roles correctly mapped
                 const role = userData.role;
-                if (role === 'admin') navigate('/admin/dashboard');
-                else if (role === 'lab_partner') navigate('/partner/dashboard');
-                else if (['employee', 'phlebotomist', 'nurse'].includes(role)) navigate('/collector/dashboard');
-                else navigate('/staff/dashboard');
+                if (role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else if (role === 'lab_partner') {
+                    navigate('/partner/dashboard');
+                } else if (role === 'phlebotomist') {
+                    navigate('/collector/dashboard');
+                } else if ([
+                    'employee', 'doctor', 'nurse', 'receptionist',
+                    'inventory_manager', 'finance_manager', 'marketing_head',
+                    'support_staff', 'delivery_partner', 'quality_auditor', 'it_specialist'
+                ].includes(role)) {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/admin/dashboard');
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Invalid ID or password.');
@@ -101,10 +112,21 @@ const AdminLogin = () => {
             manualLogin(userData);
 
             const role = userData.role;
-            if (role === 'admin') navigate('/admin/dashboard');
-            else if (role === 'lab_partner') navigate('/partner/dashboard');
-            else if (['employee', 'phlebotomist', 'nurse'].includes(role)) navigate('/collector/dashboard');
-            else navigate('/staff/dashboard');
+            if (role === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (role === 'lab_partner') {
+                navigate('/partner/dashboard');
+            } else if (role === 'phlebotomist') {
+                navigate('/collector/dashboard');
+            } else if ([
+                'employee', 'doctor', 'nurse', 'receptionist',
+                'inventory_manager', 'finance_manager', 'marketing_head',
+                'support_staff', 'delivery_partner', 'quality_auditor', 'it_specialist'
+            ].includes(role)) {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/admin/dashboard');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Google Admin Login Failed. Email not authorized.');
         } finally {
