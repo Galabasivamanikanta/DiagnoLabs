@@ -233,7 +233,14 @@ app.use((err, req, res, next) => {
 
 // DATABASE CONNECTION & SERVER STARTUP
 const startServer = async () => {
-    await connectDB();
+    try {
+        const { initPgDb } = require('./services/pgService');
+        await initPgDb();
+    } catch (pgErr) {
+        console.warn('[PG-STARTUP WARNING]:', pgErr.message);
+    }
+    
+    connectDB().catch(e => console.warn('[MONGO NOTICE]:', e.message));
 
     server.listen(PORT, '0.0.0.0', () => {
         console.log(`[GATEWAY] DiagnoLabs Clinical Services Active on Port ${PORT}`);
@@ -243,5 +250,6 @@ const startServer = async () => {
 startServer();
 
 module.exports = app;
+
 
 

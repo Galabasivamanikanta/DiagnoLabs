@@ -417,7 +417,7 @@ router.post('/admin-register', verifyTokenAndAdmin, async (req, res) => {
 
 
 
-// STAFF / ADMIN LOGIN
+// STAFF / ADMIN LOGIN (PostgreSQL + MongoDB Hybrid Engine)
 router.post('/admin-login', async (req, res) => {
     try {
         const { employeeId, password } = req.body;
@@ -425,25 +425,58 @@ router.post('/admin-login', async (req, res) => {
         if (!employeeId || !password) return res.status(400).json("Missing credentials.");
 
         const cleanEmployeeId = employeeId.trim().toUpperCase();
-        const user = await User.findOne({ employeeId: cleanEmployeeId });
-        if (!user) return res.status(401).json("Invalid Employee ID!");
+        let userObj = null;
 
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        // 1. Try PostgreSQL Engine First (Ultra-Fast Cloud Performance)
+        try {
+            const { pool } = require('../services/pgService');
+            const pgResult = await pool.query('SELECT * FROM users WHERE UPPER(employee_id) = $1 OR UPPER(email) = $1', [cleanEmployeeId]);
+            if (pgResult.rows.length > 0) {
+                const pgUser = pgResult.rows[0];
+                userObj = {
+                    _id: `pg_${pgUser.id}`,
+                    employeeId: pgUser.employee_id,
+                    email: pgUser.email,
+                    password: pgUser.password,
+                    name: pgUser.name,
+                    phone: pgUser.phone,
+                    role: pgUser.role,
+                    isFirstLogin: pgUser.is_first_login,
+                    isVerified: pgUser.is_verified
+                };
+            }
+        } catch (pgErr) {
+            console.warn("[PG-LOOKUP WARNING]:", pgErr.message);
+        }
+
+        // 2. Fallback to MongoDB if not found in PostgreSQL
+        if (!userObj) {
+            const mongoUser = await User.findOne({ employeeId: cleanEmployeeId });
+            if (mongoUser) {
+                const { password: pw, ...info } = mongoUser._doc;
+                userObj = { ...info, password: mongoUser.password };
+            }
+        }
+
+        if (!userObj) return res.status(401).json("Invalid Employee ID!");
+
+        const isPasswordCorrect = await bcrypt.compare(password, userObj.password);
         if (!isPasswordCorrect) return res.status(401).json("Invalid Password!");
 
         const accessToken = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: userObj._id, role: userObj.role },
             process.env.JWT_SEC || 'diagnolabs_secure_jwt_secret_2024',
             { expiresIn: "3d" }
         );
 
-        const { password: pw, ...info } = user._doc;
+        const { password: pw, ...info } = userObj;
         res.status(200).json({ ...info, accessToken });
     } catch (err) {
         console.error("Admin Login Error Detailed:", err);
         res.status(500).json({ message: err.message || "Admin Login Failed" });
     }
 });
+
 
 
 // ADMIN ACCOUNT RECOVERY
