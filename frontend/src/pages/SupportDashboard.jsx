@@ -1,359 +1,272 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
+import { 
+    LifeBuoy, MessageSquare, Clock, AlertOctagon, CheckCircle2, 
+    Send, ShieldAlert, BookOpen, ArrowRightLeft, User, Search, Filter, LogOut, ChevronRight
+} from 'lucide-react';
 
 const SupportDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Ticket Queue');
-  const [tickets, setTickets] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
 
-  // Mock data fallback
-  const mockTickets = [
-    { id: 'TKT-001', patient: 'John Doe', type: 'Booking', priority: 'High', created: '2026-08-04T10:00:00Z', status: 'Open', assignedTo: null },
-    { id: 'TKT-002', patient: 'Jane Smith', type: 'Report', priority: 'Medium', created: '2026-08-04T11:30:00Z', status: 'In Progress', assignedTo: 'me' },
-    { id: 'TKT-003', patient: 'Bob Wilson', type: 'Payment', priority: 'Low', created: '2026-08-04T09:15:00Z', status: 'Resolved', assignedTo: 'me' },
-    { id: 'TKT-004', patient: 'Alice Brown', type: 'Other', priority: 'High', created: '2026-08-04T13:45:00Z', status: 'Open', assignedTo: null },
+  const [activeTab, setActiveTab] = useState('queue'); // 'queue', 'my-tickets', 'knowledge', 'sla'
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [showEscalateModal, setShowEscalateModal] = useState(false);
+  const [escalateDepartment, setEscalateDepartment] = useState('Accounts / Finance');
+  const [escalateNote, setEscalateNote] = useState('');
+
+  // Pre-formatted Quick Templates for Knowledge Base
+  const quickTemplates = [
+    { title: 'Refund Escalated to Finance', text: 'Thank you for reaching out. We have logged your refund request and escalated it directly to our Accounts & Finance team for processing.' },
+    { title: 'Collector Delay Apology', text: 'We apologize for the delay. Our sample collector is en route and will arrive at your registered address within 15 minutes.' },
+    { title: 'Report Processing Status', text: 'Your diagnostic samples are currently undergoing quality processing at the lab. Your verified digital report will be uploaded within 2 hours.' }
   ];
 
+  // Mock Support Tickets Queue
+  const [tickets, setTickets] = useState([
+    { id: 'TKT-8801', raisedBy: 'Rahul Sharma (Patient)', role: 'Patient', issueType: 'Payment Refund Mismatch', priority: 'Critical', slaTimer: '12 mins remaining', date: '2026-08-04 14:10', status: 'Open', description: 'Charged twice for Blood Profile booking via UPI.', assignedTo: null },
+    { id: 'TKT-8802', raisedBy: 'Apollo Diagnostics (Lab Partner)', role: 'Lab Partner', issueType: 'Reagent Supply Delay', priority: 'High', slaTimer: '45 mins remaining', date: '2026-08-04 13:30', status: 'In Progress', description: 'Need urgent restock of Blood Collection Red Tubes.', assignedTo: 'me' },
+    { id: 'TKT-8803', raisedBy: 'Nurse Clara (Staff)', role: 'Internal Staff', issueType: 'App Vitals Sync Bug', priority: 'Medium', slaTimer: '2 hours remaining', date: '2026-08-04 12:00', status: 'In Progress', description: 'Patient BP vitals not syncing to doctor dashboard.', assignedTo: 'me' },
+    { id: 'TKT-8804', raisedBy: 'Priya Singh (Patient)', role: 'Patient', issueType: 'Sample Collection Reschedule', priority: 'Low', slaTimer: 'SLA Met', date: '2026-08-04 10:00', status: 'Resolved', description: 'Requesting time slot shift from 8 AM to 11 AM.', assignedTo: 'me' }
+  ]);
+
   useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        const response = await fetch('/api/employee/support/tickets');
-        if (response.ok) {
-          const data = await response.json();
-          setTickets(data);
-        } else {
-          setTickets(mockTickets);
-        }
-      } catch (error) {
-        setTickets(mockTickets);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchTickets();
-  }, []);
+    if (tickets.length > 0 && !selectedTicket) {
+      setSelectedTicket(tickets[0]);
+    }
+  }, [tickets]);
 
-  const handleAssign = (id) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, assignedTo: 'me', status: 'In Progress' } : t));
+  const handleLogout = () => {
+    logout();
+    navigate('/adminlogin');
   };
 
-  const handleResolve = (id) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, status: 'Resolved' } : t));
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return '#ff4d4d'; // Red
-      case 'Medium': return '#ffa64d'; // Orange
-      case 'Low': return '#4dff4d'; // Green
-      default: return '#fff';
+  const handleAssignToMe = (ticketId) => {
+    setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, assignedTo: 'me', status: 'In Progress' } : t));
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket(prev => ({ ...prev, assignedTo: 'me', status: 'In Progress' }));
     }
   };
 
-  const styles = {
-    container: {
-      display: 'flex',
-      minHeight: '100vh',
-      backgroundColor: '#f8fafc',
-      color: '#0f172a',
-      fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-    },
-    sidebar: {
-      width: '260px',
-      background: '#ffffff',
-      borderRight: '1px solid #e2e8f0',
-      padding: '24px 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-    },
-    logo: {
-      fontSize: '1.4rem',
-      fontWeight: '800',
-      color: '#003366',
-      textAlign: 'left',
-      marginBottom: '2rem',
-      padding: '0 0.75rem',
-    },
-    navItem: {
-      padding: '12px 16px',
-      margin: '4px 0',
-      cursor: 'pointer',
-      borderRadius: '10px',
-      transition: 'all 0.2s ease',
-      color: '#475569',
-      fontWeight: '600',
-      fontSize: '0.9rem',
-    },
-    activeNavItem: {
-      background: '#f0f7ff',
-      color: '#003366',
-      fontWeight: '800',
-      borderLeft: '4px solid #003366',
-    },
-    mainContent: {
-      flex: 1,
-      padding: '2rem',
-      overflowY: 'auto',
-    },
-    header: {
-      display: 'flex',
-      justify: 'space-between',
-      alignItems: 'center',
-      marginBottom: '2rem',
-    },
-    statsContainer: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '1.5rem',
-      marginBottom: '2rem',
-    },
-    statCard: {
-      background: '#ffffff',
-      border: '1px solid #e2e8f0',
-      borderRadius: '16px',
-      padding: '1.5rem',
-      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)',
-    },
-    statValue: {
-      fontSize: '2rem',
-      fontWeight: '800',
-      color: '#003366',
-      margin: '0.5rem 0 0 0',
-    },
-    statLabel: {
-      fontSize: '0.9rem',
-      color: '#a0aabf',
-    },
-    tabContainer: {
-      display: 'flex',
-      gap: '1rem',
-      marginBottom: '2rem',
-      borderBottom: '1px solid rgba(255,255,255,0.1)',
-      paddingBottom: '0.5rem',
-    },
-    tab: {
-      padding: '0.5rem 1rem',
-      cursor: 'pointer',
-      color: '#a0aabf',
-      fontWeight: '500',
-      borderBottom: '2px solid transparent',
-      transition: 'all 0.3s',
-    },
-    tabActive: {
-      color: '#d4af37',
-      borderBottom: '2px solid #d4af37',
-    },
-    glassPanel: {
-      background: 'rgba(255, 255, 255, 0.03)',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(212, 175, 55, 0.1)',
-      borderRadius: '12px',
-      padding: '1.5rem',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-    },
-    th: {
-      textAlign: 'left',
-      padding: '1rem',
-      borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-      color: '#d4af37',
-      fontWeight: '600',
-    },
-    td: {
-      padding: '1rem',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    },
-    badge: {
-      padding: '0.25rem 0.5rem',
-      borderRadius: '4px',
-      fontSize: '0.8rem',
-      fontWeight: 'bold',
-    },
-    button: {
-      background: 'transparent',
-      border: '1px solid #d4af37',
-      color: '#d4af37',
-      padding: '0.5rem 1rem',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      transition: 'all 0.3s',
-      marginRight: '0.5rem',
-    },
-    buttonHover: {
-      background: '#d4af37',
-      color: '#0a1128',
-    },
-    input: {
-      width: '100%',
-      padding: '0.75rem',
-      background: 'rgba(255,255,255,0.05)',
-      border: '1px solid rgba(212, 175, 55, 0.3)',
-      borderRadius: '6px',
-      color: '#fff',
-      marginBottom: '1rem',
-    },
-    select: {
-      width: '100%',
-      padding: '0.75rem',
-      background: 'rgba(255,255,255,0.05)',
-      border: '1px solid rgba(212, 175, 55, 0.3)',
-      borderRadius: '6px',
-      color: '#fff',
-      marginBottom: '1rem',
-    },
-    donutChart: {
-      width: '150px',
-      height: '150px',
-      borderRadius: '50%',
-      background: 'conic-gradient(#ff4d4d 0% 30%, #ffa64d 30% 70%, #4dff4d 70% 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: '0 auto',
-    },
-    donutHole: {
-      width: '100px',
-      height: '100px',
-      backgroundColor: '#0a1128',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+  const handleSendReply = (e) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+    alert(`Response sent to ${selectedTicket.raisedBy}! Ticket updated.`);
+    setReplyText('');
+  };
+
+  const handleCloseTicket = (ticketId) => {
+    alert(`Ticket [${ticketId}] RESOLVED & CLOSED! CSAT Rating survey sent via Nodemailer to patient.`);
+    setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'Resolved' } : t));
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket(prev => ({ ...prev, status: 'Resolved' }));
     }
   };
 
-  const renderTable = (data) => (
-    <table style={styles.table}>
-      <thead>
-        <tr>
-          <th style={styles.th}>Ticket #</th>
-          <th style={styles.th}>Patient Name</th>
-          <th style={styles.th}>Issue Type</th>
-          <th style={styles.th}>Priority</th>
-          <th style={styles.th}>Status</th>
-          <th style={styles.th}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(ticket => (
-          <tr key={ticket.id}>
-            <td style={styles.td}>{ticket.id}</td>
-            <td style={styles.td}>{ticket.patient}</td>
-            <td style={styles.td}>{ticket.type}</td>
-            <td style={styles.td}>
-              <span style={{...styles.badge, backgroundColor: getPriorityColor(ticket.priority), color: '#000'}}>
-                {ticket.priority}
-              </span>
-            </td>
-            <td style={styles.td}>{ticket.status}</td>
-            <td style={styles.td}>
-              {ticket.status === 'Open' && (
-                <button style={styles.button} onClick={() => handleAssign(ticket.id)}>Assign to me</button>
-              )}
-              {ticket.status === 'In Progress' && ticket.assignedTo === 'me' && (
-                <button style={{...styles.button, background: '#d4af37', color: '#0a1128'}} onClick={() => handleResolve(ticket.id)}>Resolve</button>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+  const handleEscalateSubmit = (e) => {
+    e.preventDefault();
+    alert(`Ticket [${selectedTicket.id}] ESCALATED to [${escalateDepartment}]! Category note logged in audit trail.`);
+    setTickets(prev => prev.map(t => t.id === selectedTicket.id ? { ...t, status: 'Escalated' } : t));
+    setSelectedTicket(prev => ({ ...prev, status: 'Escalated' }));
+    setShowEscalateModal(false);
+    setEscalateNote('');
+  };
 
   return (
-    <div style={styles.container}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Sidebar */}
-      <div style={styles.sidebar}>
-        <div style={styles.logo}>DiagnoLabs Support</div>
-        {['Dashboard', 'Tickets', 'Live Chat', 'Knowledge Base', 'Reports'].map(item => (
-          <div key={item} style={{...styles.navItem, ...(item === 'Tickets' ? styles.navItemActive : {})}}>
-            {item}
+      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LifeBuoy size={24} color="#003366" />
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
           </div>
-        ))}
-        <div style={{...styles.navItem, marginTop: 'auto', color: '#ff4d4d'}} onClick={() => window.location.href = '/adminlogin'}>
-          Logout
+          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Customer Support Helpdesk</span>
         </div>
-      </div>
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+          <button 
+            onClick={() => setActiveTab('queue')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'queue' ? '#f0f7ff' : 'transparent', color: activeTab === 'queue' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <MessageSquare size={18} /> Support Queue ({tickets.filter(t => t.status !== 'Resolved').length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('my-tickets')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'my-tickets' ? '#f0f7ff' : 'transparent', color: activeTab === 'my-tickets' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <User size={18} /> My Assigned Tickets ({tickets.filter(t => t.assignedTo === 'me' && t.status !== 'Resolved').length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('knowledge')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'knowledge' ? '#f0f7ff' : 'transparent', color: activeTab === 'knowledge' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <BookOpen size={18} /> Quick Response Templates
+          </button>
+          <button 
+            onClick={() => setActiveTab('sla')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'sla' ? '#f0f7ff' : 'transparent', color: activeTab === 'sla' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Clock size={18} /> SLA & CSAT Performance
+          </button>
+        </nav>
+
+        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
+            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'Support Executive'}</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Helpdesk Specialist Tier-1</div>
+          </div>
+          <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content */}
-      <div style={styles.mainContent}>
-        <div style={styles.statsContainer}>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>{tickets.filter(t => t.status === 'Open').length}</div>
-            <div style={styles.statLabel}>Open Tickets</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>{tickets.filter(t => t.status === 'Resolved').length}</div>
-            <div style={styles.statLabel}>Resolved Today</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statValue}>15m</div>
-            <div style={styles.statLabel}>Avg Response Time</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={{...styles.statValue, color: '#ff4d4d'}}>2</div>
-            <div style={styles.statLabel}>SLA Breached</div>
+      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        {/* Header bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Omnichannel Customer Support Hub</h1>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Triage tickets across Patients, Lab Partners, and Internal Staff with SLA tracking.</p>
           </div>
         </div>
 
-        <div style={styles.tabContainer}>
-          {['Ticket Queue', 'My Tickets', 'Create Ticket', 'Reports'].map(tab => (
-            <div key={tab} style={{...styles.tab, ...(activeTab === tab ? styles.tabActive : {})}} onClick={() => setActiveTab(tab)}>
-              {tab}
+        {/* Top KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Open Tickets Queue</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{tickets.filter(t => t.status === 'Open').length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Resolved Today</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>18</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Avg. First Response Time</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#2563eb', marginTop: '6px' }}>14 mins</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #fee2e2', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>SLA Breach Warning Alerts</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>1 Ticket</div>
+          </div>
+        </div>
+
+        {/* Zendesk-style Split View Layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+          {/* Left Column: Ticket List */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Ticket Stream Queue</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {tickets.map(t => (
+                <div 
+                  key={t.id} 
+                  onClick={() => setSelectedTicket(t)}
+                  style={{ padding: '16px', borderRadius: '12px', border: selectedTicket?.id === t.id ? '2px solid #003366' : '1px solid #e2e8f0', background: selectedTicket?.id === t.id ? '#f0f7ff' : '#ffffff', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: '800', color: '#003366', fontSize: '0.85rem' }}>{t.id} • {t.raisedBy}</span>
+                    <span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: '800', background: t.priority === 'Critical' ? '#fee2e2' : (t.priority === 'High' ? '#ffedd5' : '#f1f5f9'), color: t.priority === 'Critical' ? '#dc2626' : (t.priority === 'High' ? '#c2410c' : '#475569') }}>
+                      {t.priority}
+                    </span>
+                  </div>
+                  <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#0f172a', marginBottom: '4px' }}>{t.issueType}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>SLA Target: <strong style={{ color: t.slaTimer.includes('remaining') ? '#dc2626' : '#059669' }}>{t.slaTimer}</strong></div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div style={styles.glassPanel}>
-          {activeTab === 'Ticket Queue' && renderTable(tickets)}
-          
-          {activeTab === 'My Tickets' && renderTable(tickets.filter(t => t.assignedTo === 'me'))}
-          
-          {activeTab === 'Create Ticket' && (
-            <div style={{maxWidth: '600px', margin: '0 auto'}}>
-              <h3 style={{color: '#d4af37', marginBottom: '1.5rem'}}>Create New Ticket</h3>
-              <input type="text" placeholder="Search Patient..." style={styles.input} />
-              <select style={styles.select}>
-                <option value="">Select Issue Type</option>
-                <option value="Booking">Booking</option>
-                <option value="Report">Report</option>
-                <option value="Payment">Payment</option>
-                <option value="Other">Other</option>
-              </select>
-              <select style={styles.select}>
-                <option value="">Select Priority</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-              <textarea placeholder="Description" style={{...styles.input, minHeight: '120px'}}></textarea>
-              <button style={{...styles.button, background: '#d4af37', color: '#0a1128', width: '100%'}}>Submit Ticket</button>
+          {/* Right Column: Selected Ticket Detail Panel */}
+          {selectedTicket && (
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#003366' }}>{selectedTicket.id}</h3>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {selectedTicket.assignedTo !== 'me' && (
+                      <button onClick={() => handleAssignToMe(selectedTicket.id)} style={{ padding: '6px 12px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
+                        Assign to Me
+                      </button>
+                    )}
+                    <button onClick={() => setShowEscalateModal(true)} style={{ padding: '6px 12px', background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3', borderRadius: '8px', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      Escalate
+                    </button>
+                    <button onClick={() => handleCloseTicket(selectedTicket.id)} style={{ padding: '6px 12px', background: '#059669', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      Mark Resolved
+                    </button>
+                  </div>
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#475569' }}>
+                  <strong>From:</strong> {selectedTicket.raisedBy} • <strong>Category:</strong> {selectedTicket.issueType}
+                </div>
+              </div>
+
+              {/* Ticket Description */}
+              <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem', color: '#0f172a', border: '1px solid #cbd5e1' }}>
+                <strong>Issue Details:</strong> {selectedTicket.description}
+              </div>
+
+              {/* Quick Template Picker */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', marginBottom: '4px', display: 'block' }}>INSERT KNOWLEDGE BASE TEMPLATE</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {quickTemplates.map((tmpl, idx) => (
+                    <button key={idx} onClick={() => setReplyText(tmpl.text)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.75rem', fontWeight: '700', color: '#003366', cursor: 'pointer' }}>
+                      + {tmpl.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Response Editor */}
+              <form onSubmit={handleSendReply} style={{ marginTop: 'auto' }}>
+                <textarea 
+                  rows="4" 
+                  value={replyText} 
+                  onChange={e => setReplyText(e.target.value)} 
+                  placeholder="Type your response to the user..." 
+                  style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem', fontFamily: 'inherit' }}
+                ></textarea>
+                <button type="submit" style={{ width: '100%', padding: '10px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Send size={14} /> Send Reply & Notify User
+                </button>
+              </form>
             </div>
           )}
-
-          {activeTab === 'Reports' && (
-            <div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap'}}>
-              <div style={{textAlign: 'center', marginBottom: '2rem'}}>
-                <h3 style={{color: '#d4af37', marginBottom: '1rem'}}>SLA Compliance</h3>
-                <div style={{fontSize: '3rem', fontWeight: 'bold', color: '#4dff4d'}}>94%</div>
-              </div>
-              <div style={{textAlign: 'center', marginBottom: '2rem'}}>
-                <h3 style={{color: '#d4af37', marginBottom: '1rem'}}>Tickets by Priority</h3>
-                <div style={styles.donutChart}>
-                  <div style={styles.donutHole}>Total</div>
-                </div>
-                <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem'}}>
-                  <span style={{color: '#ff4d4d'}}>High 30%</span>
-                  <span style={{color: '#ffa64d'}}>Med 40%</span>
-                  <span style={{color: '#4dff4d'}}>Low 30%</span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      </main>
+
+      {/* Escalation Modal */}
+      {showEscalateModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#e11d48', fontWeight: '800' }}>Escalate Ticket #{selectedTicket?.id}</h3>
+            <form onSubmit={handleEscalateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>SELECT TARGET DEPARTMENT</label>
+                <select value={escalateDepartment} onChange={e => setEscalateDepartment(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none', background: 'white', fontWeight: '700' }}>
+                  <option>Accounts / Finance (Payment / Refund Dispute)</option>
+                  <option>IT Specialist (App Bug / Service Outage)</option>
+                  <option>System Manager / Admin (Policy Escalation)</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>ESCALATION CONTEXT NOTES</label>
+                <textarea rows="3" required value={escalateNote} onChange={e => setEscalateNote(e.target.value)} placeholder="Provide reasoning for escalation..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', outline: 'none' }}></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowEscalateModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#e11d48', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Transmit Escalation</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
