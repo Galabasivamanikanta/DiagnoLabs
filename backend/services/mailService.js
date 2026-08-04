@@ -44,7 +44,7 @@ const getDiagnoLabsEmailTemplate = ({ title, recipientName, messageHtml, booking
         <style>
             body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; color: #1e293b; }
             .email-wrapper { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(2, 132, 199, 0.1); border: 1px solid #e2e8f0; }
-            .email-header { background: linear-gradient(135deg, ${primaryColor} 0%, ${darkBlue} 60%, ${tealColor} 100%); padding: 32px; text-align: center; color: #ffffff; }
+            .email-header { background: #f8fafc; padding: 24px; text-align: center; border-bottom: 4px solid #0a1e46; }
             .brand-title { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
             .brand-subtitle { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #e0f2fe; margin-top: 4px; }
             .email-body { padding: 36px 32px; }
@@ -64,8 +64,7 @@ const getDiagnoLabsEmailTemplate = ({ title, recipientName, messageHtml, booking
     <body>
         <div class="email-wrapper">
             <div class="email-header">
-                <div class="brand-title">🧪 DiagnoLabs</div>
-                <div class="brand-subtitle">NABL Accredited Clinical Pathology Network</div>
+                <img src="https://diagnolabs-platform.vercel.app/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
             </div>
             <div class="email-body">
                 <h3 class="greeting">Hello ${recipientName || 'Valued Patient'}, 👋</h3>
