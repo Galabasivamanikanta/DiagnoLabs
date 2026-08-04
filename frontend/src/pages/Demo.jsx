@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  Menu,
-  X,
   Zap,
   ShieldCheck,
   MapPin,
@@ -10,12 +8,6 @@ import {
   Users,
   Award,
   ArrowRight,
-  Heart,
-  Clock,
-  Microscope,
-  Mail,
-  Phone,
-  MapPinIcon,
   Building2,
   BadgeCheck,
   FlaskConical,
@@ -26,6 +18,7 @@ import BrandLogo from '../components/BrandLogo';
 
 const Demo = () => {
   const [_mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hoverMenu, setHoverMenu] = useState(null);
   const navigate = useNavigate();
 
   const handleExitDemo = (targetPath, options = {}) => {
@@ -100,17 +93,9 @@ const Demo = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setMobileMenuOpen(false);
-    }
-  };
-
   return (
     <div className="demo-container">
-      {/* Demo-specific header: left = logo + auth, center = reference links */}
+      {/* Demo-specific header */}
       <header className="demo-custom-navbar">
         <div className="demo-custom-left">
           <div onClick={() => handleExitDemo('/')} className="demo-brand" style={{ cursor: 'pointer' }}>
@@ -123,9 +108,9 @@ const Demo = () => {
         </div>
 
         <nav className="demo-custom-center">
-          <div 
-            className="demo-nav-item-wrapper" 
-            onMouseEnter={() => setHoverMenu('about')} 
+          <div
+            className="demo-nav-item-wrapper"
+            onMouseEnter={() => setHoverMenu('about')}
             onMouseLeave={() => setHoverMenu(null)}
           >
             <button className="demo-nav-link">About</button>
@@ -139,9 +124,9 @@ const Demo = () => {
             )}
           </div>
 
-          <div 
-            className="demo-nav-item-wrapper" 
-            onMouseEnter={() => setHoverMenu('features')} 
+          <div
+            className="demo-nav-item-wrapper"
+            onMouseEnter={() => setHoverMenu('features')}
             onMouseLeave={() => setHoverMenu(null)}
           >
             <button className="demo-nav-link">Features</button>
@@ -157,9 +142,9 @@ const Demo = () => {
             )}
           </div>
 
-          <div 
-            className="demo-nav-item-wrapper" 
-            onMouseEnter={() => setHoverMenu('partners')} 
+          <div
+            className="demo-nav-item-wrapper"
+            onMouseEnter={() => setHoverMenu('partners')}
             onMouseLeave={() => setHoverMenu(null)}
           >
             <button className="demo-nav-link">Partners</button>
@@ -175,9 +160,9 @@ const Demo = () => {
             )}
           </div>
 
-          <div 
-            className="demo-nav-item-wrapper" 
-            onMouseEnter={() => setHoverMenu('contact')} 
+          <div
+            className="demo-nav-item-wrapper"
+            onMouseEnter={() => setHoverMenu('contact')}
             onMouseLeave={() => setHoverMenu(null)}
           >
             <button className="demo-nav-link">Contact</button>
@@ -212,9 +197,6 @@ const Demo = () => {
             </button>
             <button className="demo-btn demo-btn-secondary demo-btn-large" onClick={() => handleExitDemo('/')}>
               Explore as Guest <ArrowRight size={20} />
-            </button>
-            <button className="demo-btn demo-btn-secondary demo-btn-large" style={{ border: 'none' }} onClick={() => () => setHoverMenu('about')}>
-              Learn More
             </button>
           </div>
           <div className="demo-hero-stats">
@@ -259,8 +241,75 @@ const Demo = () => {
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="demo-features" id="features">
+        <div className="demo-container-inner">
+          <h2 className="demo-section-title">Why DiagnoLabs?</h2>
+          <p className="demo-section-subtitle">Everything you need for precision diagnostics, all in one place.</p>
+          <div className="demo-features-grid">
+            {features.map((feature, index) => (
+              <div key={index} className="demo-feature-card">
+                <div className="demo-feature-icon">{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="demo-how-it-works" id="about">
+        <div className="demo-container-inner">
+          <h2 className="demo-section-title">How It Works</h2>
+          <p className="demo-section-subtitle">Simple, secure, and transparent — every step of the way.</p>
+          <div className="demo-steps">
+            {functionalities.map((step, index) => (
+              <div key={index} className="demo-step-card">
+                <div className="demo-step-number">{step.number}</div>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Section */}
+      <section className="demo-partners" id="partners">
+        <div className="demo-container-inner">
+          <h2 className="demo-section-title">Our Certifications</h2>
+          <p className="demo-section-subtitle">Trusted by India's most respected diagnostic standards.</p>
+          <div className="demo-partners-grid">
+            {partners.map((partner, index) => (
+              <div key={index} className="demo-partner-card">
+                <div className="demo-partner-icon">{partner.icon}</div>
+                <h3>{partner.name}</h3>
+                <p>{partner.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="demo-cta">
+        <div className="demo-container-inner">
+          <h2>Ready to Get Started?</h2>
+          <p>Join thousands of patients who trust DiagnoLabs for precise, reliable diagnostics.</p>
+          <div className="demo-cta-buttons">
+            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>
+              Create Account <ArrowRight size={20} />
+            </button>
+            <button className="demo-btn demo-btn-secondary demo-btn-large" onClick={() => handleExitDemo('/')}>
+              Explore Platform
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="demo-footer">
+      <footer className="demo-footer" id="contact">
         <div className="demo-container-inner">
           <div className="demo-footer-content">
             <div className="demo-footer-brand">
@@ -303,4 +352,3 @@ const Demo = () => {
 };
 
 export default Demo;
-
