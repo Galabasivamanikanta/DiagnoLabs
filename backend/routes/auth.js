@@ -73,10 +73,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (!user) return res.status(401).json("Wrong credentials!");
 
-        // BLOCK STAFF FROM REGULAR LOGIN
-        if (user.role !== 'patient') {
-            return res.status(403).json("Staff members must use the Secure Admin Portal to log in.");
-        }
+        // Staff are no longer blocked from regular login to support double-roles (Patient + Staff)
 
         // CHECK PASSWORD
         const isPasswordCorrect = await bcrypt.compare(req.body.password, user.password);
@@ -171,10 +168,7 @@ router.post('/google', async (req, res) => {
             await user.save();
         }
 
-        // BLOCK STAFF FROM PATIENT GOOGLE LOGIN
-        if (user.role !== 'patient') {
-            return res.status(403).json({ error: "Access Denied", message: "Staff members must use the Secure Admin Portal to log in." });
-        }
+        // Staff are no longer blocked from Patient Google Login to support double-roles
 
         // GENERATE JWT TOKEN
         const accessToken = jwt.sign(

@@ -57,20 +57,20 @@ const MainLayout = () => {
         <Route path="/patient/dashboard" element={<Navigate to="/patient/history" replace />} />
         
         <Route path="/patient/profile" element={
-          <ProtectedRoute roles={['patient']}>
+          <ProtectedRoute>
             <UserProfile />
           </ProtectedRoute>
         } />
 
         <Route path="/patient/history" element={
-          <ProtectedRoute roles={['patient']}>
+          <ProtectedRoute>
             <BookingHistory />
           </ProtectedRoute>
         } />
 
-        {/* Checkout - Protected for Patients */}
+        {/* Checkout - Protected for all authenticated users */}
         <Route path="/checkout" element={
-          <ProtectedRoute roles={['patient']}>
+          <ProtectedRoute>
             <Checkout />
           </ProtectedRoute>
         } />

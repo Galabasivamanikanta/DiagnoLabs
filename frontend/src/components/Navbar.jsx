@@ -144,7 +144,9 @@ const Navbar = () => {
                                         <Link to="/collector/dashboard" className="dropdown-item">
                                             <LayoutDashboard size={18} /> Collector Dashboard
                                         </Link>
-                                    ) : (
+                                    ) : null}
+                                    
+                                    {user.role !== 'lab_partner' && (
                                         <>
                                             <Link to="/patient/profile" className="dropdown-item">
                                                 <User size={18} /> Profile
