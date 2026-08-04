@@ -13,15 +13,15 @@ const getPgUrl = () => {
 
 
 const connectionString = getPgUrl();
-const isInternal = connectionString.includes('dpg-d9op1pks728c73fkb1u0-a/diagnolabs');
 
 const pool = new Pool({
     connectionString,
-    ssl: isInternal ? false : { rejectUnauthorized: false },
+    ssl: { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000
 });
+
 
 
 const initPgDb = async () => {
