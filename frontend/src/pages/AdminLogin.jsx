@@ -1,10 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import BrandLogo from '../components/BrandLogo';
 import { Lock, Mail, ChevronRight, Activity, ShieldCheck, BarChart3, Users, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+
 
 const AdminLogin = () => {
     const [employeeId, setEmployeeId] = useState('');
@@ -87,7 +89,31 @@ const AdminLogin = () => {
         }
     };
 
+    const handleGoogleAdminSuccess = async (credentialResponse) => {
+
+        setError('');
+        setLoading(true);
+        try {
+            const res = await axios.post(`${API_BASE_URL}/api/auth/admin-google`, {
+                token: credentialResponse.credential
+            });
+            const userData = res.data;
+            manualLogin(userData);
+
+            const role = userData.role;
+            if (role === 'admin') navigate('/admin/dashboard');
+            else if (role === 'lab_partner') navigate('/partner/dashboard');
+            else if (['employee', 'phlebotomist', 'nurse'].includes(role)) navigate('/collector/dashboard');
+            else navigate('/staff/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Google Admin Login Failed. Email not authorized.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleChangePassword = async (e) => {
+
         e.preventDefault();
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match");
@@ -438,6 +464,23 @@ const AdminLogin = () => {
                                     )}
                                 </button>
                             </form>
+
+                            <div className="relative my-6 flex items-center justify-center">
+                                <div className="border-t border-gray-200 w-full"></div>
+                                <span className="bg-white px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider absolute">OR</span>
+                            </div>
+
+                            <div className="flex justify-center w-full">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleAdminSuccess}
+                                    onError={() => setError('Google Authentication Failed. Please try again.')}
+                                    theme="outline"
+                                    shape="pill"
+                                    size="large"
+                                    width="100%"
+                                />
+                            </div>
+
                         </>
                     ) : (
                         <>

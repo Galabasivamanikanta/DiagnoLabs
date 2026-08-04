@@ -488,6 +488,104 @@ router.post('/admin-login', async (req, res) => {
     }
 });
 
+// GOOGLE AUTH FOR ADMIN / STAFF PORTAL
+router.post('/admin-google', async (req, res) => {
+    const { token } = req.body;
+    try {
+        if (!token) return res.status(400).json({ message: "Google ID Token is missing." });
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { email, name } = payload;
+        const cleanEmail = email.trim().toLowerCase();
+
+        let userObj = null;
+
+        // 1. Query PostgreSQL 'admins' Table First (Ultra-Fast 10ms Authentication)
+        try {
+            const { pool } = require('../services/pgService');
+            const pgResult = await pool.query(
+                'SELECT * FROM admins WHERE LOWER(TRIM(email)) = $1',
+                [cleanEmail]
+            );
+            console.log(`[ADMIN-GOOGLE PG] Queried admins for ${cleanEmail}, found ${pgResult.rows.length} rows`);
+            if (pgResult.rows.length > 0) {
+                const pgUser = pgResult.rows[0];
+                userObj = {
+                    _id: `pg_admin_${pgUser.id}`,
+                    employeeId: pgUser.employee_id,
+                    email: pgUser.email,
+                    name: pgUser.name,
+                    phone: pgUser.phone,
+                    role: pgUser.role,
+                    isFirstLogin: pgUser.is_first_login,
+                    isVerified: true
+                };
+            }
+        } catch (pgErr) {
+            console.error("[ADMIN-GOOGLE PG ERROR]:", pgErr.message);
+        }
+
+        // 2. Query PostgreSQL 'users' Table for Staff Roles if not found in admins
+        if (!userObj) {
+            try {
+                const { pool } = require('../services/pgService');
+                const pgUserResult = await pool.query(
+                    'SELECT * FROM users WHERE LOWER(TRIM(email)) = $1 AND role != $2',
+                    [cleanEmail, 'patient']
+                );
+                if (pgUserResult.rows.length > 0) {
+                    const pgUser = pgUserResult.rows[0];
+                    userObj = {
+                        _id: `pg_${pgUser.id}`,
+                        email: pgUser.email,
+                        name: pgUser.name,
+                        phone: pgUser.phone,
+                        role: pgUser.role,
+                        isVerified: true
+                    };
+                }
+            } catch (e) {}
+        }
+
+        // 3. Fallback to MongoDB User model for Staff/Admin Roles
+        const mongoose = require('mongoose');
+        if (!userObj && mongoose.connection.readyState === 1) {
+            try {
+                const mongoUser = await User.findOne({ email: cleanEmail });
+                if (mongoUser && mongoUser.role !== 'patient') {
+                    const { password: pw, ...info } = mongoUser._doc;
+                    userObj = info;
+                }
+            } catch (mErr) {
+                console.error("[ADMIN-GOOGLE MONGO ERROR]:", mErr.message);
+            }
+        }
+
+        if (!userObj) {
+            return res.status(403).json({
+                message: `Access Denied! The Google email (${cleanEmail}) is not registered as an authorized Admin or Staff member.`
+            });
+        }
+
+        const accessToken = jwt.sign(
+            { id: userObj._id, role: userObj.role },
+            process.env.JWT_SEC || 'diagnolabs_secure_jwt_secret_2024',
+            { expiresIn: "3d" }
+        );
+
+        const { password: pw, ...info } = userObj;
+        res.status(200).json({ ...info, accessToken });
+    } catch (err) {
+        console.error("Admin Google Auth Error:", err);
+        res.status(500).json({ message: "Google Authentication Failed: " + err.message });
+    }
+});
+
+
 
 
 
