@@ -123,10 +123,72 @@ const Demo = () => {
         </div>
 
         <nav className="demo-custom-center">
-          <button onClick={() => scrollToSection('about')} className="demo-nav-link">About</button>
-          <button onClick={() => scrollToSection('features')} className="demo-nav-link">Features</button>
-          <button onClick={() => scrollToSection('partners')} className="demo-nav-link">Partners</button>
-          <button onClick={() => scrollToSection('contact')} className="demo-nav-link">Contact</button>
+          <div 
+            className="demo-nav-item-wrapper" 
+            onMouseEnter={() => setHoverMenu('about')} 
+            onMouseLeave={() => setHoverMenu(null)}
+          >
+            <button className="demo-nav-link">About</button>
+            {hoverMenu === 'about' && (
+              <div className="demo-hover-dropdown">
+                <h3>Our Mission</h3>
+                <p>To democratize access to world-class diagnostic services across India.</p>
+                <h3>Our Vision</h3>
+                <p>Bring precision clinical discovery to every doorstep.</p>
+              </div>
+            )}
+          </div>
+
+          <div 
+            className="demo-nav-item-wrapper" 
+            onMouseEnter={() => setHoverMenu('features')} 
+            onMouseLeave={() => setHoverMenu(null)}
+          >
+            <button className="demo-nav-link">Features</button>
+            {hoverMenu === 'features' && (
+              <div className="demo-hover-dropdown">
+                <ul>
+                  <li>AI-Powered Diagnostics</li>
+                  <li>Real-time Tracking</li>
+                  <li>Secure Data Storage</li>
+                  <li>Expert Consultations</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div 
+            className="demo-nav-item-wrapper" 
+            onMouseEnter={() => setHoverMenu('partners')} 
+            onMouseLeave={() => setHoverMenu(null)}
+          >
+            <button className="demo-nav-link">Partners</button>
+            {hoverMenu === 'partners' && (
+              <div className="demo-hover-dropdown">
+                <ul>
+                  <li>Apollo Diagnostics</li>
+                  <li>Dr. Lal PathLabs</li>
+                  <li>Thyrocare</li>
+                  <li>Metropolis Healthcare</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div 
+            className="demo-nav-item-wrapper" 
+            onMouseEnter={() => setHoverMenu('contact')} 
+            onMouseLeave={() => setHoverMenu(null)}
+          >
+            <button className="demo-nav-link">Contact</button>
+            {hoverMenu === 'contact' && (
+              <div className="demo-hover-dropdown">
+                <p><strong>Email:</strong> support@diagnolabs.in</p>
+                <p><strong>Phone:</strong> 1800-123-4567</p>
+                <p><strong>HQ:</strong> Hyderabad, Telangana</p>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="demo-custom-right">
@@ -151,7 +213,7 @@ const Demo = () => {
             <button className="demo-btn demo-btn-secondary demo-btn-large" onClick={() => handleExitDemo('/')}>
               Explore as Guest <ArrowRight size={20} />
             </button>
-            <button className="demo-btn demo-btn-secondary demo-btn-large" style={{ border: 'none' }} onClick={() => scrollToSection('about')}>
+            <button className="demo-btn demo-btn-secondary demo-btn-large" style={{ border: 'none' }} onClick={() => () => setHoverMenu('about')}>
               Learn More
             </button>
           </div>
@@ -193,161 +255,6 @@ const Demo = () => {
                 <p>Modern diagnostics powered by NABL-aligned workflows and secure data handling.</p>
               </div>
             </article>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="demo-section demo-about">
-        <div className="demo-container-inner">
-          <div className="demo-section-header">
-            <h2>Why Choose DiagnoLabs?</h2>
-            <p>Your trusted partner for accurate, reliable, and accessible clinical diagnostics</p>
-          </div>
-
-          <div className="demo-about-content">
-            <div className="demo-about-item">
-              <div className="demo-about-icon">
-                <Heart size={32} />
-              </div>
-              <h3>Our Mission</h3>
-              <p>To democratize access to world-class diagnostic services across India with NABL-certified precision and patient-centric care, ensuring every individual gets accurate health insights quickly and affordably.</p>
-            </div>
-
-            <div className="demo-about-item">
-              <div className="demo-about-icon">
-                <Microscope size={32} />
-              </div>
-              <h3>Our Vision</h3>
-              <p>Bring precision clinical discovery to every doorstep. We envision a healthcare ecosystem where advanced diagnostics are accessible, affordable, and trusted by millions across Southeast Asia.</p>
-            </div>
-
-            <div className="demo-about-item">
-              <div className="demo-about-icon">
-                <Award size={32} />
-              </div>
-              <h3>Our Values</h3>
-              <p>Accuracy, reliability, transparency, and compassion. Every test result represents our commitment to excellence and your trust in our expertise. We maintain the highest standards of quality and ethics.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="demo-section demo-features">
-        <div className="demo-container-inner">
-          <div className="demo-section-header">
-            <h2>Key Features</h2>
-            <p>Everything you need for convenient and reliable diagnostic testing</p>
-          </div>
-
-          <div className="demo-features-grid">
-            {features.map((feature, index) => (
-              <div key={index} className="demo-feature-card">
-                <div className="demo-feature-icon">{feature.icon}</div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Functionalities Section */}
-      <section className="demo-section demo-functionalities">
-        <div className="demo-container-inner">
-          <div className="demo-section-header">
-            <h2>How It Works</h2>
-            <p>Simple, secure, and seamless diagnostic experience</p>
-          </div>
-
-          <div className="demo-functionalities-list">
-            {functionalities.map((item, index) => (
-              <div key={index} className="demo-functionality-item">
-                <div className="demo-functionality-number">{item.number}</div>
-                <div className="demo-functionality-content">
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                </div>
-                {index < functionalities.length - 1 && <div className="demo-functionality-arrow"><ArrowRight size={24} /></div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section id="partners" className="demo-section demo-partners">
-        <div className="demo-container-inner">
-          <div className="demo-section-header">
-            <h2>Trusted Partners</h2>
-            <p>Accreditations and certifications that ensure quality</p>
-          </div>
-
-          <div className="demo-partners-grid">
-            {partners.map((partner, index) => (
-              <div key={index} className="demo-partner-card">
-                <div className="demo-partner-icon">{partner.icon}</div>
-                <h3>{partner.name}</h3>
-                <p>{partner.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="demo-certifications">
-            <p>ISO 15189:2022 Certified | CAP Accredited | Quality Assured | NABL Registered</p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="demo-section demo-cta">
-        <div className="demo-container-inner">
-          <div className="demo-cta-content">
-            <h2>Ready to Experience Better Diagnostics?</h2>
-            <p>Join thousands of patients who trust DiagnoLabs for accurate, reliable, and accessible testing.</p>
-            <button className="demo-btn demo-btn-primary demo-btn-large" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>
-              Get Started Now <ArrowRight size={20} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="demo-section demo-contact">
-        <div className="demo-container-inner">
-          <div className="demo-section-header">
-            <h2>Get in Touch</h2>
-            <p>Have questions? We're here to help!</p>
-          </div>
-
-          <div className="demo-contact-grid">
-            <div className="demo-contact-card">
-              <div className="demo-contact-icon">
-                <Mail size={28} />
-              </div>
-              <h3>Email Us</h3>
-              <p>support@diagnolabs.in</p>
-              <a href="mailto:support@diagnolabs.in" className="demo-contact-link">Send Email</a>
-            </div>
-
-            <div className="demo-contact-card">
-              <div className="demo-contact-icon">
-                <Phone size={28} />
-              </div>
-              <h3>Call Us</h3>
-              <p>+91 (XXX) XXX-XXXX</p>
-              <a href="tel:+911234567890" className="demo-contact-link">Call Now</a>
-            </div>
-
-            <div className="demo-contact-card">
-              <div className="demo-contact-icon">
-                <MapPinIcon size={28} />
-              </div>
-              <h3>Visit Us</h3>
-              <p>DiagnoLabs Head Office, India</p>
-              <a href="#" className="demo-contact-link">Get Directions</a>
-            </div>
           </div>
         </div>
       </section>
