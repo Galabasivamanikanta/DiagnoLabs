@@ -95,12 +95,20 @@ const sendVerificationOTP = async (phone, email) => {
         }
 
 
+        if (email && !emailResult.success) {
+            return {
+                success: false,
+                message: `Failed to deliver email OTP: ${emailResult.error || 'SMTP delivery failed'}`
+            };
+        }
+
         const isSent = emailResult.success || whatsappResult.success;
 
         if (!isSent) {
             const errDetail = emailResult.error || whatsappResult.error || "Please check your email address or network connection.";
             return { success: false, message: `OTP Delivery Failed: ${errDetail}` };
         }
+
 
 
         return { 
