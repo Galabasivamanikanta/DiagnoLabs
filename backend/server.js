@@ -1,11 +1,10 @@
-if (!process.env.RENDER) {
-    try {
-        const dns = require('node:dns');
-        dns.setServers(['8.8.8.8', '8.8.4.4']);
-    } catch (e) {
-        console.warn('DNS server override skipped:', e.message);
-    }
+const dns = require('node:dns');
+try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {
+    console.warn('DNS server override notice:', e.message);
 }
+
 
 const express = require('express');
 const mongoose = require('mongoose');
