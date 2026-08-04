@@ -140,11 +140,11 @@ const Demo = () => {
                   </div>
                   <div className="demo-mega-links-col">
                     <h4 className="demo-mega-col-title">Company</h4>
-                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">🏥</span>Our Story</a>
-                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">👨‍🔬</span>Leadership Team</a>
-                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">🏆</span>Awards & Recognition</a>
-                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">📰</span>Press & Media</a>
-                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">💼</span>Careers</a>
+                    <a className="demo-mega-link" href="#about"><img className="demo-mega-link-img" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=48&h=48&q=80" alt="Our Story" />Our Story</a>
+                    <a className="demo-mega-link" href="#about"><img className="demo-mega-link-img" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=48&h=48&q=80" alt="Leadership" />Leadership Team</a>
+                    <a className="demo-mega-link" href="#about"><img className="demo-mega-link-img" src="https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=48&h=48&q=80" alt="Awards" />Awards & Recognition</a>
+                    <a className="demo-mega-link" href="#about"><img className="demo-mega-link-img" src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=48&h=48&q=80" alt="Press" />Press & Media</a>
+                    <a className="demo-mega-link" href="#about"><img className="demo-mega-link-img" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=48&h=48&q=80" alt="Careers" />Careers</a>
                   </div>
                 </div>
               </div>
@@ -163,42 +163,54 @@ const Demo = () => {
                 <div className="demo-mega-inner">
                   <div className="demo-mega-feature-grid">
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">🧠</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=80&h=80&q=80" alt="AI Diagnostics" />
+                      </div>
                       <div>
                         <h4>AI-Powered Diagnostics</h4>
                         <p>Smart analysis with ML-powered accuracy for faster results.</p>
                       </div>
                     </div>
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">📡</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=80&h=80&q=80" alt="Real-time Tracking" />
+                      </div>
                       <div>
                         <h4>Real-time Tracking</h4>
                         <p>Live updates on your test status and sample progress.</p>
                       </div>
                     </div>
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">🔒</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=80&h=80&q=80" alt="Secure Data" />
+                      </div>
                       <div>
                         <h4>Secure Data Storage</h4>
                         <p>End-to-end encrypted health records, HIPAA compliant.</p>
                       </div>
                     </div>
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">👩‍⚕️</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=80&h=80&q=80" alt="Expert Consultation" />
+                      </div>
                       <div>
                         <h4>Expert Consultations</h4>
                         <p>Connect with certified pathologists for report insights.</p>
                       </div>
                     </div>
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">📍</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=80&h=80&q=80" alt="Nearby Lab" />
+                      </div>
                       <div>
                         <h4>Nearby Lab Finder</h4>
                         <p>Locate NABL labs within 5 km with real-time slots.</p>
                       </div>
                     </div>
                     <div className="demo-mega-feature-item">
-                      <div className="demo-mega-feature-icon">📋</div>
+                      <div className="demo-mega-feature-icon-img">
+                        <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=80&h=80&q=80" alt="Digital Reports" />
+                      </div>
                       <div>
                         <h4>Digital Reports</h4>
                         <p>Instant certified PDF reports shared to your phone.</p>
@@ -226,28 +238,44 @@ const Demo = () => {
                 <div className="demo-mega-inner">
                   <div className="demo-mega-partner-grid">
                     <div className="demo-mega-partner-card">
-                      <div className="demo-mega-partner-logo">🏥</div>
-                      <h4>Apollo Diagnostics</h4>
-                      <p>250+ centres across India</p>
-                      <span className="demo-mega-partner-tag">NABL Certified</span>
+                      <div className="demo-mega-partner-img">
+                        <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=300&h=160&q=80" alt="Apollo Diagnostics" />
+                      </div>
+                      <div className="demo-mega-partner-info">
+                        <h4>Apollo Diagnostics</h4>
+                        <p>250+ centres across India</p>
+                        <span className="demo-mega-partner-tag">NABL Certified</span>
+                      </div>
                     </div>
                     <div className="demo-mega-partner-card">
-                      <div className="demo-mega-partner-logo">🔬</div>
-                      <h4>Dr. Lal PathLabs</h4>
-                      <p>200+ collection points</p>
-                      <span className="demo-mega-partner-tag">ISO Audited</span>
+                      <div className="demo-mega-partner-img">
+                        <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=300&h=160&q=80" alt="Dr. Lal PathLabs" />
+                      </div>
+                      <div className="demo-mega-partner-info">
+                        <h4>Dr. Lal PathLabs</h4>
+                        <p>200+ collection points</p>
+                        <span className="demo-mega-partner-tag">ISO Audited</span>
+                      </div>
                     </div>
                     <div className="demo-mega-partner-card">
-                      <div className="demo-mega-partner-logo">⚗️</div>
-                      <h4>Thyrocare</h4>
-                      <p>Specialised thyroid testing</p>
-                      <span className="demo-mega-partner-tag">CAP Accredited</span>
+                      <div className="demo-mega-partner-img">
+                        <img src="https://images.unsplash.com/photo-1581595219315-a187dd40c322?auto=format&fit=crop&w=300&h=160&q=80" alt="Thyrocare" />
+                      </div>
+                      <div className="demo-mega-partner-info">
+                        <h4>Thyrocare</h4>
+                        <p>Specialised thyroid testing</p>
+                        <span className="demo-mega-partner-tag">CAP Accredited</span>
+                      </div>
                     </div>
                     <div className="demo-mega-partner-card">
-                      <div className="demo-mega-partner-logo">🧪</div>
-                      <h4>Metropolis Healthcare</h4>
-                      <p>Advanced molecular tests</p>
-                      <span className="demo-mega-partner-tag">NABL Certified</span>
+                      <div className="demo-mega-partner-img">
+                        <img src="https://images.unsplash.com/photo-1530026405186-ed1f139313f3?auto=format&fit=crop&w=300&h=160&q=80" alt="Metropolis Healthcare" />
+                      </div>
+                      <div className="demo-mega-partner-info">
+                        <h4>Metropolis Healthcare</h4>
+                        <p>Advanced molecular tests</p>
+                        <span className="demo-mega-partner-tag">NABL Certified</span>
+                      </div>
                     </div>
                   </div>
                   <div className="demo-mega-partners-footer">
@@ -271,7 +299,9 @@ const Demo = () => {
                 <div className="demo-mega-inner">
                   <div className="demo-mega-contact-grid">
                     <div className="demo-mega-contact-item">
-                      <div className="demo-mega-contact-icon">✉️</div>
+                      <div className="demo-mega-contact-icon-img">
+                        <img src="https://images.unsplash.com/photo-1596526131083-e8c633c948d2?auto=format&fit=crop&w=80&h=80&q=80" alt="Email" />
+                      </div>
                       <div>
                         <h4>Email Us</h4>
                         <p>support@diagnolabs.in</p>
@@ -279,7 +309,9 @@ const Demo = () => {
                       </div>
                     </div>
                     <div className="demo-mega-contact-item">
-                      <div className="demo-mega-contact-icon">📞</div>
+                      <div className="demo-mega-contact-icon-img">
+                        <img src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?auto=format&fit=crop&w=80&h=80&q=80" alt="Call" />
+                      </div>
                       <div>
                         <h4>Call Us</h4>
                         <p>1800-123-4567</p>
@@ -287,7 +319,9 @@ const Demo = () => {
                       </div>
                     </div>
                     <div className="demo-mega-contact-item">
-                      <div className="demo-mega-contact-icon">📍</div>
+                      <div className="demo-mega-contact-icon-img">
+                        <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=80&h=80&q=80" alt="Location" />
+                      </div>
                       <div>
                         <h4>Headquarters</h4>
                         <p>Hyderabad, Telangana</p>
@@ -295,7 +329,9 @@ const Demo = () => {
                       </div>
                     </div>
                     <div className="demo-mega-contact-item">
-                      <div className="demo-mega-contact-icon">💬</div>
+                      <div className="demo-mega-contact-icon-img">
+                        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=80&h=80&q=80" alt="Live Chat" />
+                      </div>
                       <div>
                         <h4>Live Chat</h4>
                         <p>Talk to an expert now</p>
