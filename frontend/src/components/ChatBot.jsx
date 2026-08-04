@@ -306,6 +306,8 @@ const ChatBot = () => {
     const currentRole = (user?.role || user?.role_name || 'patient').toLowerCase();
     const roleConfig = ROLE_CHAT_CONFIGS[currentRole] || ROLE_CHAT_CONFIGS.patient;
 
+    const [messages, setMessages] = useState([]);
+    const [showQuickPrompts, setShowQuickPrompts] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -411,9 +413,14 @@ const ChatBot = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    const stopSpeaking = useCallback(() => {
+        synthRef.current?.cancel();
+        setIsSpeaking(false);
+    }, []);
+
     useEffect(() => {
         if (!isOpen) stopSpeaking();
-    }, [isOpen]);
+    }, [isOpen, stopSpeaking]);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -468,11 +475,6 @@ const ChatBot = () => {
         utterance.onerror = () => setIsSpeaking(false);
         synthRef.current.speak(utterance);
     }, [isMuted]);
-
-    const stopSpeaking = () => {
-        synthRef.current?.cancel();
-        setIsSpeaking(false);
-    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
