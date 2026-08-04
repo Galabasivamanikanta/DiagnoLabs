@@ -430,8 +430,9 @@ router.post('/admin-login', async (req, res) => {
         // 1. Try PostgreSQL Engine First (Ultra-Fast Cloud Performance)
         try {
             const { pool } = require('../services/pgService');
-            const pgResult = await pool.query('SELECT * FROM users WHERE UPPER(employee_id) = $1 OR UPPER(email) = $1', [cleanEmployeeId]);
+            const pgResult = await pool.query('SELECT * FROM users WHERE UPPER(employee_id) = $1 OR UPPER(email) = $2', [cleanEmployeeId, cleanEmployeeId]);
             if (pgResult.rows.length > 0) {
+
                 const pgUser = pgResult.rows[0];
                 userObj = {
                     _id: `pg_${pgUser.id}`,
