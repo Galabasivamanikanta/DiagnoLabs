@@ -19,6 +19,13 @@
   --demo-text-muted: #475569;
   --demo-text-light: #94a3b8;
 
+  /* Aliases for backwards compatibility */
+  --demo-border: #e2e8f0;
+  --demo-primary: #0a1e46;
+  --demo-text-secondary: #475569;
+  --demo-accent: #d4af37;
+  --demo-card-bg: #ffffff;
+
   --demo-font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --demo-radius-lg: 24px;
   --demo-radius-md: 16px;
@@ -372,6 +379,121 @@
   font-weight: 500;
 }
 
+/* Shared section title styles */
+.demo-section-title {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 900;
+  color: var(--demo-navy-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.demo-section-subtitle {
+  font-size: 1.1rem;
+  color: var(--demo-text-muted);
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+/* Features Section */
+.demo-features {
+  padding: 88px 24px;
+  background: var(--demo-bg-main);
+}
+
+/* How It Works Section */
+.demo-how-it-works {
+  padding: 88px 24px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--demo-bg-main) 100%);
+}
+
+.demo-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.demo-step-card {
+  background: var(--demo-bg-card);
+  padding: 32px 24px;
+  border-radius: var(--demo-radius-md);
+  border: 1px solid var(--demo-border-subtle);
+  box-shadow: var(--demo-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: var(--demo-transition);
+}
+
+.demo-step-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--demo-navy-main);
+  box-shadow: var(--demo-shadow-md);
+}
+
+.demo-step-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--demo-gold-accent);
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.demo-step-card h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--demo-navy-main);
+  margin-bottom: 8px;
+}
+
+.demo-step-card p {
+  font-size: 0.9rem;
+  color: var(--demo-text-muted);
+  line-height: 1.6;
+}
+
+/* Partners Section */
+.demo-partners {
+  padding: 88px 24px;
+  background: var(--demo-bg-main);
+}
+
+/* CTA Section */
+.demo-cta {
+  background: linear-gradient(135deg, var(--demo-navy-dark) 0%, var(--demo-navy-main) 100%);
+  color: #ffffff;
+  border-radius: var(--demo-radius-lg);
+  margin: 0 24px 88px;
+  padding: 72px 32px;
+  box-shadow: var(--demo-shadow-hover);
+  text-align: center;
+}
+
+.demo-cta h2 {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  margin-bottom: 16px;
+  color: #ffffff;
+}
+
+.demo-cta p {
+  font-size: 1.15rem;
+  color: var(--demo-text-light);
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.demo-cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 /* ==========================================================================
    4. ABOUT SECTION (DYNAMIC 3-COLUMN CSS GRID)
    ========================================================================== */
@@ -576,36 +698,7 @@
   color: var(--demo-navy-main);
 }
 
-/* ==========================================================================
-   8. CTA BANNER SECTION
-   ========================================================================== */
-.demo-cta {
-  background: linear-gradient(135deg, var(--demo-navy-dark) 0%, var(--demo-navy-main) 100%);
-  color: #ffffff;
-  border-radius: var(--demo-radius-lg);
-  margin: 0 24px;
-  padding: 72px 32px;
-  box-shadow: var(--demo-shadow-hover);
-}
 
-.demo-cta-content {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.demo-cta-content h2 {
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  font-weight: 900;
-  margin-bottom: 16px;
-  color: #ffffff;
-}
-
-.demo-cta-content p {
-  font-size: 1.15rem;
-  color: var(--demo-text-light);
-  margin-bottom: 32px;
-}
 
 /* ==========================================================================
    9. CONTACT SECTION (3-COLUMN CSS GRID)
@@ -794,6 +887,10 @@
     grid-template-columns: 1fr;
     gap: 36px;
   }
+
+  .demo-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* Mobile Devices (<768px) */
@@ -823,13 +920,20 @@
   .demo-features-grid,
   .demo-functionalities-list,
   .demo-partners-grid,
-  .demo-contact-grid {
+  .demo-contact-grid,
+  .demo-steps {
     grid-template-columns: 1fr; /* Single Column View for Mobile Devices */
   }
 
   .demo-cta {
-    margin: 0 16px;
+    margin: 0 16px 48px;
     padding: 48px 20px;
+  }
+
+  .demo-features,
+  .demo-how-it-works,
+  .demo-partners {
+    padding: 56px 16px;
   }
 
   .demo-footer-links {
