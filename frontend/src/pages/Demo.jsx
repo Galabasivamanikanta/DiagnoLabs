@@ -108,73 +108,211 @@ const Demo = () => {
         </div>
 
         <nav className="demo-custom-center">
+          {/* ABOUT Mega Menu */}
           <div
             className="demo-nav-item-wrapper"
             onMouseEnter={() => setHoverMenu('about')}
             onMouseLeave={() => setHoverMenu(null)}
           >
-            <button className="demo-nav-link">About</button>
+            <button className={`demo-nav-link ${hoverMenu === 'about' ? 'active' : ''}`}>About</button>
             {hoverMenu === 'about' && (
-              <div className="demo-hover-dropdown">
-                <h3>Our Mission</h3>
-                <p>To democratize access to world-class diagnostic services across India.</p>
-                <h3>Our Vision</h3>
-                <p>Bring precision clinical discovery to every doorstep.</p>
+              <div className="demo-mega-menu demo-mega-about">
+                <div className="demo-mega-inner">
+                  <div className="demo-mega-card demo-mega-card-highlight">
+                    <div className="demo-mega-card-img">
+                      <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80" alt="Lab" />
+                    </div>
+                    <div className="demo-mega-card-body">
+                      <span className="demo-mega-badge">Est. 2020</span>
+                      <h3>Our Mission</h3>
+                      <p>Democratizing world-class diagnostics for every Indian.</p>
+                    </div>
+                  </div>
+                  <div className="demo-mega-card demo-mega-card-highlight">
+                    <div className="demo-mega-card-img">
+                      <img src="https://images.unsplash.com/photo-1581595219315-a187dd40c322?auto=format&fit=crop&w=600&q=80" alt="Team" />
+                    </div>
+                    <div className="demo-mega-card-body">
+                      <span className="demo-mega-badge">100K+ Patients</span>
+                      <h3>Our Vision</h3>
+                      <p>Precision clinical discovery at every doorstep across India.</p>
+                    </div>
+                  </div>
+                  <div className="demo-mega-links-col">
+                    <h4 className="demo-mega-col-title">Company</h4>
+                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">🏥</span>Our Story</a>
+                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">👨‍🔬</span>Leadership Team</a>
+                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">🏆</span>Awards & Recognition</a>
+                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">📰</span>Press & Media</a>
+                    <a className="demo-mega-link" href="#about"><span className="demo-mega-link-icon">💼</span>Careers</a>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
+          {/* FEATURES Mega Menu */}
           <div
             className="demo-nav-item-wrapper"
             onMouseEnter={() => setHoverMenu('features')}
             onMouseLeave={() => setHoverMenu(null)}
           >
-            <button className="demo-nav-link">Features</button>
+            <button className={`demo-nav-link ${hoverMenu === 'features' ? 'active' : ''}`}>Features</button>
             {hoverMenu === 'features' && (
-              <div className="demo-hover-dropdown">
-                <ul>
-                  <li>AI-Powered Diagnostics</li>
-                  <li>Real-time Tracking</li>
-                  <li>Secure Data Storage</li>
-                  <li>Expert Consultations</li>
-                </ul>
+              <div className="demo-mega-menu demo-mega-features">
+                <div className="demo-mega-inner">
+                  <div className="demo-mega-feature-grid">
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">🧠</div>
+                      <div>
+                        <h4>AI-Powered Diagnostics</h4>
+                        <p>Smart analysis with ML-powered accuracy for faster results.</p>
+                      </div>
+                    </div>
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">📡</div>
+                      <div>
+                        <h4>Real-time Tracking</h4>
+                        <p>Live updates on your test status and sample progress.</p>
+                      </div>
+                    </div>
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">🔒</div>
+                      <div>
+                        <h4>Secure Data Storage</h4>
+                        <p>End-to-end encrypted health records, HIPAA compliant.</p>
+                      </div>
+                    </div>
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">👩‍⚕️</div>
+                      <div>
+                        <h4>Expert Consultations</h4>
+                        <p>Connect with certified pathologists for report insights.</p>
+                      </div>
+                    </div>
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">📍</div>
+                      <div>
+                        <h4>Nearby Lab Finder</h4>
+                        <p>Locate NABL labs within 5 km with real-time slots.</p>
+                      </div>
+                    </div>
+                    <div className="demo-mega-feature-item">
+                      <div className="demo-mega-feature-icon">📋</div>
+                      <div>
+                        <h4>Digital Reports</h4>
+                        <p>Instant certified PDF reports shared to your phone.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="demo-mega-cta-strip">
+                    <span>Ready to experience precision diagnostics?</span>
+                    <button className="demo-btn demo-btn-primary" onClick={() => handleExitDemo('/userlogin', { state: { tab: 'citizen' } })}>Get Started →</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
+          {/* PARTNERS Mega Menu */}
           <div
             className="demo-nav-item-wrapper"
             onMouseEnter={() => setHoverMenu('partners')}
             onMouseLeave={() => setHoverMenu(null)}
           >
-            <button className="demo-nav-link">Partners</button>
+            <button className={`demo-nav-link ${hoverMenu === 'partners' ? 'active' : ''}`}>Partners</button>
             {hoverMenu === 'partners' && (
-              <div className="demo-hover-dropdown">
-                <ul>
-                  <li>Apollo Diagnostics</li>
-                  <li>Dr. Lal PathLabs</li>
-                  <li>Thyrocare</li>
-                  <li>Metropolis Healthcare</li>
-                </ul>
+              <div className="demo-mega-menu demo-mega-partners">
+                <div className="demo-mega-inner">
+                  <div className="demo-mega-partner-grid">
+                    <div className="demo-mega-partner-card">
+                      <div className="demo-mega-partner-logo">🏥</div>
+                      <h4>Apollo Diagnostics</h4>
+                      <p>250+ centres across India</p>
+                      <span className="demo-mega-partner-tag">NABL Certified</span>
+                    </div>
+                    <div className="demo-mega-partner-card">
+                      <div className="demo-mega-partner-logo">🔬</div>
+                      <h4>Dr. Lal PathLabs</h4>
+                      <p>200+ collection points</p>
+                      <span className="demo-mega-partner-tag">ISO Audited</span>
+                    </div>
+                    <div className="demo-mega-partner-card">
+                      <div className="demo-mega-partner-logo">⚗️</div>
+                      <h4>Thyrocare</h4>
+                      <p>Specialised thyroid testing</p>
+                      <span className="demo-mega-partner-tag">CAP Accredited</span>
+                    </div>
+                    <div className="demo-mega-partner-card">
+                      <div className="demo-mega-partner-logo">🧪</div>
+                      <h4>Metropolis Healthcare</h4>
+                      <p>Advanced molecular tests</p>
+                      <span className="demo-mega-partner-tag">NABL Certified</span>
+                    </div>
+                  </div>
+                  <div className="demo-mega-partners-footer">
+                    <span>500+ partner labs across 50 cities</span>
+                    <a href="#partners" className="demo-mega-view-all">View All Partners →</a>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
+          {/* CONTACT Mega Menu */}
           <div
             className="demo-nav-item-wrapper"
             onMouseEnter={() => setHoverMenu('contact')}
             onMouseLeave={() => setHoverMenu(null)}
           >
-            <button className="demo-nav-link">Contact</button>
+            <button className={`demo-nav-link ${hoverMenu === 'contact' ? 'active' : ''}`}>Contact</button>
             {hoverMenu === 'contact' && (
-              <div className="demo-hover-dropdown">
-                <p><strong>Email:</strong> support@diagnolabs.in</p>
-                <p><strong>Phone:</strong> 1800-123-4567</p>
-                <p><strong>HQ:</strong> Hyderabad, Telangana</p>
+              <div className="demo-mega-menu demo-mega-contact">
+                <div className="demo-mega-inner">
+                  <div className="demo-mega-contact-grid">
+                    <div className="demo-mega-contact-item">
+                      <div className="demo-mega-contact-icon">✉️</div>
+                      <div>
+                        <h4>Email Us</h4>
+                        <p>support@diagnolabs.in</p>
+                        <span>Response within 24 hours</span>
+                      </div>
+                    </div>
+                    <div className="demo-mega-contact-item">
+                      <div className="demo-mega-contact-icon">📞</div>
+                      <div>
+                        <h4>Call Us</h4>
+                        <p>1800-123-4567</p>
+                        <span>Mon–Sat, 8 AM – 8 PM</span>
+                      </div>
+                    </div>
+                    <div className="demo-mega-contact-item">
+                      <div className="demo-mega-contact-icon">📍</div>
+                      <div>
+                        <h4>Headquarters</h4>
+                        <p>Hyderabad, Telangana</p>
+                        <span>India – 500001</span>
+                      </div>
+                    </div>
+                    <div className="demo-mega-contact-item">
+                      <div className="demo-mega-contact-icon">💬</div>
+                      <div>
+                        <h4>Live Chat</h4>
+                        <p>Talk to an expert now</p>
+                        <span>Available 24/7</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="demo-mega-cta-strip">
+                    <span>Need immediate assistance?</span>
+                    <button className="demo-btn demo-btn-primary" onClick={() => handleExitDemo('/userlogin')}>Book a Call →</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </nav>
+
 
         <div className="demo-custom-right">
           <div className="demo-auth-buttons">
