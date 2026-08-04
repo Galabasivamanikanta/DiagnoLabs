@@ -282,7 +282,7 @@ const Demo = () => {
                     {/* Metropolis Healthcare */}
                     <div className="demo-mega-partner-card">
                       <div className="demo-mega-partner-img">
-                        <img src="https://images.unsplash.com/photo-1530026405186-ed1f139313f3?auto=format&fit=crop&w=300&h=160&q=80" alt="Metropolis Healthcare" />
+                        <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=300&h=160&q=80" alt="Metropolis Healthcare" />
                         <div className="demo-mega-partner-logo-overlay">
                           <img className="demo-partner-real-logo" src="/images/partners/metropolis.png" alt="Metropolis Healthcare Logo" />
                         </div>
