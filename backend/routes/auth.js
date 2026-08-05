@@ -64,7 +64,7 @@ router.post('/register', authLimiter, async (req, res) => {
             phone: req.body.phone,
             role: role,
             customerId,
-            isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
+            isVerified: true
         });
         const savedUser = await newUser.save();
         
@@ -312,7 +312,7 @@ router.post('/verify-otp', async (req, res) => {
             // Update user verification status if user exists
             const user = await User.findOneAndUpdate(
                 { $or: [{ phone: phone }, { email: email }] },
-                { $set: { isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || "" } },
+                { $set: { isVerified: true } },
                 { new: true }
             );
             res.status(200).json({ message: "OTP verified successfully", user });
@@ -422,7 +422,7 @@ router.post('/admin-register', verifyTokenAndAdmin, authLimiter, async (req, res
                 role,
                 employeeId,
                 password: tempPassword,
-                isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || "",
+                isVerified: true,
                 isFirstLogin: true
             });
 
@@ -502,7 +502,7 @@ router.post('/admin-login', authLimiter, async (req, res) => {
                     phone: pgUser.phone,
                     role: pgUser.role,
                     isFirstLogin: pgUser.is_first_login,
-                    isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
+                    isVerified: true
                 };
             }
         } catch (pgErr) {
@@ -578,7 +578,7 @@ router.post('/admin-google', async (req, res) => {
                     phone: pgUser.phone,
                     role: pgUser.role,
                     isFirstLogin: pgUser.is_first_login,
-                    isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
+                    isVerified: true
                 };
             }
         } catch (pgErr) {
@@ -601,7 +601,7 @@ router.post('/admin-google', async (req, res) => {
                         name: pgUser.name,
                         phone: pgUser.phone,
                         role: pgUser.role,
-                        isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
+                        isVerified: true
                     };
                 }
             } catch (e) {}
