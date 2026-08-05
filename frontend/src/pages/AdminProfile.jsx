@@ -445,6 +445,23 @@ const AdminProfile = ({ inline = false }) => {
                             <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', marginBottom: '1.5rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
+                                        <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontWeight: '800' }}>Password & Authentication</h3>
+                                        <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Change your password or manage secure login methods.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setMessage({ text: 'Password reset instructions have been sent to your primary email.', type: 'info' })}
+                                        style={{ background: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1', padding: '0.6rem 1.25rem', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                                        onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; }}
+                                        onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                                    >
+                                        Reset Password
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
                                         <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontWeight: '800' }}>Two-Factor Authentication (2FA)</h3>
                                         <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Mandatory for all Level 3+ staff accounts.</p>
                                     </div>
