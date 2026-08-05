@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { getGenerativeModel } from "firebase/vertexai";
-import { vertexAI } from "../config/firebase";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Bot, X, Send, User, Loader2, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -25,9 +24,11 @@ const SmartAssistant = () => {
     }, [messages]);
 
     useEffect(() => {
-        // Initialize Vertex AI model when component mounts
+        // Initialize Gemini model when component mounts
         try {
-            const model = getGenerativeModel(vertexAI, { 
+            // NOTE: For a real app, do not expose Gemini API keys in the frontend. Use a backend proxy.
+            const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY);
+            const model = genAI.getGenerativeModel({ 
                 model: "gemini-1.5-flash",
                 systemInstruction: "You are a helpful, empathetic, and professional AI assistant for DiagnoLabs, a clinical pathology lab. You help users understand diagnostic tests, booking procedures, and general health info. Never give formal medical diagnoses. Always recommend consulting a doctor for serious issues."
             });
