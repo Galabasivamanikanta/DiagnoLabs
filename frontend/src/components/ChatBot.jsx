@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import useDevice from '../hooks/useDevice';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ─────────────────────────────────────────────────────────────
 // Helpers & Role Configurations
@@ -531,23 +532,28 @@ const ChatBot = () => {
                     parts: [{ text: m.text }]
                 }));
 
-            const token = localStorage.getItem('token');
-            const payload = {
-                prompt: text,
-                history: chatHistory,
-                context: buildContext(),
-                userRole: currentRole,
-                ...(attachedFile && {
-                    fileData: attachedFile.data,
-                    fileType: attachedFile.mimeType
-                })
-            };
-
-            const res = await axios.post(`${API_BASE_URL}/api/chat`, payload, {
-                headers: { Authorization: `Bearer ${token}` }
+            const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY);
+            const model = genAI.getGenerativeModel({ 
+                model: "gemini-1.5-flash",
+                systemInstruction: `You are the ${roleConfig.title}. ${roleConfig.subtitle}. 
+Context: ${buildContext()}
+User Input: ${text}
+Always respond professionally and empathetically. If you are suggesting a lab test, append "[RECOMMEND: Test Name]" to your response. If you are instructing the user to book a test or navigate, append "[ACTION: BOOK: Test Name]" or "[ACTION: CHECKOUT]" etc.`
             });
 
-            const reply = res.data.reply || '';
+            const chat = model.startChat({ history: chatHistory });
+            
+            let reply = '';
+            if (attachedFile) {
+                 const result = await model.generateContent([
+                     { inlineData: { data: attachedFile.data, mimeType: attachedFile.mimeType } },
+                     text
+                 ]);
+                 reply = result.response.text();
+            } else {
+                 const result = await chat.sendMessage(text);
+                 reply = result.response.text();
+            }
             const recommendations = parseRecommendations(reply);
             const action = parseAction(reply);
 

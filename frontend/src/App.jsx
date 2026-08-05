@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import Navbar from './components/Navbar';
-import SmartAssistant from './components/SmartAssistant';
+import ChatBot from './components/ChatBot';
 import LiveSupport from './components/LiveSupport';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -61,9 +61,9 @@ const MainLayout = () => {
   return (
     <>
       {showNavbar && <Navbar />}
-      {!isDemoRoute && (
+      {!isDemoRoute && !isStandaloneDashboard && (
         <>
-          <SmartAssistant />
+          <ChatBot />
           <LiveSupport />
         </>
       )}
