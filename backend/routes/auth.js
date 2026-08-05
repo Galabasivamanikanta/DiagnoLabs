@@ -67,6 +67,7 @@ router.post('/register', authLimiter, async (req, res) => {
             isVerified: true
         });
         const savedUser = await newUser.save();
+        sendCustomerIdNotification({ name: savedUser.name, email: savedUser.email, phone: savedUser.phone, customerId: savedUser.customerId }).catch(e => console.error("ID Notification Error:", e));
         
         // Remove password from response
         const { password, ...others } = savedUser._doc;
@@ -183,6 +184,7 @@ router.post('/google', async (req, res) => {
                 customerId
             });
             await user.save();
+            sendCustomerIdNotification({ name: user.name, email: user.email, phone: user.phone, customerId: user.customerId }).catch(e => console.error("ID Notification Error:", e));
         } else if (!user.customerId) {
             // Backfill: generate new-style ID for existing users who don't have one
             const now = new Date();
@@ -198,6 +200,7 @@ router.post('/google', async (req, res) => {
             } while (existing);
             user.customerId = customerId;
             await user.save();
+            sendCustomerIdNotification({ name: user.name, email: user.email, phone: user.phone, customerId: user.customerId }).catch(e => console.error("ID Notification Error:", e));
         }
 
         // Staff are no longer blocked from Patient Google Login to support double-roles
