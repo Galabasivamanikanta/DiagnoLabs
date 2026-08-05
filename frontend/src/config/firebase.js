@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBfe9TyMLMgewjMy7XTGcCiM5BCbVIMHjA",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "diagnolabs-62be3.firebaseapp.com",
   projectId: "diagnolabs-62be3",
   storageBucket: "diagnolabs-62be3.firebasestorage.app",
