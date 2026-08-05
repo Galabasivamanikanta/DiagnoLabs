@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import Navbar from './components/Navbar';
-import ChatBot from './components/ChatBot';
+import SmartAssistant from './components/SmartAssistant';
+import LiveSupport from './components/LiveSupport';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
@@ -60,7 +61,12 @@ const MainLayout = () => {
   return (
     <>
       {showNavbar && <Navbar />}
-      {!isDemoRoute && <ChatBot />}
+      {!isDemoRoute && (
+        <>
+          <SmartAssistant />
+          <LiveSupport />
+        </>
+      )}
       <Routes>
         <Route path="/demo" element={<Demo />} />
         {/* Public Routes */}

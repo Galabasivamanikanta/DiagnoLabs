@@ -2,6 +2,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { getToken } from "firebase/messaging";
+import { messaging } from "../config/firebase";
 
 export const AuthContext = createContext();
 
@@ -52,6 +54,21 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
+    const setupNotifications = async (userId) => {
+        if (!messaging) return;
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const token = await getToken(messaging);
+                if (token) {
+                    await axios.put(`${API_BASE_URL}/api/auth/${userId}`, { fcmToken: token });
+                }
+            }
+        } catch (error) {
+            console.error("FCM Token Error:", error);
+        }
+    };
+
     const login = async (email, password) => {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
@@ -61,6 +78,8 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('token', accessToken);
             setAuthHeader(accessToken);
+            
+            setupNotifications(userData._id);
             
             return { success: true, user: userData };
         } catch (err) {
@@ -77,6 +96,8 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('token', accessToken);
             setAuthHeader(accessToken);
+            
+            setupNotifications(userData._id);
             
             return { success: true, user: userData };
         } catch (err) {
@@ -127,6 +148,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('token', accessToken);
             setAuthHeader(accessToken);
         }
+        setupNotifications(restUser._id);
     };
 
     return (
