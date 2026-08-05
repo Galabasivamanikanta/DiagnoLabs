@@ -24,10 +24,16 @@ const AdminLogin = () => {
     
     // Recovery State
     const [isRecovering, setIsRecovering] = useState(false);
-    const [recoveryEmail, setRecoveryEmail] = useState('');
-    const [recoveryPhone, setRecoveryPhone] = useState('');
-    const [recoveryRole, setRecoveryRole] = useState('admin');
+    const [recoveryEmpId, setRecoveryEmpId] = useState('');
     const [recoveryMsg, setRecoveryMsg] = useState('');
+    
+    // Report Issue State
+    const [isReportingIssue, setIsReportingIssue] = useState(false);
+    const [reportName, setReportName] = useState('');
+    const [reportId, setReportId] = useState('');
+    const [reportPhone, setReportPhone] = useState('');
+    const [reportRole, setReportRole] = useState('');
+    const [reportDesc, setReportDesc] = useState('');
     
     const { login, manualLogin } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -40,9 +46,7 @@ const AdminLogin = () => {
 
         try {
             const res = await axios.post(`${API_BASE_URL}/api/auth/admin-recover`, {
-                email: recoveryEmail,
-                phone: recoveryPhone,
-                role: recoveryRole
+                employeeId: recoveryEmpId
             });
             setRecoveryMsg(res.data);
             setTimeout(() => {
@@ -51,6 +55,38 @@ const AdminLogin = () => {
             }, 5000);
         } catch (err) {
             setError(err.response?.data || "Failed to process recovery request.");
+            if (err.response?.status === 404) {
+                // If account not found, switch to report issue form
+                setReportId(recoveryEmpId);
+                setIsReportingIssue(true);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleReportSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setRecoveryMsg('');
+        setLoading(true);
+
+        try {
+            const res = await axios.post(`${API_BASE_URL}/api/auth/report-issue`, {
+                fullName: reportName,
+                suspectedId: reportId,
+                phone: reportPhone,
+                role: reportRole,
+                description: reportDesc
+            });
+            setRecoveryMsg(res.data);
+            setTimeout(() => {
+                setIsReportingIssue(false);
+                setIsRecovering(false);
+                setRecoveryMsg('');
+            }, 5000);
+        } catch (err) {
+            setError(err.response?.data || "Failed to submit report.");
         } finally {
             setLoading(false);
         }
@@ -347,7 +383,84 @@ const AdminLogin = () => {
                         </div>
                     )}
 
-                    {isRecovering ? (
+                    {isReportingIssue ? (
+                        <>
+                            <div className="mb-8">
+                                <h2 className="text-3xl font-bold text-[#0A192F] mb-2">Report Issue</h2>
+                                <p className="text-gray-500 text-sm">Send an access issue report to Administration.</p>
+                            </div>
+
+                            <form onSubmit={handleReportSubmit} className="space-y-4">
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        value={reportName}
+                                        onChange={(e) => setReportName(e.target.value)}
+                                        required
+                                        placeholder="Full Name"
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        value={reportId}
+                                        onChange={(e) => setReportId(e.target.value)}
+                                        required
+                                        placeholder="Suspected Employee ID or Email"
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <input 
+                                        type="tel" 
+                                        value={reportPhone}
+                                        onChange={(e) => setReportPhone(e.target.value)}
+                                        required
+                                        placeholder="Contact Phone Number"
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        value={reportRole}
+                                        onChange={(e) => setReportRole(e.target.value)}
+                                        placeholder="Your Department / Role"
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <textarea 
+                                        value={reportDesc}
+                                        onChange={(e) => setReportDesc(e.target.value)}
+                                        required
+                                        rows="3"
+                                        placeholder="Describe your issue..."
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all resize-none"
+                                    ></textarea>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-bold text-sm transition-all shadow-lg"
+                                >
+                                    {loading ? 'Submitting...' : 'Submit Report'}
+                                </button>
+                                
+                                <div className="text-center mt-4">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsReportingIssue(false)} 
+                                        className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    ) : isRecovering ? (
                         <>
                             <div className="mb-8">
                                 <h2 className="text-3xl font-bold text-[#0A192F] mb-2">Recover Account</h2>
@@ -358,42 +471,12 @@ const AdminLogin = () => {
                                 <div>
                                     <div className="relative">
                                         <Users size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                        <select 
-                                            value={recoveryRole}
-                                            onChange={(e) => setRecoveryRole(e.target.value)}
-                                            required
-                                            className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all appearance-none"
-                                        >
-                                            <option value="admin">System Administrator</option>
-                                            <option value="lab_partner">Lab Partner</option>
-                                            <option value="employee">Phlebotomist / Employee</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div className="relative">
-                                        <Mail size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                         <input 
-                                            type="email" 
-                                            value={recoveryEmail}
-                                            onChange={(e) => setRecoveryEmail(e.target.value)}
+                                            type="text" 
+                                            value={recoveryEmpId}
+                                            onChange={(e) => setRecoveryEmpId(e.target.value)}
                                             required
-                                            placeholder="Registered Email Address"
-                                            className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
-                                        />
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <div className="relative">
-                                        <Users size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                        <input 
-                                            type="tel" 
-                                            value={recoveryPhone}
-                                            onChange={(e) => setRecoveryPhone(e.target.value)}
-                                            required
-                                            placeholder="Registered Phone Number"
+                                            placeholder="Employee or Admin ID"
                                             className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:border-[#0A192F] focus:ring-1 focus:ring-[#0A192F] transition-all"
                                         />
                                     </div>

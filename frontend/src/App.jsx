@@ -84,7 +84,7 @@ const MainLayout = () => {
 
         {/* Admin Profile Route - accessible by finance manager and admin */}
         <Route path="/admin/profile" element={
-          <ProtectedRoute fallback="/adminlogin">
+          <ProtectedRoute fallback="/adminlogin" roles={['admin', 'employee', 'doctor', 'nurse', 'receptionist', 'inventory_manager', 'finance_manager', 'marketing_head', 'support_staff', 'delivery_partner', 'quality_auditor', 'it_specialist', 'phlebotomist', 'lab_partner']}>
             <AdminProfile />
           </ProtectedRoute>
         } />

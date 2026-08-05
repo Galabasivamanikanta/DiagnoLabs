@@ -74,7 +74,10 @@ const DeliveryDashboard = () => {
             <span style={{ fontSize: '0.7rem', color: '#93c5fd' }}>Field Logistics Agent</span>
           </div>
         </div>
-        <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', padding: '6px 12px', color: 'white', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                      <button onClick={() => navigate('/admin/profile')} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
+                View Full Profile
+              </button>
+<button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', padding: '6px 12px', color: 'white', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
           Logout
         </button>
       </header>

@@ -64,7 +64,7 @@ router.post('/register', authLimiter, async (req, res) => {
             phone: req.body.phone,
             role: role,
             customerId,
-            isVerified: true
+            isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
         });
         const savedUser = await newUser.save();
         
@@ -312,7 +312,7 @@ router.post('/verify-otp', async (req, res) => {
             // Update user verification status if user exists
             const user = await User.findOneAndUpdate(
                 { $or: [{ phone: phone }, { email: email }] },
-                { $set: { isVerified: true } },
+                { $set: { isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || "" } },
                 { new: true }
             );
             res.status(200).json({ message: "OTP verified successfully", user });
@@ -334,7 +334,28 @@ router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
         delete updateData.password;
         delete updateData.role;
 
-        // (Removed DOB-based Customer ID generation)
+        // Handle Postgres Admin Users natively
+        if (userId.startsWith('pg_admin_')) {
+            const pgId = userId.replace('pg_admin_', '');
+            const { pool } = require('../services/pgService');
+            
+            await pool.query(
+                `UPDATE admins 
+                 SET name = $1, phone = $2, profile_pic = $3, recovery_email = $4, recovery_phone = $5, address = $6
+                 WHERE id = $7`,
+                [
+                    updateData.name, 
+                    updateData.phone, 
+                    updateData.profilePic || '', 
+                    updateData.recovery_email || '', 
+                    updateData.recovery_phone || '', 
+                    JSON.stringify(updateData.address || {}), 
+                    pgId
+                ]
+            );
+            
+            return res.status(200).json({ ...updateData, _id: userId });
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
@@ -401,7 +422,7 @@ router.post('/admin-register', verifyTokenAndAdmin, authLimiter, async (req, res
                 role,
                 employeeId,
                 password: tempPassword,
-                isVerified: true,
+                isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || "",
                 isFirstLogin: true
             });
 
@@ -481,7 +502,7 @@ router.post('/admin-login', authLimiter, async (req, res) => {
                     phone: pgUser.phone,
                     role: pgUser.role,
                     isFirstLogin: pgUser.is_first_login,
-                    isVerified: true
+                    isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
                 };
             }
         } catch (pgErr) {
@@ -557,7 +578,7 @@ router.post('/admin-google', async (req, res) => {
                     phone: pgUser.phone,
                     role: pgUser.role,
                     isFirstLogin: pgUser.is_first_login,
-                    isVerified: true
+                    isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
                 };
             }
         } catch (pgErr) {
@@ -580,7 +601,7 @@ router.post('/admin-google', async (req, res) => {
                         name: pgUser.name,
                         phone: pgUser.phone,
                         role: pgUser.role,
-                        isVerified: true
+                        isVerified: true, profilePic: pgUser.profile_pic || "", address: pgUser.address || {}, recovery_email: pgUser.recovery_email || "", recovery_phone: pgUser.recovery_phone || ""
                     };
                 }
             } catch (e) {}
@@ -635,27 +656,64 @@ router.post('/admin-google', async (req, res) => {
 // ADMIN ACCOUNT RECOVERY
 router.post('/admin-recover', async (req, res) => {
     try {
-        const { email, phone, role } = req.body;
+        const { employeeId } = req.body;
         
-        // Ensure all fields are provided
-        if (!email || !phone || !role) {
-            return res.status(400).json("Please provide email, phone number, and role to recover account.");
+        // Ensure Employee ID is provided
+        if (!employeeId) {
+            return res.status(400).json("Please provide your Employee ID to recover your account.");
+        }
+        
+        const cleanEmployeeId = employeeId.trim().toUpperCase();
+
+        let user = null;
+        let isPg = false;
+        let dbEmail = null;
+
+        try {
+            const { pool } = require('../services/pgService');
+            const pgResult = await pool.query(
+                'SELECT * FROM admins WHERE UPPER(TRIM(employee_id)) = $1',
+                [cleanEmployeeId]
+            );
+            if (pgResult.rows.length > 0) {
+                user = pgResult.rows[0];
+                isPg = true;
+                dbEmail = user.email;
+                // mapping to match mongoose model structure for email template
+                user.employeeId = user.employee_id;
+            }
+        } catch (pgErr) {
+            console.error("[ADMIN-RECOVER PG ERROR]:", pgErr.message);
         }
 
-        // Search for user matching all 3 exact criteria (for security)
-        const user = await User.findOne({ email, phone, role });
+        if (!user) {
+            user = await User.findOne({ employeeId: cleanEmployeeId });
+            if (user) {
+                dbEmail = user.email;
+            }
+        }
         
         if (!user) {
-            return res.status(404).json("No matching account found. Please check your details.");
+            return res.status(404).json("No matching account found with that Employee ID.");
         }
 
         // Generate temporary password
         const tempPassword = generatePassword();
         
         // Update user
-        user.password = tempPassword; // Mongoose pre-save hook will hash it
-        user.isFirstLogin = true;
-        await user.save();
+        if (isPg) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedTempPassword = await bcrypt.hash(tempPassword, salt);
+            const { pool } = require('../services/pgService');
+            await pool.query(
+                'UPDATE admins SET password = $1, is_first_login = true WHERE email = $2',
+                [hashedTempPassword, dbEmail]
+            );
+        } else {
+            user.password = tempPassword; // Mongoose pre-save hook will hash it
+            user.isFirstLogin = true;
+            await user.save();
+        }
 
         // Send email with recovery details
         const frontendUrl = process.env.FRONTEND_URL || 'https://diagnolabs-platform.vercel.app';
@@ -684,12 +742,89 @@ router.post('/admin-recover', async (req, res) => {
           </div>
         </div>`;
 
-        await sendEmail(email, 'Account Recovery - DiagnoLabs Access Credentials', emailText, emailHtml);
+        await sendEmail(dbEmail, 'Account Recovery - DiagnoLabs Access Credentials', emailText, emailHtml);
 
         res.status(200).json("Account details sent successfully. Please check your email.");
     } catch (err) {
         console.error("Recovery Error:", err);
         res.status(500).json("Failed to process account recovery.");
+    }
+});
+
+// REPORT LOGIN ISSUE
+router.post('/report-issue', async (req, res) => {
+    try {
+        const { fullName, suspectedId, phone, role, description } = req.body;
+        
+        if (!fullName || !suspectedId || !phone || !description) {
+            return res.status(400).json("Please fill all required fields to submit the report.");
+        }
+
+        // Fetch emails for admin, finance, and IT
+        const targetRoles = ['admin', 'finance_manager', 'it_specialist'];
+        
+        // MongoDB
+        const mongoUsers = await User.find({ role: { $in: targetRoles } });
+        let targetEmails = mongoUsers.map(u => u.email);
+
+        // PostgreSQL
+        try {
+            const { pool } = require('../services/pgService');
+            const pgResult = await pool.query("SELECT email FROM admins WHERE role IN ('admin', 'finance_manager', 'it_specialist')");
+            targetEmails = targetEmails.concat(pgResult.rows.map(r => r.email));
+        } catch (e) {
+            console.error("PG Error fetching admin emails:", e.message);
+        }
+
+        // Deduplicate and filter out empty
+        targetEmails = [...new Set(targetEmails)].filter(e => e);
+
+        if (targetEmails.length === 0) {
+            targetEmails = ['diagnolabs.official@gmail.com']; // Fallback
+        }
+
+        const emailSubject = `⚠️ Security Alert: Login Issue Reported by ${fullName}`;
+        const emailText = `A login issue has been reported.\n\nName: ${fullName}\nEmployee ID / Email: ${suspectedId}\nPhone: ${phone}\nRole: ${role || 'N/A'}\nDescription: ${description}\n\nPlease review this issue.`;
+        
+        const emailHtml = `
+        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background-color: #ef4444; padding: 24px; text-align: center;">
+            <h2 style="margin: 0; color: #ffffff; font-size: 20px;">Access Issue Report</h2>
+          </div>
+          <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
+            <p style="font-size: 16px; line-height: 1.5; color: #475569;">A staff member has reported an issue accessing their DiagnoLabs Admin Portal account.</p>
+            <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reported By:</strong> ${fullName}</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Suspected ID / Email:</strong> ${suspectedId}</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Contact Phone:</strong> ${phone}</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Role/Department:</strong> ${role || 'Not Specified'}</p>
+              <p style="margin: 10px 0 0 0; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px;"><strong>Issue Description:</strong><br/>${description}</p>
+            </div>
+            <p style="font-size: 14px; color: #64748b;"><em>Please investigate and contact the employee if necessary.</em></p>
+          </div>
+        </div>`;
+
+        // Send to all fetched emails
+        for (const email of targetEmails) {
+            await sendEmail(email, emailSubject, emailText, emailHtml).catch(e => console.error("Email send fail:", e));
+        }
+
+        // Create in-app Notifications for the target roles
+        const Notification = require('../models/Notification');
+        const notifPromises = targetRoles.map(role => 
+            Notification.create({
+                recipientRole: role,
+                title: 'Login Issue Reported',
+                message: `${fullName} (ID: ${suspectedId}) reported an access issue.`,
+                type: 'Security'
+            })
+        );
+        await Promise.all(notifPromises).catch(e => console.error("Notification creation fail:", e));
+
+        res.status(200).json("Report submitted successfully. Administration will contact you soon.");
+    } catch (err) {
+        console.error("Report Issue Error:", err);
+        res.status(500).json("Failed to submit report. Please try again later.");
     }
 });
 

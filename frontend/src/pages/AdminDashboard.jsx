@@ -5,7 +5,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import EmployeeManagement from '../components/admin/EmployeeManagement';
 import LabVerification from '../components/admin/LabVerification';
-import AdminProfile from '../components/admin/AdminProfile';
+import AdminProfile from './AdminProfile';
 import MasterControl from '../components/admin/MasterControl';
 import MasterTestCatalog from '../components/admin/MasterTestCatalog';
 import FinanceAnalytics from '../components/admin/FinanceAnalytics';
@@ -14,6 +14,7 @@ import AuditConsole from '../components/admin/AuditConsole';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import BrandLogo from '../components/BrandLogo';
+import NotificationBell from '../components/NotificationBell';
 import {
     LayoutDashboard, Users, ClipboardList, Settings, LogOut, UserCircle,
     Bell, Search, Filter, ArrowUpRight, ArrowDownRight,
@@ -363,14 +364,25 @@ const AdminDashboard = () => {
                     Settings
                 </button>
 
-                <div className="sidebar-user-card">
-                    <div className="sidebar-user-avatar">
-                        {getInitials(user?.name)}
+                <div style={{ padding: '16px', marginBottom: '12px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.2rem', flexShrink: 0 }}>
+                      {getInitials(user?.name)}
                     </div>
-                    <div className="sidebar-user-info">
-                        <h6>{user?.name || 'Admin'}</h6>
-                        <p>{user?.role === 'admin' ? 'Administrator' : 'Employee'}</p>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'Admin'}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || 'admin@diagnolabs.com'}</div>
                     </div>
+                  </div>
+                  <div style={{ background: '#f0f7ff', color: '#003366', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {user?.role === 'admin' ? 'Administrator' : 'Employee'}
+                  </div>
+                  <button onClick={() => {
+                    setActiveTab('profile');
+                    setSidebarOpen(false);
+                  }} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    View Full Profile <ChevronRight size={14} />
+                  </button>
                 </div>
             </aside>
 
@@ -410,10 +422,7 @@ const AdminDashboard = () => {
                         </p>
                     </div>
                     <div className="admin-topbar-actions">
-                        <button className="topbar-icon-btn">
-                            <Bell size={18} />
-                            {pendingBookings > 0 && <span className="notification-dot"></span>}
-                        </button>
+                        <NotificationBell />
                         <button className="topbar-signout-btn" onClick={handleLogout}>
                             <LogOut size={16} />
                             Sign Out
@@ -928,7 +937,7 @@ const AdminDashboard = () => {
                             exit={{ opacity: 0, y: -12 }}
                             transition={{ duration: 0.25 }}
                         >
-                            <AdminProfile />
+                            <AdminProfile inline={true} />
                         </motion.div>
                     )}
                 </AnimatePresence>

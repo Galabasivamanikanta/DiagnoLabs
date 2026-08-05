@@ -45,8 +45,21 @@ const initPgDb = async () => {
                 phone VARCHAR(50),
                 role VARCHAR(50) DEFAULT 'admin',
                 is_first_login BOOLEAN DEFAULT false,
+                profile_pic TEXT,
+                recovery_email VARCHAR(255),
+                recovery_phone VARCHAR(50),
+                address JSONB,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
+
+        // Ensure new profile columns exist (in case table was already created)
+        await pool.query(`
+            ALTER TABLE admins 
+            ADD COLUMN IF NOT EXISTS profile_pic TEXT,
+            ADD COLUMN IF NOT EXISTS recovery_email VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS recovery_phone VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS address JSONB;
         `);
 
         // 3. Seed Master Admin ADM-001 in admins Table

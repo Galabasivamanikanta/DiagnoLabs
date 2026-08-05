@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
+import BrandLogo from '../components/BrandLogo';
+import NotificationBell from '../components/NotificationBell';
 import { 
     Cpu, Terminal, Activity, AlertOctagon, CheckCircle2, 
     RefreshCw, KeyRound, Lock, Unlock, Server, Database, Mail, ShieldAlert, LogOut, Search, Filter, AlertTriangle, Menu, X
@@ -132,11 +134,24 @@ const ITDashboard = () => {
         </nav>
 
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
-          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
-            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'IT Support Lead'}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>DevOps & Systems Engineer</div>
+          <div style={{ padding: '16px', marginBottom: '12px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.2rem', flexShrink: 0 }}>
+                {(user?.name || 'IT Support Lead').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'IT Support Lead'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || 'it@diagnolabs.com'}</div>
+              </div>
+            </div>
+            <div style={{ background: '#f0f7ff', color: '#003366', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              DevOps & Systems Engineer
+            </div>
+            <button onClick={() => navigate('/admin/profile')} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              View Full Profile <ChevronRight size={14} />
+            </button>
           </div>
-          <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+<button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <LogOut size={16} /> Logout
           </button>
         </div>
@@ -155,7 +170,8 @@ const ITDashboard = () => {
               <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Monitor API uptime, inspect system logs, and resolve technical integration issues.</p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <NotificationBell />
             <button onClick={() => setShowAlertModal(true)} style={{ padding: '10px 18px', background: '#fff1f2', color: '#dc2626', border: '1px solid #fecdd3', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <AlertTriangle size={16} /> Restart Service Alert
             </button>

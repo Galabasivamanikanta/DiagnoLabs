@@ -9,6 +9,7 @@ import {
     BarChart3, PieChart, ClipboardList, Wallet, Plus, Building2, Zap, Megaphone, Calendar
 } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
+import NotificationBell from '../components/NotificationBell';
 import '../styles/DashboardShared.css';
 
 const FinanceDashboard = () => {
@@ -208,9 +209,12 @@ const FinanceDashboard = () => {
               <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Financial Year 2026-27 • Commission reconciliation & GST tax reporting.</p>
             </div>
           </div>
-          <button onClick={exportFinancialReport} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Download size={16} /> Export Financial CSV
-          </button>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <NotificationBell />
+            <button onClick={exportFinancialReport} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Download size={16} /> Export Financial CSV
+            </button>
+          </div>
         </div>
 
         {/* Top Financial KPIs */}

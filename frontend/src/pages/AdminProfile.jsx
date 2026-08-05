@@ -3,13 +3,13 @@ import { AuthContext } from '../context/AuthContext';
 import { 
     User, Mail, Phone, MapPin, ShieldCheck, Edit3, Check, X, 
     Camera, Building2, Lock, Activity, Key, Globe, ShieldAlert,
-    Cpu, Bell, Copy
+    Cpu, Bell, Copy, Info, AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import '../styles/DashboardShared.css'; // Reuse some basic styles if needed
 
-const AdminProfile = () => {
+const AdminProfile = ({ inline = false }) => {
     const { user, updateUser } = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState('work'); // 'work', 'personal', 'security', 'preferences'
     const [isEditing, setIsEditing] = useState(false);
@@ -72,34 +72,40 @@ const AdminProfile = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Mocking API call for demo
-            setTimeout(() => {
-                updateUser({
-                    ...user,
-                    name: formData.name,
-                    phone: formData.phone,
-                    address: {
-                        ...user.address,
-                        street: formData.address_street,
-                        city: formData.address_city,
-                        pincode: formData.address_pincode
-                    },
-                    profilePic: previewImage
-                });
-                setMessage({ text: 'Admin profile updated successfully!', type: 'success' });
-                setIsEditing(false);
-                setLoading(false);
-                setTimeout(() => setMessage({ text: '', type: '' }), 3000);
-            }, 1000);
+            const updatePayload = {
+                name: formData.name,
+                phone: formData.phone,
+                recovery_email: formData.recovery_email,
+                recovery_phone: formData.recovery_phone,
+                address: {
+                    ...user.address,
+                    street: formData.address_street,
+                    city: formData.address_city,
+                    pincode: formData.address_pincode
+                },
+                profilePic: previewImage
+            };
+            
+            const res = await axios.put(`${API_BASE_URL}/api/auth/${user._id}`, updatePayload, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            
+            updateUser(res.data);
+            setMessage({ text: 'Admin profile updated successfully!', type: 'success' });
+            setIsEditing(false);
+            setLoading(false);
+            setTimeout(() => setMessage({ text: '', type: '' }), 3000);
         } catch (error) {
-            setMessage({ text: 'Failed to update profile.', type: 'error' });
+            console.error("Update error:", error);
+            const detail = error.response?.data?.error || error.message;
+            setMessage({ text: `Update failed: ${detail}`, type: 'error' });
             setLoading(false);
         }
     };
 
     return (
-        <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: '6.5rem', paddingBottom: '5rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.25rem' }}>
+        <div style={{ background: inline ? 'transparent' : '#f8fafc', minHeight: inline ? 'auto' : '100vh', paddingTop: inline ? '0' : '6.5rem', paddingBottom: inline ? '0' : '5rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: inline ? '0' : '0 1.25rem' }}>
             
             {message.text && (
                 <div style={{
@@ -171,7 +177,7 @@ const AdminProfile = () => {
                         {/* Name + Badge */}
                         <div style={{ minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-                                <h1 className="profile-hero-name" style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0, letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <h1 className="profile-hero-name" style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0, letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'white' }}>
                                     {isEditing ? (
                                         <input type="text" name="name" value={formData.name} onChange={handleChange} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '1.3rem', width: '200px' }} />
                                     ) : (
@@ -179,20 +185,20 @@ const AdminProfile = () => {
                                     )}
                                 </h1>
                                 <span style={{ 
-                                    background: 'rgba(245, 158, 11, 0.15)', // Amber tint for authority
+                                    background: user?.role === 'admin' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)', // Red tint for admin, Amber for others
                                     backdropFilter: 'blur(10px)',
                                     padding: '0.2rem 0.6rem', 
                                     borderRadius: '100px', 
                                     fontSize: '0.7rem', 
                                     fontWeight: '700',
-                                    color: '#fcd34d',
-                                    border: '1px solid rgba(252, 211, 77, 0.2)',
+                                    color: user?.role === 'admin' ? '#fca5a5' : '#fcd34d',
+                                    border: user?.role === 'admin' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(252, 211, 77, 0.2)',
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: '0.25rem',
                                     flexShrink: 0
                                 }}>
-                                    <ShieldCheck size={12} color="#fbbf24" /> Corporate Staff
+                                    <ShieldCheck size={12} color={user?.role === 'admin' ? '#f87171' : '#fbbf24'} /> {user?.role === 'admin' ? 'Executive Board' : 'Corporate Staff'}
                                 </span>
                             </div>
                             <p style={{ margin: 0, opacity: 0.85, fontSize: '0.85rem', fontWeight: '600', color: '#94a3b8' }}>
@@ -276,6 +282,7 @@ const AdminProfile = () => {
                             { id: 'work', label: 'Work & Organization', icon: Building2 },
                             { id: 'personal', label: 'Personal Information', icon: User },
                             { id: 'security', label: 'Security & Access', icon: Lock },
+                            { id: 'audit', label: 'Recent Activity Logs', icon: Activity },
                             { id: 'preferences', label: 'System Preferences', icon: Cpu }
                         ].map(tab => {
                             const Icon = tab.icon;
@@ -322,15 +329,24 @@ const AdminProfile = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         <div>
                                             <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>Department</span>
-                                            <strong style={{ color: '#0f172a' }}>{formData.department}</strong>
+                                            <strong style={{ color: '#0f172a' }}>
+                                                {user?.role === 'admin' ? 'Executive Management' : 
+                                                 user?.role === 'finance_manager' ? 'Finance & Accounts' :
+                                                 user?.role === 'inventory_manager' ? 'Supply Chain & Logistics' :
+                                                 user?.role === 'doctor' ? 'Clinical Department' :
+                                                 user?.role === 'nurse' ? 'Nursing & Patient Care' :
+                                                 user?.role === 'it_support' ? 'IT & Systems' :
+                                                 user?.role === 'marketing_head' ? 'Marketing & PR' :
+                                                 formData.department}
+                                            </strong>
                                         </div>
                                         <div>
                                             <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>Reporting Manager</span>
-                                            <strong style={{ color: '#0f172a' }}>{formData.manager}</strong>
+                                            <strong style={{ color: '#0f172a' }}>{user?.role === 'admin' ? 'Board of Directors (N/A)' : formData.manager}</strong>
                                         </div>
                                         <div>
                                             <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>Base Hub Location</span>
-                                            <strong style={{ color: '#0f172a' }}>Hyderabad Central Node</strong>
+                                            <strong style={{ color: '#0f172a' }}>Amaravati, Andhra Pradesh</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -350,6 +366,27 @@ const AdminProfile = () => {
                                             <span style={{ color: '#475569', fontWeight: '600' }}>Sunday</span>
                                             <span style={{ background: '#f1f5f9', color: '#64748b', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700' }}>Off / On-Call Only</span>
                                         </div>
+                                    </div>
+                                </div>
+                                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', gridColumn: '1 / -1' }}>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '1rem' }}>System Permissions (Role-Based Access Control)</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                        {(() => {
+                                            const rolePerms = {
+                                                admin: ['Full System Access', 'User Management', 'Financial Overrides', 'Audit Log Viewer', 'Database Backup (Read)'],
+                                                finance_manager: ['Financial Analytics', 'Payroll Processing', 'Invoice Generation', 'Refund Processing'],
+                                                doctor: ['Clinical Review', 'Patient Diagnosis', 'Prescription Override', 'Medical Records Access'],
+                                                nurse: ['Patient Vitals Entry', 'Sample Collection', 'Bed Management'],
+                                                reception: ['Appointment Booking', 'Patient Check-in', 'Basic Billing'],
+                                                inventory_manager: ['Stock Audit', 'Vendor Management', 'Purchase Orders']
+                                            };
+                                            const perms = rolePerms[user?.role] || ['Basic Dashboard Access', 'Profile View'];
+                                            return perms.map(perm => (
+                                                <span key={perm} style={{ background: 'white', border: '1px solid #cbd5e1', color: '#0f172a', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <ShieldCheck size={14} color="#059669" /> {perm}
+                                                </span>
+                                            ));
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -378,6 +415,20 @@ const AdminProfile = () => {
                                     <div style={{ display: 'flex', gap: '1rem' }}>
                                         <input type="text" name="address_street" value={formData.address_street} onChange={handleChange} disabled={!isEditing} placeholder="Street Address" style={{ flex: 2, padding: '0.75rem', borderRadius: '10px', border: isEditing ? '2px solid #0f172a' : '1px solid #e2e8f0', background: isEditing ? 'white' : '#f8fafc' }} />
                                         <input type="text" name="address_city" value={formData.address_city} onChange={handleChange} disabled={!isEditing} placeholder="City" style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: isEditing ? '2px solid #0f172a' : '1px solid #e2e8f0', background: isEditing ? 'white' : '#f8fafc' }} />
+                                    </div>
+                                </div>
+                                <div style={{ gridColumn: '1 / -1', marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.25rem' }}>Emergency Recovery & Failover</h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#64748b', marginBottom: '0.5rem' }}>Recovery Email Address</label>
+                                            <input type="email" name="recovery_email" value={formData.recovery_email || ''} onChange={handleChange} disabled={!isEditing} placeholder="e.g. personal@email.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: isEditing ? '2px solid #0f172a' : '1px solid #e2e8f0', background: isEditing ? 'white' : '#f8fafc' }} />
+                                            <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '6px' }}>Used if corporate SSO is unavailable.</span>
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#64748b', marginBottom: '0.5rem' }}>Alternate Phone Number</label>
+                                            <input type="tel" name="recovery_phone" value={formData.recovery_phone || ''} onChange={handleChange} disabled={!isEditing} placeholder="+91 xxxxx xxxxx" style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: isEditing ? '2px solid #0f172a' : '1px solid #e2e8f0', background: isEditing ? 'white' : '#f8fafc' }} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -434,6 +485,36 @@ const AdminProfile = () => {
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {activeTab === 'audit' && (
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #f1f5f9' }}>
+                                <Activity size={24} color="#0f172a" />
+                                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#0f172a' }}>My Recent Audit Trail</h2>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {[
+                                    { action: 'Password reset initiated for Employee ID EMP-9921', time: '10 mins ago', status: 'Completed' },
+                                    { action: 'Approved Q3 Finance Report from Accounts Dept', time: '2 hours ago', status: 'Authorized' },
+                                    { action: 'Modified System Notification Preferences', time: 'Yesterday, 14:30', status: 'Updated' },
+                                    { action: 'Granted "Editor" access to new Marketing head', time: 'Yesterday, 09:15', status: 'Completed' }
+                                ].map((log, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ background: '#e0f2fe', color: '#0369a1', padding: '8px', borderRadius: '8px' }}><ShieldAlert size={16} /></div>
+                                            <div>
+                                                <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>{log.action}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{log.time}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#059669', background: '#dcfce7', padding: '4px 10px', borderRadius: '100px' }}>
+                                            {log.status}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 

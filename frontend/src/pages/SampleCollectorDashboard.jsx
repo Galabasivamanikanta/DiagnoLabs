@@ -303,6 +303,12 @@ export default function SampleCollectorDashboard() {
                     </div>
                     <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
                         <button
+                            onClick={() => window.location.href = '/admin/profile'}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
+                        >
+                            <User size={15} /> View Profile
+                        </button>
+                        <button
                             onClick={() => navigate('/')}
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}
                         >
