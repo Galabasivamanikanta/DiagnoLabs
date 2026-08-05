@@ -5,6 +5,7 @@ import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getMessaging, isSupported as isMessagingSupported } from "firebase/messaging";
 import { getVertexAI } from "firebase/vertexai";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -37,4 +38,11 @@ isMessagingSupported().then((supported) => {
   if (supported) {
     messaging = getMessaging(app);
   }
+});
+
+// App Check (Security)
+// Note: Replace with your actual reCAPTCHA v3 site key from Google Cloud Console
+export const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6Ld_dummy_site_key_placeholder'),
+  isTokenAutoRefreshEnabled: true
 });
