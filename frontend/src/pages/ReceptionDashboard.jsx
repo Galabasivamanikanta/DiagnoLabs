@@ -6,6 +6,7 @@ const ReceptionDashboard = () => {
   const [activeTab, setActiveTab] = useState('Appointments');
   const [appointments, setAppointments] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user')) || null;
   
   const mockAppointments = [
     { id: 1, time: '09:00 AM', patientName: 'John Doe', test: 'Complete Blood Count', doctor: 'Dr. Smith', status: 'Confirmed' },

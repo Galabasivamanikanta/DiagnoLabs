@@ -91,12 +91,6 @@ export default function SampleCollectorDashboard() {
 
     const allowedRoles = ['admin', 'phlebotomist', 'employee', 'nurse', 'lab_partner'];
 
-    useEffect(() => {
-        if (!user) { navigate('/userlogin'); return; }
-        if (!allowedRoles.includes(user.role)) { navigate('/'); return; }
-        fetchData();
-    }, [user]);
-
     const getHeaders = () => ({
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
@@ -116,6 +110,12 @@ export default function SampleCollectorDashboard() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!user) { navigate('/userlogin'); return; }
+        if (!allowedRoles.includes(user.role)) { navigate('/'); return; }
+        fetchData();
+    }, [user]);
 
     
     const handleBarcodeSuccess = async (barcode) => {
