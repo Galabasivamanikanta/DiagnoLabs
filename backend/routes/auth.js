@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const admin = require('../services/firebaseAdmin');
 const { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../middleware/auth');
 const { sendCustomerIdNotification } = require('../services/customerIdNotification');
 const { sendEmail } = require('../services/mailService');
@@ -324,6 +325,49 @@ router.post('/verify-otp', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json(err);
+    }
+});
+
+// VERIFY FIREBASE TOKEN (Phone Auth)
+router.post('/verify-firebase-token', async (req, res) => {
+    const { idToken, role } = req.body;
+    try {
+        // Verify the Firebase ID token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const phoneNumber = decodedToken.phone_number;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "No phone number found in token" });
+        }
+
+        // Find user in DB by phone
+        let user = await User.findOne({ phone: phoneNumber });
+        
+        // If user doesn't exist, we can choose to register them on the fly or reject
+        if (!user) {
+            return res.status(404).json({ message: "User with this phone number not found. Please register first." });
+        }
+
+        // Mark as verified
+        user.isVerified = true;
+        await user.save();
+
+        // Generate App JWT Token
+        const accessToken = jwt.sign(
+            {
+                id: user._id,
+                role: user.role,
+                name: user.name
+            },
+            process.env.JWT_SEC,
+            { expiresIn: "3d" }
+        );
+
+        const { password, ...others } = user._doc;
+        res.status(200).json({ ...others, accessToken, message: "Phone verified successfully" });
+    } catch (error) {
+        console.error("Firebase Token Verification Error:", error);
+        res.status(401).json({ message: "Invalid Firebase Token", error: error.message });
     }
 });
 

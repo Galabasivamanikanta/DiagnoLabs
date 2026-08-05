@@ -4,6 +4,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../config/firebase";
 import { User, Lock, Eye, EyeOff, ShieldCheck, Users, Sparkles, ChevronRight, Activity, Mail, Phone } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
@@ -44,24 +46,41 @@ const Login = () => {
         setRegData({ ...regData, [e.target.name]: e.target.value });
     };
 
+    const setUpRecaptcha = () => {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved
+                }
+            });
+        }
+    };
+
     const handleSendOTP = async (e) => {
         if (e) e.preventDefault();
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, { 
-                phone: regData.phone, 
-                email: regData.email 
-            });
-            if (res.status === 200) {
-                setOtpSent(true);
-                setTimer(60); // Start 60s cooldown
-                if (!e) {
-                    alert("A new OTP has been sent!");
-                } else {
-                    alert("OTP sent successfully!");
-                }
+            setUpRecaptcha();
+            const appVerifier = window.recaptchaVerifier;
+            const formattedPhone = regData.phone.startsWith('+') ? regData.phone : `+91${regData.phone}`;
+            
+            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+            window.confirmationResult = confirmationResult;
+            
+            setOtpSent(true);
+            setTimer(60); 
+            if (!e) {
+                alert("A new OTP has been sent via Firebase!");
+            } else {
+                alert("OTP sent successfully via Firebase!");
             }
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to send OTP");
+            console.error(err);
+            alert("Failed to send OTP. See console for details.");
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+                window.recaptchaVerifier = null;
+            }
         }
     };
 
@@ -69,23 +88,29 @@ const Login = () => {
         e.preventDefault();
         setVerifying(true);
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, {
-                phone: regData.phone,
-                email: regData.email,
-                otp: otp
+            const confirmationResult = window.confirmationResult;
+            const result = await confirmationResult.confirm(otp);
+            const user = result.user;
+            
+            const idToken = await user.getIdToken();
+            
+            const res = await axios.post(`${API_BASE_URL}/api/auth/verify-firebase-token`, {
+                idToken: idToken,
+                role: regData.role
             });
+            
             if (res.status === 200) {
                 const regRes = await register(regData);
                 if (regRes.success) {
                     alert("Registration & Verification Successful!");
-                    setActiveTab('login'); // Switch to login tab
-                    setEmail(regData.email); // Pre-fill email
+                    setActiveTab('login'); 
+                    setEmail(regData.email); 
                 } else {
                     alert(regRes.message);
                 }
             }
         } catch (err) {
-            alert(err.response?.data?.message || "OTP Verification Failed");
+            alert(err.response?.data?.message || err.message || "OTP Verification Failed");
         } finally {
             setVerifying(false);
         }
@@ -597,6 +622,7 @@ const Login = () => {
                     </div>
 
                     {/* Tabs switcher */}
+                    <div id="recaptcha-container"></div>
                     <div className="flex border-b border-gray-100 mb-6 relative">
                         <button 
                             className={`flex-1 py-3 text-sm font-bold text-center transition-all ${activeTab === 'login' ? 'text-[#0a1e46] border-b-2 border-[#0a1e46]' : 'text-gray-400'}`}
