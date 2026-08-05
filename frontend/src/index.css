@@ -752,6 +752,106 @@ table {
   }
 }
 
+@media (max-width: 768px) {
+  .two-col-mobile-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  .two-col-mobile-grid .premium-card {
+    padding: 0.75rem !important;
+    border-radius: 16px !important;
+  }
+  .two-col-mobile-grid .premium-card h3 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+  .two-col-mobile-grid .premium-card p {
+    font-size: 0.75rem !important;
+  }
+  .two-col-mobile-grid .premium-card .btn {
+    padding: 0.5rem !important;
+    font-size: 0.8rem !important;
+    flex: 1 1 100% !important; /* Stack buttons */
+  }
+  /* Force buttons wrapper to stack if they were flex-row */
+  .two-col-mobile-grid .premium-card [style*="justify-content: space-between"] {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Extremely compact layout for Test Cards in 2-col mode */
+  .two-col-mobile-grid .test-card-compact {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact > div {
+    min-width: 0 !important;
+  }
+  .two-col-mobile-grid .test-card-compact h3 {
+    font-size: 0.85rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-badges-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.25rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-badges-row span {
+    font-size: 0.55rem !important;
+    padding: 0.1rem 0.3rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-links-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.3rem !important;
+    margin-top: 0.5rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-links-row a,
+  .two-col-mobile-grid .test-card-compact .test-links-row > div {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-price-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    margin-left: 0 !important;
+    gap: 0.25rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .test-price-row span {
+    font-size: 1.2rem !important;
+  }
+  .two-col-mobile-grid .test-card-compact .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .test-card-details {
+    margin-left: 5.2rem !important;
+  }
+}
+
+/* Filter Chips Horizontal Scrolling */
+.filter-chips-container {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-chips-container::-webkit-scrollbar {
+  display: none;
+}
+.filter-chip {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  width: auto !important;
+}
+
 /* 3. Small Screen Micro-Scaling Engine (< 480px Smartphones) */
 @media (max-width: 480px) {
   html {
@@ -803,3 +903,59 @@ table {
   }
 }
 
+/* ========================= */
+/* PROFILE PAGE RESPONSIVE   */
+/* ========================= */
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Sidebar becomes horizontal scrollable tabs */
+  .profile-layout-grid > div:first-child {
+    padding: 0.75rem !important;
+    border-radius: 14px !important;
+  }
+  .profile-layout-grid > div:first-child nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.3rem !important;
+    padding-bottom: 0.25rem;
+  }
+  .profile-layout-grid > div:first-child nav::-webkit-scrollbar {
+    display: none;
+  }
+  .profile-layout-grid > div:first-child nav button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.8rem !important;
+    padding: 0.6rem 0.9rem !important;
+  }
+
+  /* Content panel compact padding */
+  .profile-layout-grid > div:nth-child(2) {
+    padding: 1.25rem !important;
+    min-height: auto !important;
+  }
+
+  /* Doctor/Phlebotomist Dashboard stat cards: full width stack */
+  .glass-card {
+    padding: 1.25rem !important;
+  }
+
+  /* Appointment rows stack vertically */
+  .profile-layout-grid [style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}

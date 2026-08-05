@@ -7,6 +7,23 @@ import BrandLogo from './BrandLogo';
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const formatRole = (role) => {
+        if (!role) return 'Patient';
+        switch (role) {
+            case 'admin': return 'Admin';
+            case 'lab_partner': return 'Lab Partner';
+            case 'doctor': return 'Doctor';
+            case 'phlebotomist': return 'Phlebotomist';
+            case 'delivery_partner': return 'Delivery Partner';
+            case 'nurse': return 'Nurse';
+            case 'employee': return 'Staff';
+            case 'finance_manager': return 'Finance Manager';
+            case 'patient': return 'Patient';
+            default: return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+    };
+
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -88,7 +105,7 @@ const Navbar = () => {
                                 <div style={{ textAlign: 'right' }} className="hide-mobile">
                                     <div style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-main)' }}>{user.name}</div>
                                     <div style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                        {user.role === 'admin' ? 'Administrator' : user.role === 'lab_partner' ? 'Lab Partner' : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? 'Collector' : 'Patient'}
+                                        {formatRole(user.role)}
                                     </div>
                                 </div>
                                 <div style={{
@@ -140,6 +157,10 @@ const Navbar = () => {
                                                 <User size={18} /> Profile & Settings
                                             </button>
                                         </>
+                                    ) : user.role === 'finance_manager' ? (
+                                        <Link to="/finance/dashboard" className="dropdown-item">
+                                            <LayoutDashboard size={18} /> Finance Dashboard
+                                        </Link>
                                     ) : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? (
                                         <Link to="/collector/dashboard" className="dropdown-item">
                                             <LayoutDashboard size={18} /> Collector Dashboard
@@ -148,7 +169,7 @@ const Navbar = () => {
                                     
                                     {user.role !== 'lab_partner' && (
                                         <>
-                                            <Link to="/patient/profile" className="dropdown-item">
+                                            <Link to={['admin', 'finance_manager', 'inventory_manager', 'marketing_head'].includes(user.role) ? "/admin/profile" : "/patient/profile"} className="dropdown-item">
                                                 <User size={18} /> Profile
                                             </Link>
                                             <Link to="/patient/history" className="dropdown-item">
@@ -165,10 +186,20 @@ const Navbar = () => {
                     ) : null}
                 </div>
 
-                {/* Mobile Menu Toggle */}
-                <div className="mobile-toggle" style={{ display: 'none' }}>
-                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
-                        {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                {/* Mobile Header Bar Right Section */}
+                <div className="mobile-toggle" style={{ display: 'none', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                    {user && (
+                        <div className="mobile-user-pill" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.3rem 0.65rem', borderRadius: '100px', flexShrink: 1, minWidth: 0 }}>
+                            <span className="mobile-user-name" style={{ fontSize: '0.82rem', fontWeight: '800', color: '#0369a1', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {user.name}
+                            </span>
+                            <span className="mobile-user-role" style={{ background: '#0284c7', color: 'white', fontSize: '0.65rem', fontWeight: '800', padding: '0.12rem 0.45rem', borderRadius: '100px', textTransform: 'uppercase', letterSpacing: '0.4px', flexShrink: 0 }}>
+                                {formatRole(user.role)}
+                            </span>
+                        </div>
+                    )}
+                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.2rem', flexShrink: 0 }}>
+                        {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
                     </button>
                 </div>
             </div>
@@ -196,8 +227,19 @@ const Navbar = () => {
                     </Link>
                     {user ? (
                         <>
-                            <div style={{ height: '1px', background: 'var(--border-light)', margin: '0.5rem 0' }}></div>
-                            <div style={{ fontWeight: '800', color: 'var(--text-main)' }}>{user.name}</div>
+                            <div style={{ height: '1px', background: 'var(--border-light)', margin: '0.3rem 0' }}></div>
+                            
+                            {/* User Header Card inside Drawer */}
+                            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                                <div style={{ minWidth: 0, flexShrink: 1 }}>
+                                    <div style={{ fontWeight: '800', color: 'var(--text-main)', fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                                </div>
+                                <span style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '0.35rem 0.75rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>
+                                    {formatRole(user.role)}
+                                </span>
+                            </div>
+
                             {user.role === 'admin' ? (
                                 <Link to="/admin/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
                                     <LayoutDashboard size={18} /> Admin Dashboard
@@ -206,13 +248,19 @@ const Navbar = () => {
                                 <Link to="/partner/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
                                     <LayoutDashboard size={18} /> Partner Workbench
                                 </Link>
+                            ) : user.role === 'finance_manager' ? (
+                                <Link to="/finance/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <LayoutDashboard size={18} /> Finance Dashboard
+                                </Link>
                             ) : (user.role === 'employee' || user.role === 'phlebotomist' || user.role === 'nurse') ? (
                                 <Link to="/collector/dashboard" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
                                     <LayoutDashboard size={18} /> Collector Dashboard
                                 </Link>
-                            ) : (
+                            ) : null}
+                            
+                            {user.role !== 'lab_partner' && (
                                 <>
-                                    <Link to="/patient/profile" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
+                                    <Link to={['admin', 'finance_manager', 'inventory_manager', 'marketing_head'].includes(user.role) ? "/admin/profile" : "/patient/profile"} className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
                                         <User size={18} /> Profile
                                     </Link>
                                     <Link to="/patient/history" className="dropdown-item" onClick={() => setMobileMenuOpen(false)}>
@@ -298,8 +346,18 @@ const Navbar = () => {
                 }
                 @media (max-width: 1024px) {
                     .desktop-menu { display: none !important; }
-                    .mobile-toggle { display: block !important; }
+                    .mobile-toggle { display: flex !important; }
                     .hide-mobile { display: none !important; }
+                }
+                @media (max-width: 480px) {
+                    .mobile-user-name { max-width: 75px !important; }
+                }
+                @media (max-width: 380px) {
+                    .mobile-user-name { max-width: 55px !important; }
+                    .mobile-user-role { font-size: 0.6rem !important; padding: 0.1rem 0.35rem !important; }
+                }
+                @media (max-width: 330px) {
+                    .mobile-user-role { display: none !important; }
                 }
             `}</style>
         </nav>

@@ -101,7 +101,7 @@ const NearbySearch = () => {
 
                 <div className="glass-card" style={{ padding: '4rem', textAlign: 'center', marginBottom: '4rem', background: 'white' }}>
                     <div style={{ width: '80px', height: '80px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
-                        <LocateFixed size={40} />
+                        <MapPin size={40} />
                     </div>
                     <h1 style={{ fontSize: '3rem', marginBottom: '1rem', lineHeight: '1.2' }}>Discover Labs <span className="text-gradient">Near You</span></h1>
                     <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', maxWidth: '650px', margin: '0 auto 3rem', fontSize: '1.2rem', lineHeight: '1.6' }}>
@@ -110,23 +110,25 @@ const NearbySearch = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
                         <div style={{ 
-                            background: 'white', 
-                            padding: '0.75rem 1.5rem', 
+                            background: 'linear-gradient(135deg, var(--primary) 0%, #0369a1 100%)', 
+                            padding: '0.6rem 1.25rem', 
                             borderRadius: '100px', 
-                            border: '1px solid var(--border)', 
-                            boxShadow: 'var(--shadow-sm)',
+                            border: '1px solid #7dd3fc', 
+                            boxShadow: '0 8px 20px -8px rgba(3, 105, 161, 0.5)',
                             display: 'inline-flex',
-                            alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                              <div style={{ width: '28px', height: '28px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Sparkles size={16} />
+                            alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'center',
+                            cursor: 'pointer', transition: 'transform 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        onClick={() => document.querySelector('button[style*="fixed"]').click()}>
+                            <div style={{ width: '26px', height: '26px', background: 'rgba(255,255,255,0.2)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Sparkles size={14} />
                             </div>
-                            <span style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-main)' }}>Unsure what you need?</span>
-                            <button 
-                                onClick={() => document.querySelector('button[style*="fixed"]').click()} 
-                                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '900', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
-                            >
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#e0f2fe' }}>Unsure what you need?</span>
+                            <span style={{ color: 'white', fontWeight: '900', fontSize: '0.9rem', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                                 Ask AI Recommender
-                            </button>
+                            </span>
                         </div>
                     </div>
                     <div className="search-bar-wrapper" style={{
@@ -152,12 +154,12 @@ const NearbySearch = () => {
                             />
                         </div>
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-primary search-action-btn"
                             onClick={handleSearch}
                             disabled={loading}
-                            style={{ padding: '1rem 3rem', borderRadius: '16px', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
                         >
-                            {loading ? 'Processing...' : (<span><Navigation size={18} /> Locate & Search</span>)}
+                            {loading ? <Activity size={20} style={{ animation: 'pulse 1s infinite' }} /> : <Navigation size={20} />}
+                            <span className="search-btn-text" style={{ marginLeft: '0.5rem' }}>{loading ? 'Processing' : 'Locate & Search'}</span>
                         </button>
                     </div>
 
@@ -170,7 +172,7 @@ const NearbySearch = () => {
                     {/* Category Filter Buttons */}
                     {results.length > 0 && (
                         <>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem', flexWrap: 'wrap' }}>
+                            <div className="filter-chips-container" style={{ marginTop: '3rem' }}>
                                  {['All', 'Premium', 'Scalable', 'Standard'].map(filter => {
                                     const count = filter === 'All' ? results.length : results.filter(l => (l.category || '').toLowerCase() === filter.toLowerCase()).length;
                                     
@@ -178,7 +180,7 @@ const NearbySearch = () => {
                                         <button
                                             key={filter}
                                             onClick={() => { setActiveFilter(filter); setVisibleCount(10); }}
-                                            className={`btn ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
+                                            className={`btn filter-chip ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
                                             style={{
                                                 padding: '0.6rem 1.5rem',
                                                 borderRadius: '100px',
@@ -219,7 +221,7 @@ const NearbySearch = () => {
 
 
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem' }}>
+                <div className="two-col-mobile-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem' }}>
                     {filteredResults.slice(0, visibleCount).map((lab, index) => (
                         <div key={lab._id || lab.googlePlaceId} className="glass-card premium-card animate-fade-in" style={{
                             padding: '1.2rem 1.5rem',
@@ -495,6 +497,30 @@ const styles = `
     transform: translateY(-10px) !important;
     box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.12) !important;
     border-color: hsla(var(--primary-hsl), 0.4) !important;
+}
+.search-action-btn {
+    padding: 1rem 3rem;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+@media (max-width: 640px) {
+    .search-btn-text {
+        display: none !important;
+    }
+    .search-action-btn {
+        padding: 0 !important;
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 14px !important;
+        flex-shrink: 0;
+    }
+    .search-bar-wrapper {
+        padding: 0.5rem !important;
+    }
 }
 `;
 

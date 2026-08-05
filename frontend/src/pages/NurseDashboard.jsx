@@ -4,9 +4,11 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
-    HeartPulse, Activity, PhoneCall, Stethoscope, CheckCircle2, 
-    Clock, Search, User, ShieldCheck, Send, AlertCircle, LogOut, ChevronRight, X, Plus
+    HeartPulse, Syringe, Users, MessageSquare, AlertCircle, 
+    FileText, CheckCircle2, Clock, LogOut, ChevronRight, Menu, X 
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
+import { syncTelemetryToAI } from '../utils/telemetry';
 
 const NurseDashboard = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const NurseDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('queue'); // 'queue', 'vitals', 'followups', 'doctor-requests'
   const [unitTemp, setUnitTemp] = useState('F'); // F or C
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [vitalsForm, setVitalsForm] = useState({ 
     patient: 'John Doe (P-101)', bpSystolic: '120', bpDiastolic: '80', pulse: '72', temp: '98.6', weight: '70', o2: '98' 
@@ -49,6 +52,13 @@ const NurseDashboard = () => {
   const handleVitalsSubmit = (e) => {
     e.preventDefault();
     const isAbnormal = parseInt(vitalsForm.bpSystolic) > 140 || parseInt(vitalsForm.o2) < 95;
+    
+    syncTelemetryToAI(
+      "Patient Vitals Recorded",
+      `Nurse recorded vitals for ${vitalsForm.patient}. BP: ${vitalsForm.bpSystolic}/${vitalsForm.bpDiastolic}, SpO2: ${vitalsForm.o2}%. Status: ${isAbnormal ? 'Abnormal' : 'Normal'}`,
+      "nurse"
+    );
+
     if (isAbnormal) {
       alert(`⚠️ Vitals recorded for ${vitalsForm.patient}! Abnormal reading detected (BP: ${vitalsForm.bpSystolic}/${vitalsForm.bpDiastolic}, SpO2: ${vitalsForm.o2}%). Urgent alert transmitted to Doctor.`);
     } else {
@@ -59,21 +69,40 @@ const NurseDashboard = () => {
 
   const handleFollowupSubmit = (e) => {
     e.preventDefault();
+    
+    syncTelemetryToAI(
+      "Post-Care Follow-up Logged",
+      `Nurse completed follow-up for ${followupForm.patient}. Outcome: [${followupForm.outcome}]. Notes: ${followupForm.notes}`,
+      "nurse"
+    );
+
     alert(`Follow-up log saved for ${followupForm.patient}! Outcome: [${followupForm.outcome}]. Recorded in Audit Trail.`);
     setShowFollowupModal(false);
     setFollowupForm({ patient: '', outcome: "Doctor's Advice Followed", notes: '' });
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <HeartPulse size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HeartPulse size={24} color="#003366" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Nursing Workspace</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Nursing Workspace</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -115,12 +144,17 @@ const NurseDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Header bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Nurse Executive Dashboard</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Nurse Clara. Shift: Morning (08:00 AM - 04:00 PM).</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Nurse Executive Dashboard</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Nurse Clara. Shift: Morning (08:00 AM - 04:00 PM).</p>
+            </div>
           </div>
           <button onClick={() => setActiveTab('vitals')} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Plus size={16} /> Quick Vitals Entry
@@ -128,7 +162,7 @@ const NurseDashboard = () => {
         </div>
 
         {/* Top KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Assigned Clinical Tasks</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{queue.length}</div>
@@ -151,17 +185,18 @@ const NurseDashboard = () => {
         {activeTab === 'queue' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Supervised Clinical Sample Collection & Vitals Check Queue</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Task ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Clinical Requirement</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Location</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Doctor Instructions</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
-                </tr>
-              </thead>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Task ID</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Clinical Requirement</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Location</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Doctor Instructions</th>
+                    <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
+                  </tr>
+                </thead>
               <tbody>
                 {queue.map(q => (
                   <tr key={q.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -185,6 +220,7 @@ const NurseDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

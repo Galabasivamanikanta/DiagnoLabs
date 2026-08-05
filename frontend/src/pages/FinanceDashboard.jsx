@@ -5,17 +5,22 @@ import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
     DollarSign, CreditCard, RefreshCw, FileText, Download, CheckCircle2, 
-    XCircle, AlertCircle, ArrowUpRight, TrendingUp, ShieldCheck, LogOut, ChevronRight, Filter, Printer
+    XCircle, AlertCircle, ArrowUpRight, TrendingUp, ShieldCheck, LogOut, ChevronRight, Filter, Printer, Menu, X,
+    BarChart3, PieChart, ClipboardList, Wallet, Plus, Building2, Zap, Megaphone, Calendar
 } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
+import '../styles/DashboardShared.css';
 
 const FinanceDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
 
-  const [activeTab, setActiveTab] = useState('payouts'); // 'payouts', 'refunds', 'invoices', 'revenue'
+  const [activeTab, setActiveTab] = useState('payouts'); // 'payouts', 'refunds', 'invoices', 'revenue', 'pnl', 'expenses', 'audit'
   const [showPayoutModal, setShowPayoutModal] = useState(null);
   const [showRefundModal, setShowRefundModal] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(null);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mock Lab Partner Payouts
   const [payouts, setPayouts] = useState([
@@ -38,6 +43,21 @@ const FinanceDashboard = () => {
     { id: 'INV-2026-003', entity: 'Vijaya Diagnostics', type: 'Lab B2B Commission', amount: 21600, gstAmount: 3888, date: '2026-08-02', status: 'Paid' }
   ]);
 
+  // Mock Expenses
+  const [expenses, setExpenses] = useState([
+    { id: 'EXP-001', category: 'Salary', amount: 45000, description: 'August Payroll', date: '2026-08-01' },
+    { id: 'EXP-002', category: 'Technology', amount: 12000, description: 'AWS Hosting', date: '2026-08-02' },
+    { id: 'EXP-003', category: 'Marketing', amount: 8500, description: 'FB Ads', date: '2026-08-03' }
+  ]);
+
+  // Mock Audit Trail
+  const [auditLogs] = useState([
+    { id: 'AUD-001', timestamp: '2026-08-05 14:30', action: 'Payout Processed', user: 'Admin', details: 'Processed PAY-703', amount: 44800, status: 'Success' },
+    { id: 'AUD-002', timestamp: '2026-08-05 13:15', action: 'Refund Approved', user: 'Finance Mgr', details: 'Approved REF-303', amount: 2200, status: 'Success' },
+    { id: 'AUD-003', timestamp: '2026-08-04 09:00', action: 'Invoice Generated', user: 'System', details: 'Generated INV-2026-001', amount: 1450, status: 'Success' },
+    { id: 'AUD-004', timestamp: '2026-08-03 10:20', action: 'Expense Added', user: 'Admin', details: 'Added Technology Exp', amount: 12000, status: 'Success' }
+  ]);
+
   const handleLogout = () => {
     logout();
     navigate('/adminlogin');
@@ -55,6 +75,20 @@ const FinanceDashboard = () => {
     setShowRefundModal(null);
   };
 
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newExpense = {
+      id: `EXP-00${expenses.length + 1}`,
+      category: formData.get('category'),
+      amount: Number(formData.get('amount')),
+      description: formData.get('description'),
+      date: formData.get('date')
+    };
+    setExpenses([newExpense, ...expenses]);
+    setShowExpenseModal(false);
+  };
+
   const exportFinancialReport = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Transaction Type,ID,Entity,Amount (INR),GST (INR),Status\n"
@@ -69,15 +103,27 @@ const FinanceDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <DollarSign size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BrandLogo size={32} />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Finance & Accounts Console</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Finance & Accounts Console</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -105,12 +151,43 @@ const FinanceDashboard = () => {
           >
             <TrendingUp size={18} /> Revenue Analytics & P&L
           </button>
+          <button 
+            onClick={() => setActiveTab('pnl')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'pnl' ? '#f0f7ff' : 'transparent', color: activeTab === 'pnl' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <BarChart3 size={18} /> P&L Charts
+          </button>
+          <button 
+            onClick={() => setActiveTab('expenses')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'expenses' ? '#f0f7ff' : 'transparent', color: activeTab === 'expenses' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Wallet size={18} /> Expense Tracker
+          </button>
+          <button 
+            onClick={() => setActiveTab('audit')}
+            style={{ padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'audit' ? '#f0f7ff' : 'transparent', color: activeTab === 'audit' ? '#003366' : '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <ClipboardList size={18} /> Audit Trail
+          </button>
         </nav>
 
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
-          <div style={{ padding: '8px 12px', marginBottom: '12px', background: '#f1f5f9', borderRadius: '10px' }}>
-            <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a' }}>{user?.name || 'Accounts Officer'}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Finance Manager • 2FA Active</div>
+          <div style={{ padding: '16px', marginBottom: '12px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.2rem', flexShrink: 0 }}>
+                {(user?.name || 'Accounts').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'Accounts Officer'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || 'finance@diagnolabs.com'}</div>
+              </div>
+            </div>
+            <div style={{ background: '#f0f7ff', color: '#003366', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', alignSelf: 'flex-start', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Finance Manager
+            </div>
+            <button onClick={() => navigate('/admin/profile')} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              View Full Profile <ChevronRight size={14} />
+            </button>
           </div>
           <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#dc2626', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <LogOut size={16} /> Logout
@@ -119,12 +196,17 @@ const FinanceDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Header bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Platform Accounts & Financial Control</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Financial Year 2026-27 • Commission reconciliation & GST tax reporting.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Platform Accounts & Financial Control</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Financial Year 2026-27 • Commission reconciliation & GST tax reporting.</p>
+            </div>
           </div>
           <button onClick={exportFinancialReport} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Download size={16} /> Export Financial CSV
@@ -132,7 +214,7 @@ const FinanceDashboard = () => {
         </div>
 
         {/* Top Financial KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Today's Revenue</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>₹1,45,200</div>
@@ -155,7 +237,8 @@ const FinanceDashboard = () => {
         {activeTab === 'payouts' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Lab Partner Commission Payout Settlement Queue</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Payout ID</th>
@@ -189,6 +272,7 @@ const FinanceDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -196,15 +280,16 @@ const FinanceDashboard = () => {
         {activeTab === 'refunds' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Patient Refund Escalation Queue</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Refund ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Patient Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Booking ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Amount</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Reason</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a' }}>Action</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Refund ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Booking ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Amount</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Reason</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,6 +315,7 @@ const FinanceDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -237,15 +323,16 @@ const FinanceDashboard = () => {
         {activeTab === 'invoices' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>GST-Compliant Tax Invoices Directory</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Invoice #</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Billing Entity</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Invoice Type</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Subtotal</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>GST 18%</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a' }}>Action</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Invoice #</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Billing Entity</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Invoice Type</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Subtotal</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>GST 18%</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -265,6 +352,7 @@ const FinanceDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -283,6 +371,118 @@ const FinanceDashboard = () => {
                 <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#059669' }}>₹ 2,85,000</div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', fontWeight: '700' }}>20% average platform take rate</div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: P&L Charts */}
+        {activeTab === 'pnl' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Visual Profit & Loss (Last 6 Months)</h3>
+            <div style={{ display: 'flex', alignItems: 'flex-end', height: '250px', gap: '20px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px' }}>
+              {[{m: 'Feb', r: 120, e: 80}, {m: 'Mar', r: 140, e: 90}, {m: 'Apr', r: 130, e: 85}, {m: 'May', r: 160, e: 100}, {m: 'Jun', r: 180, e: 110}, {m: 'Jul', r: 200, e: 115}].map((data, i) => (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100%', width: '100%', justifyContent: 'center' }}>
+                    <div style={{ width: '30%', height: `${(data.r / 200) * 100}%`, background: '#059669', borderRadius: '4px 4px 0 0' }}></div>
+                    <div style={{ width: '30%', height: `${(data.e / 200) * 100}%`, background: '#dc2626', borderRadius: '4px 4px 0 0' }}></div>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>{data.m}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '16px', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', background: '#059669', borderRadius: '2px' }}></div> <strong>Revenue</strong></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', background: '#dc2626', borderRadius: '2px' }}></div> <strong>Expenses</strong></div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Expense Tracker */}
+        {activeTab === 'expenses' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Expense Tracker</h3>
+              <button onClick={() => setShowExpenseModal(true)} style={{ padding: '8px 16px', background: '#003366', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Plus size={16} /> Add Expense
+              </button>
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>Category Breakdown</div>
+              <div style={{ display: 'flex', height: '24px', borderRadius: '12px', overflow: 'hidden', gap: '2px' }}>
+                <div style={{ width: '40%', background: '#3b82f6' }} title="Salary (40%)"></div>
+                <div style={{ width: '25%', background: '#8b5cf6' }} title="Technology (25%)"></div>
+                <div style={{ width: '20%', background: '#ec4899' }} title="Marketing (20%)"></div>
+                <div style={{ width: '10%', background: '#f59e0b' }} title="Office (10%)"></div>
+                <div style={{ width: '5%', background: '#10b981' }} title="Logistics (5%)"></div>
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '12px', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#3b82f6', borderRadius: '2px' }}></div> Salary</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#8b5cf6', borderRadius: '2px' }}></div> Technology</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#ec4899', borderRadius: '2px' }}></div> Marketing</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#f59e0b', borderRadius: '2px' }}></div> Office</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '2px' }}></div> Logistics</div>
+              </div>
+            </div>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>ID</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Category</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Description</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Date</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map(exp => (
+                    <tr key={exp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', fontWeight: '800', color: '#003366' }}>{exp.id}</td>
+                      <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{exp.category}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{exp.description}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{exp.date}</td>
+                      <td style={{ padding: '12px', fontWeight: '800', color: '#dc2626' }}>₹{exp.amount.toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 7: Audit Trail */}
+        {activeTab === 'audit' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Financial Audit Trail</h3>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Timestamp</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Action Type</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>User</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Details</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Amount</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLogs.map(log => (
+                    <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', color: '#475569' }}>{log.timestamp}</td>
+                      <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>{log.action}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{log.user}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{log.details}</td>
+                      <td style={{ padding: '12px', fontWeight: '800', color: '#0f172a' }}>₹{log.amount.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800', background: '#dcfce7', color: '#166534' }}>
+                          {log.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -361,6 +561,43 @@ const FinanceDashboard = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', fontSize: '1rem', color: '#003366' }}><span>Total Invoice Amount:</span><span>₹{(showInvoiceModal.amount + showInvoiceModal.gstAmount).toLocaleString('en-IN')}</span></div>
             </div>
             <button onClick={() => setShowInvoiceModal(null)} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Close Invoice View</button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Expense Modal */}
+      {showExpenseModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#0f172a', fontWeight: '800' }}>Add New Expense</h3>
+            <form onSubmit={handleAddExpense}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Category</label>
+                <select name="category" required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <option value="Salary">Salary</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Office">Office</option>
+                  <option value="Marketing">Marketing</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Amount (₹)</label>
+                <input type="number" name="amount" required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Description</label>
+                <input type="text" name="description" required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Date</label>
+                <input type="date" name="date" required defaultValue={new Date().toISOString().split('T')[0]} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={() => setShowExpenseModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white', fontWeight: '800', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: '#003366', color: 'white', fontWeight: '800', cursor: 'pointer' }}>Add Expense</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

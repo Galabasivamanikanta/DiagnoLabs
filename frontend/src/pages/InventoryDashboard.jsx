@@ -5,8 +5,9 @@ import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
     Package, AlertTriangle, Truck, Download, Plus, Check, X, 
-    Search, Filter, ShoppingCart, Clock, CheckCircle2, AlertCircle, LogOut
+    Search, Filter, ShoppingCart, Clock, CheckCircle2, AlertCircle, LogOut, Menu
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
 
 const InventoryDashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const InventoryDashboard = () => {
   const [activeTab, setActiveTab] = useState('requests'); // 'requests', 'stock', 'suppliers', 'po'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRequests, setSelectedRequests] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPOModal, setShowPOModal] = useState(false);
   const [poForm, setPoForm] = useState({ item: 'Blood Collection Tubes (Red)', supplier: 'MedEquip Inc', qty: '500', price: '4500' });
 
@@ -96,15 +98,27 @@ const InventoryDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Package size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Package size={24} color="#003366" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Warehouse & Supply Chain</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Warehouse & Supply Chain</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -146,12 +160,17 @@ const InventoryDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Inventory & Procurement Control Console</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Manage supplies, reorder thresholds, and vendor dispatches across network lab partners.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Inventory & Procurement Control Console</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Manage supplies, reorder thresholds, and vendor dispatches across network lab partners.</p>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={exportCSVReport} style={{ padding: '10px 18px', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -164,7 +183,7 @@ const InventoryDashboard = () => {
         </div>
 
         {/* Top KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #fee2e2', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>Low Stock Alerts</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>{stock.filter(s => s.status !== 'OK').length}</div>
@@ -196,7 +215,8 @@ const InventoryDashboard = () => {
               </button>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '12px', textAlign: 'center', width: '40px' }}>
@@ -239,6 +259,7 @@ const InventoryDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -246,7 +267,8 @@ const InventoryDashboard = () => {
         {activeTab === 'stock' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Central Warehouse Stock Progress Level</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                   <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Item Name</th>
@@ -279,6 +301,7 @@ const InventoryDashboard = () => {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -286,14 +309,15 @@ const InventoryDashboard = () => {
         {activeTab === 'po' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Active Purchase Orders (Procurement Stream)</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>PO Number</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Item Description</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplier</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Total Cost</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Delivery Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>PO Number</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Item Description</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Supplier</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Total Cost</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Delivery Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -312,6 +336,7 @@ const InventoryDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -319,14 +344,15 @@ const InventoryDashboard = () => {
         {activeTab === 'suppliers' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Verified Supplier Directory</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplier Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Contact Email</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Supplied Categories</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Lead Time</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Vendor Rating</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Supplier Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Contact Email</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Supplied Categories</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Lead Time</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Vendor Rating</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,6 +367,7 @@ const InventoryDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </main>

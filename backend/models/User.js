@@ -32,9 +32,11 @@ const userSchema = new mongoose.Schema({
         default: 'patient'
     },
     address: {
-        street: String,
-        city: String,
-        pincode: String,
+        street: { type: String, default: '' },
+        city: { type: String, default: '' },
+        pincode: { type: String, default: '' },
+        landmark: { type: String, default: '' },
+        addressType: { type: String, enum: ['Home', 'Work', 'Other'], default: 'Home' },
         coordinates: { 
             lat: Number,
             lng: Number
@@ -44,6 +46,17 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ['Male', 'Female', 'Other', ''], default: '' },
     bloodGroup: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-', ''], default: '' },
     emergencyContact: { type: String, default: '' },
+    allergies: { type: String, default: '' },
+    medicalConditions: { type: String, default: '' },
+    familyMembers: [
+        {
+            name: { type: String, required: true },
+            relation: { type: String, required: true },
+            age: { type: Number },
+            gender: { type: String, enum: ['Male', 'Female', 'Other', ''] },
+            bloodGroup: { type: String, default: '' }
+        }
+    ],
     profilePic: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now }
 });
@@ -63,4 +76,3 @@ userSchema.methods.toJSON = function() {
 };
 
 module.exports = mongoose.model('User', userSchema);
-

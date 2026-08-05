@@ -4,9 +4,11 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
-    ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, 
-    Download, Award, Ban, AlertOctagon, Send, Clock, User, LogOut, ChevronRight, BarChart2
+    CheckCircle, AlertOctagon, Activity, FileText, Download, Target, 
+    Zap, ClipboardCheck, ShieldAlert, FileSearch, LogOut, ChevronRight, X, Menu, ShieldCheck, AlertTriangle
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
+import { syncTelemetryToAI } from '../utils/telemetry';
 
 const QualityDashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const QualityDashboard = () => {
   const [activeTab, setActiveTab] = useState('cases'); // 'cases', 'audit', 'renewals', 'actions'
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [showBlacklistModal, setShowBlacklistModal] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Multi-step Audit Checklist Form state
   const [auditForm, setAuditForm] = useState({
@@ -55,12 +58,26 @@ const QualityDashboard = () => {
     e.preventDefault();
     const checkedCount = [auditForm.hygiene, auditForm.calibration, auditForm.turnaround, auditForm.staffCertified].filter(Boolean).length;
     const score = (checkedCount / 4) * 100;
+    
+    syncTelemetryToAI(
+      "Quality Audit Completed",
+      `Quality Auditor completed audit for [${auditForm.labName}] with a score of ${score}%`,
+      "quality_auditor"
+    );
+
     alert(`Lab Audit Completed for [${auditForm.labName}]!\nCompliance Score: ${score}%\nFindings logged in audit trail.`);
     setShowAuditModal(false);
   };
 
   const handleBlacklistSubmit = (e) => {
     e.preventDefault();
+    
+    syncTelemetryToAI(
+      "Blacklist Recommendation",
+      `Quality Auditor recommended blacklisting for lab [${showBlacklistModal.lab}] due to severity.`,
+      "quality_auditor"
+    );
+
     alert(`Blacklist & Suspension Recommendation for [${showBlacklistModal.lab}] TRANSMITTED to Admin! Pending super-user sign-off.`);
     setShowBlacklistModal(null);
   };
@@ -79,15 +96,27 @@ const QualityDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={24} color="#003366" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Quality & Compliance Auditor</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Quality & Compliance Auditor</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -123,12 +152,17 @@ const QualityDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Header bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Quality Control & Compliance Console</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Audit diagnostic accuracy, resolve test report disputes, and enforce NABL standards.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Quality Control & Compliance Console</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Audit diagnostic accuracy, resolve test report disputes, and enforce NABL standards.</p>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={exportQCReport} style={{ padding: '10px 18px', background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -141,7 +175,7 @@ const QualityDashboard = () => {
         </div>
 
         {/* Top KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Open QC Cases</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{qcCases.filter(c => c.status !== 'Resolved').length}</div>
@@ -164,16 +198,17 @@ const QualityDashboard = () => {
         {activeTab === 'cases' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Flagged Disputed Test Reports & Complaints</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Case ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Lab Partner</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Test Type</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Issue Description</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Severity</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a' }}>Status</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a' }}>Action</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Case ID</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Lab Partner</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Test Type</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Issue Description</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Severity</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,6 +237,7 @@ const QualityDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -209,14 +245,15 @@ const QualityDashboard = () => {
         {activeTab === 'renewals' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Lab Accreditation & License Expiry Tracker</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="dashboard-table-container">
+            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Lab Partner Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Accreditation Certificate</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Expiry Date</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Days Remaining</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a' }}>Compliance Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Lab Partner Name</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Accreditation Certificate</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Expiry Date</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Days Remaining</th>
+                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Compliance Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -235,6 +272,7 @@ const QualityDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </main>

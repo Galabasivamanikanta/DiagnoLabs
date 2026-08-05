@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,17 +20,26 @@ import {
     UserCircle,
     Mail,
     Phone,
-    FileText
+    FileText,
+    Share2,
+    RotateCcw,
+    HelpCircle,
+    Users,
+    PhoneCall,
+    X,
+    Check,
+    AlertCircle
 } from 'lucide-react';
 import ReceiptModal from '../components/patient/ReceiptModal';
 
 const statusConfig = {
-    'Pending':            { color: '#92400e', bg: 'var(--accent-gold-light)', icon: <Clock size={14} /> },
-    'Confirmed':        { color: 'var(--primary-hover)', bg: '#dbeafe', icon: <CheckCircle2 size={14} /> },
-    'Sample Collected': { color: '#5b21b6', bg: '#ede9fe', icon: <FlaskConical size={14} /> },
-    'Sample Processing':{ color: '#6d28d9', bg: '#f5f3ff', icon: <FlaskConical size={14} /> },
-    'Report Uploaded':  { color: '#166534', bg: '#dcfce7', icon: <CheckCircle2 size={14} /> },
-    'Cancelled':        { color: '#991b1b', bg: '#fef2f2', icon: <XCircle size={14} /> },
+    'Pending':            { color: '#b45309', bg: '#fef3c7', icon: <Clock size={14} /> },
+    'Confirmed':          { color: '#0369a1', bg: '#e0f2fe', icon: <CheckCircle2 size={14} /> },
+    'Out for Collection': { color: '#6d28d9', bg: '#f5f3ff', icon: <FlaskConical size={14} /> },
+    'Sample Collected':   { color: '#7c3aed', bg: '#ede9fe', icon: <FlaskConical size={14} /> },
+    'Sample Processing':  { color: '#4c1d95', bg: '#f3e8ff', icon: <FlaskConical size={14} /> },
+    'Report Uploaded':    { color: '#15803d', bg: '#dcfce7', icon: <CheckCircle2 size={14} /> },
+    'Cancelled':          { color: '#b91c1c', bg: '#fee2e2', icon: <XCircle size={14} /> },
 };
 
 const BookingHistory = () => {
@@ -39,8 +48,11 @@ const BookingHistory = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [familyFilter, setFamilyFilter] = useState('All');
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [trackingBooking, setTrackingBooking] = useState(null);
+    const [cancellingId, setCancellingId] = useState(null);
+    const [message, setMessage] = useState({ text: '', type: '' });
     const navigate = useNavigate();
 
     const getReportUrl = (url) => {
@@ -52,236 +64,394 @@ const BookingHistory = () => {
                     const apiOrigin = new URL(API_BASE_URL).origin;
                     return `${apiOrigin}${urlObj.pathname}${urlObj.search}`;
                 }
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
             return url;
         }
         return `${API_BASE_URL.replace('/api', '')}${url.startsWith('/') ? '' : '/'}${url}`;
     };
 
+    const fetchBookings = useCallback(async () => {
+        if (!user) return;
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/bookings/user/${user._id}`, 
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+            const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setBookings(sorted);
+        } catch (err) {
+            console.error('Error fetching bookings:', err);
+            setMessage({ text: 'Failed to load booking history.', type: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
     useEffect(() => {
         if (!user) { navigate('/userlogin'); return; }
-        const fetchBookings = async () => {
-            try {
-                const res = await axios.get(`${API_BASE_URL}/api/bookings/user/${user._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-                // Sort by newest first
-                const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setBookings(sorted);
-            } catch (err) {
-                console.error('Error fetching bookings:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchBookings();
-    }, [user, navigate]);
+    }, [user, navigate, fetchBookings]);
 
+    const handleCancelBooking = async (bookingId) => {
+        if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+        setCancellingId(bookingId);
+        try {
+            await axios.put(
+                `${API_BASE_URL}/api/bookings/${bookingId}/status`,
+                { status: 'Cancelled' },
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+            setMessage({ text: 'Booking cancelled successfully.', type: 'success' });
+            fetchBookings();
+            setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+        } catch (err) {
+            setMessage({ text: err.response?.data?.message || 'Failed to cancel booking', type: 'error' });
+        } finally {
+            setCancellingId(null);
+        }
+    };
+
+    const handleReBook = (booking) => {
+        if (!booking?.testDetails || booking.testDetails.length === 0) return;
+        // Store selected tests into localStorage cart and navigate to checkout
+        const cartItems = booking.testDetails.map(t => ({
+            _id: t.testId || t._id,
+            name: t.testName,
+            price: t.price
+        }));
+        localStorage.setItem('cart', JSON.stringify(cartItems));
+        setMessage({ text: 'Tests added to cart! Redirecting to checkout...', type: 'success' });
+        setTimeout(() => navigate('/checkout'), 1200);
+    };
+
+    const handleShareWhatsApp = (booking) => {
+        const reportLink = getReportUrl(booking.reportUrl);
+        const text = `Hi, here is my DiagnoLabs Pathology Report for ${booking.testDetails?.[0]?.testName || 'Diagnostic Test'}: ${reportLink || 'Available in DiagnoLabs Portal'}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    // Filter Logic
     const filtered = bookings.filter(b => {
         const matchSearch =
             b._id.toLowerCase().includes(search.toLowerCase()) ||
             b.testDetails?.some(t => t.testName?.toLowerCase().includes(search.toLowerCase())) ||
             b.lab?.name?.toLowerCase().includes(search.toLowerCase());
         const matchStatus = statusFilter === 'All' || b.status === statusFilter;
-        return matchSearch && matchStatus;
-    });
-    return (
-        <div style={{ background: 'var(--background)', minHeight: '100vh', paddingTop: '8rem', paddingBottom: '5rem' }}>
-            <div className="container animate-fade-in" style={{ maxWidth: '1100px' }}>
+        
+        // Family Member match (check if patient name matches family member or self)
+        const patientName = b.patientName || b.patient?.name || user?.name;
+        const matchFamily = familyFilter === 'All' || 
+            (familyFilter === 'Self' && patientName?.toLowerCase() === user?.name?.toLowerCase()) ||
+            (patientName?.toLowerCase().includes(familyFilter.toLowerCase()));
 
-                {/* Premium User Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                            <div style={{ padding: '0.75rem', background: 'var(--primary-light)', borderRadius: '50%', color: 'var(--primary)', display: 'flex' }}>
-                                <UserCircle size={32} />
-                            </div>
-                            <div>
-                                <h1 style={{ fontSize: '2.2rem', color: 'var(--text-main)', fontWeight: '900', margin: 0 }}>
-                                    {user?.name || 'Patient'}
+        return matchSearch && matchStatus && matchFamily;
+    });
+
+    return (
+        <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: '6.5rem', paddingBottom: '5rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <div className="container" style={{ maxWidth: '1100px', padding: '0 1.25rem' }}>
+
+                {/* Floating Notification */}
+                {message.text && (
+                    <div style={{ 
+                        position: 'fixed',
+                        bottom: '25px',
+                        right: '25px',
+                        zIndex: 9999,
+                        padding: '1rem 1.5rem', 
+                        borderRadius: '16px', 
+                        boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                        background: message.type === 'success' ? '#065f46' : '#991b1b',
+                        color: 'white',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem'
+                    }}>
+                        {message.type === 'success' ? <Check size={20} /> : <X size={20} />}
+                        <span>{message.text}</span>
+                    </div>
+                )}
+
+                {/* Premium Glassmorphism Header */}
+                <div style={{ 
+                    background: 'linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #0f172a 100%)',
+                    borderRadius: '24px',
+                    padding: '2.25rem 2.5rem',
+                    color: 'white',
+                    boxShadow: '0 15px 35px rgba(3, 105, 161, 0.22)',
+                    marginBottom: '2rem',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                <History size={28} color="#38bdf8" />
+                                <h1 style={{ fontSize: '2.2rem', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
+                                    Diagnostic Test History
                                 </h1>
-                                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                                        <Mail size={16} /> {user?.email}
-                                    </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                                        <Phone size={16} /> +91 {user?.phone || '9999999999'}
-                                    </span>
-                                </div>
+                            </div>
+                            <p style={{ margin: 0, opacity: 0.9, fontSize: '0.95rem' }}>
+                                Track home sample collections, download accredited PDF reports, and view past test receipts.
+                            </p>
+                        </div>
+
+                        {/* Customer Badge */}
+                        <div style={{ background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', padding: '0.8rem 1.4rem', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', opacity: 0.8, letterSpacing: '0.5px' }}>
+                                Customer ID
+                            </div>
+                            <div style={{ fontFamily: 'monospace', fontWeight: '900', fontSize: '1.2rem', color: '#7dd3fc', letterSpacing: '1px' }}>
+                                {user?.customerId || 'DL-XXXXXXXX'}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Customer ID + Stats Card */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', background: 'white', padding: '1.5rem 2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
-                                <div style={{ padding: '0.6rem', background: '#f0f9ff', borderRadius: '10px', color: '#0369a1' }}>
-                                    <IdCard size={22} />
+                {/* Stats Counter Bar */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+                    {[
+                        { label: 'Total Bookings', value: bookings.length, color: '#0369a1', bg: '#e0f2fe', icon: History },
+                        { label: 'Reports Ready', value: bookings.filter(b => b.status === 'Report Uploaded').length, color: '#15803d', bg: '#dcfce7', icon: CheckCircle2 },
+                        { label: 'In Progress / Pending', value: bookings.filter(b => ['Pending', 'Confirmed', 'Out for Collection', 'Sample Collected', 'Sample Processing'].includes(b.status)).length, color: '#b45309', bg: '#fef3c7', icon: Clock },
+                        { label: 'Cancelled', value: bookings.filter(b => b.status === 'Cancelled').length, color: '#b91c1c', bg: '#fee2e2', icon: XCircle }
+                    ].map(stat => {
+                        const Icon = stat.icon;
+                        return (
+                            <div key={stat.label} style={{ background: 'white', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ background: stat.bg, color: stat.color, padding: '0.75rem', borderRadius: '14px', display: 'flex' }}>
+                                    <Icon size={22} />
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Customer ID</div>
-                                    <div style={{ fontSize: '1.3rem', fontWeight: '900', color: 'var(--primary)', letterSpacing: '1px' }}>
-                                        {user?.customerId || 'DL-XXXXXXXX'}
-                                    </div>
+                                    <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', lineHeight: '1.2' }}>{stat.value}</div>
+                                    <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#64748b' }}>{stat.label}</div>
                                 </div>
                             </div>
-                            
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', flex: 1, justifyContent: 'space-around' }}>
-                                {[
-                                    { label: 'Total Bookings', value: bookings.length, color: '#0a1e46' },
-                                    { label: 'Reports Ready', value: bookings.filter(b => b.status === 'Report Uploaded').length, color: '#166534' },
-                                    { label: 'Pending', value: bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed').length, color: '#92400e' },
-                                ].map(stat => (
-                                    <div key={stat.label} style={{ textAlign: 'center', minWidth: '100px' }}>
-                                        <div style={{ fontSize: '2rem', fontWeight: '900', color: stat.color }}>{stat.value}</div>
-                                        <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>{stat.label}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        );
+                    })}
+                </div>
 
-                {/* Filters */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                {/* Search & Multi-Filters */}
+                <div style={{ background: 'white', padding: '1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {/* Search Input */}
+                    <div style={{ position: 'relative', flex: '1 1 280px' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                         <input
                             type="text"
-                            placeholder="Search by test name, lab, or booking ID..."
+                            placeholder="Search test name, lab, or booking ID..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            style={{ width: '100%', padding: '0.85rem 1rem 0.85rem 3rem', borderRadius: '12px', border: '1px solid var(--border)', fontWeight: '600', outline: 'none', background: 'white', fontSize: '0.95rem' }}
+                            style={{ width: '100%', padding: '0.75rem 1rem 0.75rem 2.75rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontWeight: '600', outline: 'none', fontSize: '0.9rem' }}
                         />
                     </div>
-                    <div style={{ position: 'relative' }}>
-                        <Filter size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+
+                    {/* Status Filter */}
+                    <div style={{ position: 'relative', flex: '1 1 180px' }}>
+                        <Filter size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                         <select
                             value={statusFilter}
                             onChange={e => setStatusFilter(e.target.value)}
-                            style={{ padding: '0.85rem 2.5rem 0.85rem 2.5rem', borderRadius: '12px', border: '1px solid var(--border)', fontWeight: '700', outline: 'none', background: 'white', appearance: 'none', cursor: 'pointer', fontSize: '0.95rem', color: 'var(--text-main)' }}
+                            style={{ width: '100%', padding: '0.75rem 2.2rem 0.75rem 2.4rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontWeight: '700', outline: 'none', appearance: 'none', cursor: 'pointer', fontSize: '0.88rem', color: '#334155', background: 'white' }}
                         >
-                            <option value="All">All Status</option>
+                            <option value="All">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Confirmed">Confirmed</option>
+                            <option value="Out for Collection">Out for Collection</option>
                             <option value="Sample Collected">Sample Collected</option>
                             <option value="Sample Processing">Sample Processing</option>
                             <option value="Report Uploaded">Report Uploaded</option>
                             <option value="Cancelled">Cancelled</option>
                         </select>
-                        <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                        <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
                     </div>
+
+                    {/* Family Member Filter */}
+                    {user?.familyMembers && user.familyMembers.length > 0 && (
+                        <div style={{ position: 'relative', flex: '1 1 180px' }}>
+                            <Users size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                            <select
+                                value={familyFilter}
+                                onChange={e => setFamilyFilter(e.target.value)}
+                                style={{ width: '100%', padding: '0.75rem 2.2rem 0.75rem 2.4rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontWeight: '700', outline: 'none', appearance: 'none', cursor: 'pointer', fontSize: '0.88rem', color: '#334155', background: 'white' }}
+                            >
+                                <option value="All">All Family Members</option>
+                                <option value="Self">Self ({user.name})</option>
+                                {user.familyMembers.map((m, idx) => (
+                                    <option key={idx} value={m.name}>{m.relation}: {m.name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                        </div>
+                    )}
                 </div>
 
-                {/* Bookings List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Bookings Card List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)', background: 'white', borderRadius: '20px', border: '1px solid var(--border)' }}>
-                            <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
-                            Loading your history...
+                        <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ width: '36px', height: '36px', border: '4px solid #e2e8f0', borderTopColor: '#0284c7', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
+                            Loading booking records...
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '5rem', background: 'white', borderRadius: '20px', border: '1px solid var(--border)' }}>
-                            <History size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
-                            <div style={{ fontWeight: '700', fontSize: '1.2rem', color: 'var(--text-muted)' }}>No bookings found</div>
-                            <div style={{ color: 'var(--text-light)', marginTop: '0.5rem' }}>Try adjusting your search or filter.</div>
+                        <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                            <History size={44} color="#94a3b8" style={{ marginBottom: '0.75rem' }} />
+                            <h3 style={{ margin: '0 0 0.4rem 0', color: '#334155', fontWeight: '800' }}>No Bookings Found</h3>
+                            <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Try searching with a different term or status filter.</p>
                         </div>
                     ) : (
                         filtered.map((b, idx) => {
                             const cfg = statusConfig[b.status] || statusConfig['Pending'];
+                            const isCompleted = b.status === 'Report Uploaded' || !!b.reportUrl;
+                            const isPendingOrConfirmed = ['Pending', 'Confirmed'].includes(b.status);
+
                             return (
-                                <div key={b._id} style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border)', padding: '1.25rem 1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-                                    {/* Card Top Row: Booking ID + Status */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                                <div key={b._id} style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 18px rgba(0,0,0,0.03)' }}>
+                                    
+                                    {/* Card Header */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-light)' }}>#{idx + 1}</span>
-                                            <span style={{ fontFamily: 'monospace', fontWeight: '900', color: 'var(--primary)', fontSize: '1rem', letterSpacing: '1px' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#94a3b8' }}>#{idx + 1}</span>
+                                            <span style={{ fontFamily: 'monospace', fontWeight: '900', color: '#0369a1', fontSize: '1.1rem', letterSpacing: '1px' }}>
                                                 DH-{b._id.slice(-8).toUpperCase()}
                                             </span>
+                                            <span style={{ background: '#f1f5f9', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
+                                                👤 Patient: {b.patientName || user?.name}
+                                            </span>
                                         </div>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 1rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                                        
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 1.1rem', borderRadius: '100px', background: cfg.bg, color: cfg.color, fontWeight: '800', fontSize: '0.85rem' }}>
                                             {cfg.icon} {b.status}
                                         </span>
                                     </div>
 
-                                    {/* Divider */}
-                                    <div style={{ borderTop: '1px solid var(--border)', marginBottom: '1rem' }} />
-
-                                    {/* Card Info Grid */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                                        {/* Date */}
+                                    {/* Info Grid */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.25rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', marginBottom: '1.25rem' }}>
                                         <div>
-                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Date & Time</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '800', color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                                <CalendarDays size={14} style={{ color: 'var(--text-muted)' }} />
+                                            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Date & Slot</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '800', color: '#0f172a', fontSize: '0.9rem' }}>
+                                                <CalendarDays size={15} color="#0284c7" />
                                                 {b.appointmentDate ? new Date(b.appointmentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                             </div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: '600', paddingLeft: '1.2rem' }}>
-                                                {b.appointmentTime || ''}
+                                            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600', paddingLeft: '1.3rem', marginTop: '0.1rem' }}>
+                                                {b.appointmentTime || 'Morning Slot'}
                                             </div>
                                         </div>
 
-                                        {/* Test */}
                                         <div>
-                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Test(s)</div>
-                                            <div style={{ fontWeight: '800', color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                                {b.testDetails?.[0]?.testName || 'N/A'}
+                                            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Test Package</div>
+                                            <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.95rem' }}>
+                                                {b.testDetails?.[0]?.testName || 'Diagnostic Test'}
                                             </div>
                                             {b.testDetails?.length > 1 && (
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '0.1rem' }}>
-                                                    +{b.testDetails.length - 1} more
+                                                <div style={{ fontSize: '0.8rem', color: '#0284c7', fontWeight: '700', marginTop: '0.1rem' }}>
+                                                    +{b.testDetails.length - 1} more tests included
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* Lab */}
                                         <div>
-                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Lab</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '700', color: 'var(--text-main)', fontSize: '0.9rem' }}>
-                                                <Building2 size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                                                {b.lab?.name || 'DAA Accredited Lab'}
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '800', marginTop: '0.1rem', paddingLeft: '1.2rem' }}>
-                                                Lab ID: {b.lab?.registrationNumber || (b.lab?._id ? `LAB-${String(b.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
+                                            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Lab Partner</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '800', color: '#0f172a', fontSize: '0.9rem' }}>
+                                                <Building2 size={15} color="#0284c7" />
+                                                {b.lab?.name || 'NABL Accredited Lab'}
                                             </div>
                                         </div>
 
-                                        {/* Amount */}
                                         <div>
-                                            <div style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Amount</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: '900', color: '#166534', fontSize: '1.1rem' }}>
-                                                <BadgeIndianRupee size={16} />
-                                                {b.totalAmount?.toLocaleString('en-IN')}
+                                            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Total Bill</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: '900', color: '#15803d', fontSize: '1.2rem' }}>
+                                                ₹{b.totalAmount?.toLocaleString('en-IN')}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>
+                                                {b.paymentStatus || 'Paid'}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Divider */}
-                                    <div style={{ borderTop: '1px solid var(--border)', marginBottom: '1rem' }} />
+                                    {/* Phlebotomist / Sample Collector Info Card (If dispatched) */}
+                                    {['Out for Collection', 'Sample Collected', 'Sample Processing'].includes(b.status) && (
+                                        <div style={{ background: '#f0f9ff', padding: '1rem 1.25rem', borderRadius: '14px', border: '1px solid #bae6fd', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ background: '#0284c7', color: 'white', padding: '0.6rem', borderRadius: '10px' }}>
+                                                    <FlaskConical size={20} />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#0369a1', textTransform: 'uppercase' }}>Sample Collector Assigned</div>
+                                                    <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0c4a6e' }}>Rajesh Sharma (Phlebotomist ID: PH-902)</div>
+                                                </div>
+                                            </div>
+                                            <a href="tel:9876543210" style={{ background: '#0284c7', color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <PhoneCall size={14} /> Call Collector
+                                            </a>
+                                        </div>
+                                    )}
 
-                                    {/* Action Buttons */}
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <button
-                                            onClick={() => setSelectedBooking(b)}
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#f1f5f9', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', flex: 1, justifyContent: 'center' }}
-                                        >
-                                            <FileText size={14} /> Receipt
-                                        </button>
-
-                                        <button
-                                            onClick={() => setTrackingBooking(b)}
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', flex: 1, justifyContent: 'center' }}
-                                        >
-                                            <Clock size={14} /> Track Process
-                                        </button>
-
-                                        {(b.status === 'Report Uploaded' || b.reportUrl) && (
+                                    {/* Action Buttons Toolbar */}
+                                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                                        {/* View PDF Report */}
+                                        {isCompleted && (
                                             <a
                                                 href={getReportUrl(b.reportUrl)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: '#166534', color: 'white', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none', flex: 1, justifyContent: 'center' }}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.2rem', background: '#15803d', color: 'white', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}
                                             >
-                                                <Download size={14} /> View Report
+                                                <Download size={15} /> Download PDF Report
                                             </a>
                                         )}
+
+                                        {/* Share on WhatsApp */}
+                                        <button
+                                            onClick={() => handleShareWhatsApp(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#25d366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                            title="Share report via WhatsApp"
+                                        >
+                                            <Share2 size={15} /> Share
+                                        </button>
+
+                                        {/* Receipt */}
+                                        <button
+                                            onClick={() => setSelectedBooking(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                        >
+                                            <FileText size={15} /> Receipt
+                                        </button>
+
+                                        {/* Track Process */}
+                                        <button
+                                            onClick={() => setTrackingBooking(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                        >
+                                            <Clock size={15} /> Track Process
+                                        </button>
+
+                                        {/* Re-Book Test */}
+                                        <button
+                                            onClick={() => handleReBook(b)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#f8fafc', color: '#0284c7', border: '1px solid #7dd3fc', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                        >
+                                            <RotateCcw size={15} /> Re-Book Test
+                                        </button>
+
+                                        {/* Cancel Booking (Only if pending or confirmed) */}
+                                        {isPendingOrConfirmed && (
+                                            <button
+                                                onClick={() => handleCancelBooking(b._id)}
+                                                disabled={cancellingId === b._id}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                            >
+                                                <XCircle size={15} /> Cancel Order
+                                            </button>
+                                        )}
+
+                                        {/* Need Help Support Link */}
+                                        <button
+                                            onClick={() => navigate('/support')}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', marginLeft: 'auto' }}
+                                        >
+                                            <HelpCircle size={15} /> Need Help?
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -289,102 +459,100 @@ const BookingHistory = () => {
                     )}
                 </div>
 
-
-                {/* Count footer */}
+                {/* Footer Count */}
                 {!loading && filtered.length > 0 && (
-                    <div style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-muted)', fontWeight: '700', fontSize: '0.9rem' }}>
-                        Showing {filtered.length} of {bookings.length} booking{bookings.length !== 1 ? 's' : ''}
+                    <div style={{ textAlign: 'center', marginTop: '2rem', color: '#64748b', fontWeight: '600', fontSize: '0.9rem' }}>
+                        Showing {filtered.length} of {bookings.length} total test records
                     </div>
                 )}
             </div>
 
-            
-            
+            {/* Tax Receipt Modal */}
             {selectedBooking && (
                 <ReceiptModal booking={selectedBooking} user={user} onClose={() => setSelectedBooking(null)} />
             )}
 
-            {/* TRACK PROCESS MODAL */}
+            {/* LIVE TRACKING MODAL */}
             {trackingBooking && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyCenter: 'center', zIndex: 999, padding: '1rem' }}>
-                    <div className="animate-scale-up" style={{ background: 'white', borderRadius: '24px', width: '560px', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', position: 'relative' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }}>
+                    <div style={{ background: 'white', borderRadius: '24px', width: '560px', padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
                         <button
                             onClick={() => setTrackingBooking(null)}
-                            style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
+                            style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
                         >
                             ✕
                         </button>
                         
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#e0f2fe', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <FlaskConical size={22} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.5rem' }}>
+                            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <FlaskConical size={24} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
-                                    Diagnostic Live Tracking
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                                    Live Diagnostic Progress
                                 </h3>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>
-                                    Booking ID: DH-{trackingBooking._id.slice(-8).toUpperCase()} | Lab ID: {trackingBooking.lab?.registrationNumber || (trackingBooking.lab?._id ? `LAB-${String(trackingBooking.lab._id).slice(-6).toUpperCase()}` : 'LAB-DAA-9810')}
+                                <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>
+                                    Booking ID: DH-{trackingBooking._id.slice(-8).toUpperCase()}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Interactive Pin-to-Pin Steps */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', margin: '1.5rem 0' }}>
+                        {/* Interactive Steps */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', margin: '1.5rem 0' }}>
                             {[
                                 { 
-                                    title: '1. Booked Test', 
-                                    desc: 'Diagnostic test booked & appointment confirmed with lab partner', 
+                                    title: '1. Appointment Booked', 
+                                    desc: 'Diagnostic order registered & confirmed with lab partner', 
                                     isDone: true 
                                 },
                                 { 
-                                    title: '2. Take to Collect Sample', 
-                                    desc: 'Certified phlebotomist dispatched for doorstep/at-center collection', 
+                                    title: '2. Phlebotomist Dispatched', 
+                                    desc: 'Certified collector assigned for doorstep sample collection', 
+                                    isDone: ['Out for Collection', 'Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
+                                },
+                                { 
+                                    title: '3. Blood Sample Collected', 
+                                    desc: 'Specimen collected safely in barcoded tube', 
                                     isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
                                 },
                                 { 
-                                    title: '3. Sample Collected', 
-                                    desc: 'Specimen successfully collected in temperature-controlled tube', 
-                                    isDone: ['Sample Collected', 'Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
-                                },
-                                { 
-                                    title: '4. Retrieved to Lab Partner', 
-                                    desc: 'Specimen safely received at accredited pathology lab center', 
+                                    title: '4. Received at Lab Center', 
+                                    desc: 'Specimen delivered to NABL pathology lab', 
                                     isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) 
                                 },
                                 { 
-                                    title: trackingBooking.status === 'Cancelled' ? '5. Case Void / Cancelled' : '5. Processing & Analysis', 
-                                    desc: trackingBooking.status === 'Cancelled' ? 'Diagnostic test order was voided' : 'Specimen under automated analyzer testing in laboratory', 
+                                    title: trackingBooking.status === 'Cancelled' ? '5. Test Order Cancelled' : '5. Automated Analyzer Testing', 
+                                    desc: trackingBooking.status === 'Cancelled' ? 'Order voided by user/lab' : 'Lab pathologists processing blood chemistry tests', 
                                     isDone: ['Sample Processing', 'Report Uploaded'].includes(trackingBooking.status) || trackingBooking.status === 'Cancelled',
                                     isVoid: trackingBooking.status === 'Cancelled'
                                 },
                                 { 
-                                    title: '6. Reports Done', 
-                                    desc: 'Pathologist-verified digital PDF report generated & ready', 
+                                    title: '6. Accredited PDF Report Ready', 
+                                    desc: 'Verified digital PDF report signed off & ready to download', 
                                     isDone: trackingBooking.status === 'Report Uploaded' 
                                 }
                             ].map((step, idx) => (
                                 <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                                     <div style={{ 
-                                        width: '28px', 
-                                        height: '28px', 
+                                        width: '30px', 
+                                        height: '30px', 
                                         borderRadius: '50%', 
-                                        background: step.isVoid ? '#991b1b' : (step.isDone ? '#166534' : '#f1f5f9'), 
+                                        background: step.isVoid ? '#ef4444' : (step.isDone ? '#166534' : '#f1f5f9'), 
                                         color: (step.isDone || step.isVoid) ? 'white' : '#94a3b8', 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         justifyContent: 'center', 
-                                        fontWeight: 'bold', 
+                                        fontWeight: '800', 
                                         fontSize: '0.85rem', 
                                         flexShrink: 0 
                                     }}>
                                         {step.isVoid ? '✕' : (step.isDone ? '✓' : idx + 1)}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.95rem', fontWeight: '800', color: step.isVoid ? '#991b1b' : (step.isDone ? '#0f172a' : '#94a3b8') }}>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: '800', color: step.isVoid ? '#ef4444' : (step.isDone ? '#0f172a' : '#94a3b8') }}>
                                             {step.title}
                                         </div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>
                                             {step.desc}
                                         </div>
                                     </div>
@@ -410,5 +578,3 @@ const BookingHistory = () => {
 };
 
 export default BookingHistory;
-
-

@@ -120,24 +120,25 @@ const SearchResults = () => {
                         <ChevronLeft size={20} /> Back to Health Center
                     </Link>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '2rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <h1 style={{ fontSize: '3.2rem', marginBottom: '0.75rem', lineHeight: '1.2' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
+                        <div style={{ flex: '1 1 300px' }}>
+                            <h1 style={{ fontSize: 'clamp(1.8rem, 6vw, 3.2rem)', marginBottom: '0.75rem', lineHeight: '1.15' }}>
                                 {query ? (<span>Test Portfolios for <span className="text-gradient">"{query}"</span></span>) : "Diagnostic Portfolios"}
                             </h1>
-                            <p style={{ color: 'var(--text-light)', fontWeight: '700', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <TrendingUp size={18} /> Found {tests.length} accurate result matching your profile
+                            <p style={{ color: 'var(--text-light)', fontWeight: '700', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <TrendingUp size={18} style={{ flexShrink: 0 }} /> 
+                                <span>Found {tests.length} accurate result matching your profile</span>
                             </p>
                         </div>
 
                         {!loading && tests.length > 0 && (
-                            <div className="glass-card" style={{ padding: '1.2rem 1.8rem', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid hsla(var(--primary-hsl), 0.1)', background: 'white' }}>
-                                <div style={{ width: '48px', height: '48px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Navigation size={22} />
+                            <div className="glass-card" style={{ flex: '1 1 250px', maxWidth: '350px', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid hsla(var(--primary-hsl), 0.1)', background: 'white' }}>
+                                <div style={{ width: '42px', height: '42px', flexShrink: 0, background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Navigation size={20} />
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>DAA AI Optimizer</div>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-main)' }}>Prioritizing nearest labs</div>
+                                    <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>DAA AI Optimizer</div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)' }}>Prioritizing nearest labs</div>
                                 </div>
                             </div>
                         )}
@@ -145,7 +146,7 @@ const SearchResults = () => {
 
                     {/* NEW: Category Tier Filters for consistent discovery experience */}
                     {!loading && tests.length > 0 && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '3rem', flexWrap: 'wrap' }}>
+                        <div className="filter-chips-container" style={{ marginTop: '3rem' }}>
                              {['All', 'Premium', 'Scalable', 'Standard'].map(filter => {
                                 const count = filter === 'All' ? tests.length : tests.filter(test => (test.lab?.category || '').toLowerCase() === filter.toLowerCase()).length;
                                 
@@ -153,7 +154,7 @@ const SearchResults = () => {
                                     <button
                                         key={filter}
                                         onClick={() => setActiveFilter(filter)}
-                                        className={`btn ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
+                                        className={`btn filter-chip ${activeFilter === filter ? (filter === 'Premium' ? 'btn-gold' : filter === 'Scalable' ? 'btn-silver' : filter === 'Standard' ? 'btn-bronze' : 'btn-primary') : 'btn-outline'}`}
                                         style={{
                                             padding: '0.6rem 1.5rem',
                                             borderRadius: '100px',
@@ -197,7 +198,7 @@ const SearchResults = () => {
                     </div>
 
                 ) : (
-                    <div style={{ display: 'grid', gap: '2rem' }}>
+                    <div className="two-col-mobile-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 450px), 1fr))', gap: '1.5rem' }}>
                         {tests.length === 0 ? (
                             <div className="glass-card" style={{ padding: '6rem 4rem', textAlign: 'center', background: 'white' }}>
                                 <div style={{ width: '80px', height: '80px', background: 'var(--border)', color: 'var(--text-light)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
@@ -211,7 +212,7 @@ const SearchResults = () => {
                             filteredTests.map((test, index) => {
                                 const theme = getIconColor(test.testName);
                                 return (
-                                    <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack" style={{
+                                    <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack test-card-compact" style={{
                                         display: 'flex',
                                         flexWrap: 'wrap',
                                         gap: 'clamp(1rem, 2vw, 2rem)',
@@ -227,7 +228,7 @@ const SearchResults = () => {
                                         overflow: 'hidden'
                                     }}>
                                         {/* Accuracy Ribbon */}
-                                        <div style={{ flex: 1, minWidth: '240px' }}>
+                                        <div style={{ flex: 1, minWidth: '0' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
                                                 <div style={{
                                                     width: 'clamp(44px, 8vw, 64px)',
@@ -278,7 +279,7 @@ const SearchResults = () => {
                                                 </div>
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '1rem', marginLeft: '5.2rem' }}>
+                                            <div className="test-card-details" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '1rem' }}>
                                                 <div 
                                                     onClick={() => navigate(`/lab/${test.lab._id}`)}
                                                     style={{ 

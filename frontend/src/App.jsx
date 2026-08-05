@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import LabDashboard from './pages/LabDashboard';
 import UserProfile from './pages/UserProfile';
+import AdminProfile from './pages/AdminProfile';
 import BookingHistory from './pages/BookingHistory';
 import Labs from './pages/Labs';
 import LabDetails from './pages/LabDetails';
@@ -78,6 +79,13 @@ const MainLayout = () => {
         <Route path="/patient/profile" element={
           <ProtectedRoute>
             <UserProfile />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Profile Route - accessible by finance manager and admin */}
+        <Route path="/admin/profile" element={
+          <ProtectedRoute fallback="/adminlogin">
+            <AdminProfile />
           </ProtectedRoute>
         } />
 

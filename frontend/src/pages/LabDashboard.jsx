@@ -56,6 +56,8 @@ import {
     Cell
 } from 'recharts';
 import io from 'socket.io-client';
+import '../styles/DashboardShared.css';
+import { syncTelemetryToAI } from '../utils/telemetry';
 
 const LabDashboard = () => {
     const { user, updateUser } = useContext(AuthContext);
@@ -273,6 +275,13 @@ const LabDashboard = () => {
     const updateStatus = async (bookingId, newStatus) => {
         try {
             await axios.put(`${API_BASE_URL}/api/bookings/${bookingId}`, { status: newStatus }, getHeaders());
+            
+            syncTelemetryToAI(
+              "Lab Order Status Updated",
+              `Lab technician updated order ${bookingId} to status: ${newStatus}`,
+              "lab_technician"
+            );
+            
             setOrders(prev => prev.map(order => order._id === bookingId ? { ...order, status: newStatus } : order));
         } catch (err) {
             console.error(err);
@@ -296,6 +305,13 @@ const LabDashboard = () => {
                 } 
             });
             setOrders(prev => prev.map(order => order._id === bookingId ? { ...order, status: 'Report Uploaded', reportUrl: res.data.url } : order));
+            
+            syncTelemetryToAI(
+              "Lab Report Verified & Uploaded",
+              `Lab technician uploaded verified report for order ${bookingId}. Report URL: ${res.data.url}`,
+              "lab_technician"
+            );
+
             alert("Accredited Report transmitted successfully!");
             setFiles(prev => ({ ...prev, [bookingId]: null }));
         } catch (err) {

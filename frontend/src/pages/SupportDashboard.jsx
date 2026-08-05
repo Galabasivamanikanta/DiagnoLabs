@@ -5,8 +5,9 @@ import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
     LifeBuoy, MessageSquare, Clock, AlertOctagon, CheckCircle2, 
-    Send, ShieldAlert, BookOpen, ArrowRightLeft, User, Search, Filter, LogOut, ChevronRight
+    Send, ShieldAlert, BookOpen, ArrowRightLeft, User, Search, Filter, LogOut, ChevronRight, X, Menu
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
 
 const SupportDashboard = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const SupportDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('queue'); // 'queue', 'my-tickets', 'knowledge', 'sla'
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [showEscalateModal, setShowEscalateModal] = useState(false);
   const [escalateDepartment, setEscalateDepartment] = useState('Accounts / Finance');
@@ -77,15 +79,27 @@ const SupportDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <LifeBuoy size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <LifeBuoy size={24} color="#003366" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Customer Support Helpdesk</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Customer Support Helpdesk</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -127,17 +141,22 @@ const SupportDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Header bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Omnichannel Customer Support Hub</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Triage tickets across Patients, Lab Partners, and Internal Staff with SLA tracking.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Omnichannel Customer Support Hub</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Triage tickets across Patients, Lab Partners, and Internal Staff with SLA tracking.</p>
+            </div>
           </div>
         </div>
 
         {/* Top KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Open Tickets Queue</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{tickets.filter(t => t.status === 'Open').length}</div>
@@ -157,7 +176,7 @@ const SupportDashboard = () => {
         </div>
 
         {/* Zendesk-style Split View Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
           {/* Left Column: Ticket List */}
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Ticket Stream Queue</h3>

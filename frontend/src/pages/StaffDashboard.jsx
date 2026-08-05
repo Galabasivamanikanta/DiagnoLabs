@@ -6,8 +6,9 @@ import { API_BASE_URL } from '../config';
 import { 
     LayoutDashboard, ClipboardList, CheckSquare, LifeBuoy, 
     UserPlus, Search, Megaphone, Bell, Plus, Clock, 
-    AlertCircle, CheckCircle2, ShieldAlert, LogOut, FileText, ChevronRight, User
+    AlertCircle, CheckCircle2, ShieldAlert, LogOut, FileText, ChevronRight, User, Menu, X
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
 
 export default function StaffDashboard() {
     const { user, logout } = useContext(AuthContext);
@@ -17,6 +18,7 @@ export default function StaffDashboard() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showWalkinModal, setShowWalkinModal] = useState(false);
     const [showTicketModal, setShowTicketModal] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Mock Data for General Staff Dashboard
     const [tasks, setTasks] = useState([
@@ -76,12 +78,24 @@ export default function StaffDashboard() {
     );
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="dashboard-layout">
+            {/* Mobile Overlay */}
+            <div 
+                className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+            ></div>
+
             {/* Sidebar */}
-            <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-                    <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
-                    <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>General Operations</span>
+            <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+                <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>General Operations</span>
+                    </div>
+                    {/* Close button for mobile sidebar */}
+                    <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+                        <X size={24} color="#64748b" />
+                    </div>
                 </div>
 
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -123,12 +137,17 @@ export default function StaffDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+            <main className="dashboard-main">
                 {/* Header bar */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-                    <div>
-                        <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>General Operations Executive Dashboard</h1>
-                        <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, {user?.name}. Here is your operational task list for today.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+                            <Menu size={20} color="#0f172a" />
+                        </button>
+                        <div>
+                            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>General Operations Executive Dashboard</h1>
+                            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, {user?.name}. Here is your operational task list for today.</p>
+                        </div>
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button onClick={() => setShowWalkinModal(true)} style={{ padding: '10px 18px', background: '#003366', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -143,7 +162,7 @@ export default function StaffDashboard() {
                 {activeTab === 'dashboard' && (
                     <>
                         {/* Top KPIs */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+                        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
                                 <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>My Assigned Tasks</div>
                                 <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{tasks.filter(t => t.status !== 'Completed').length}</div>
@@ -163,7 +182,7 @@ export default function StaffDashboard() {
                         </div>
 
                         {/* Announcements & Task Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+                        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
                             {/* Task List Widget */}
                             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -227,7 +246,8 @@ export default function StaffDashboard() {
                                 </div>
                             </div>
 
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                            <div className="dashboard-table-container">
+                            <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
                                 <thead>
                                     <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                                         <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient ID</th>
@@ -253,6 +273,7 @@ export default function StaffDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </>
                 )}

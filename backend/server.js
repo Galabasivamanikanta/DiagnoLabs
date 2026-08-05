@@ -62,8 +62,23 @@ app.use(globalLimiter);
 
 app.use(express.json({ limit: '10mb' }));
 
-// NoSQL Injection Protection
-app.use(mongoSanitize());
+// NoSQL Injection Protection (Safe for Express read-only req.query getters)
+app.use((req, res, next) => {
+    const sanitize = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        for (const key of Object.keys(obj)) {
+            if (key.startsWith('$') || key.includes('.')) {
+                delete obj[key];
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                sanitize(obj[key]);
+            }
+        }
+    };
+    if (req.body) sanitize(req.body);
+    if (req.params) sanitize(req.params);
+    if (req.query) sanitize(req.query);
+    next();
+});
 
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url}`);

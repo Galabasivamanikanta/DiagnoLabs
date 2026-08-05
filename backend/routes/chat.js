@@ -490,4 +490,62 @@ router.post('/report-issue', optionalAuth, async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────────────────────
+// POST /api/chat/sync-event  — Real-Time Workspace Event Telemetry Syncer
+// ─────────────────────────────────────────────────────────────
+router.post('/sync-event', optionalAuth, async (req, res) => {
+    try {
+        const { eventType, details, role } = req.body;
+        const AIChatMemory = require('../models/AIChatMemory');
+
+        if (eventType && details) {
+            const words = `${eventType} ${details}`.toLowerCase().split(' ').filter(w => w.length > 3);
+            await AIChatMemory.create({
+                queryPattern: `Event: ${eventType}`,
+                learnedResponse: `Real-Time Action Logged [Role: ${role || 'System'}]: ${details}`,
+                category: role || 'Telemetry',
+                keywords: words,
+                confidenceScore: 3.0,
+                verifiedByDoctor: role === 'doctor' || role === 'quality_auditor'
+            });
+            console.log(`[AI-TELEMETRY-SYNC] Self-Learned Event [${eventType}] from Workspace [${role}]!`);
+        }
+
+        res.json({ success: true, message: "Workspace event telemetry successfully learned into AI Engine!" });
+    } catch (err) {
+        console.error("[AI-TELEMETRY-ERROR]", err.message);
+        res.status(500).json({ error: "Telemetry sync error", details: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/chat/rate-response — RLHF Chat Feedback Reinforcement
+// ─────────────────────────────────────────────────────────────
+router.post('/rate-response', optionalAuth, async (req, res) => {
+    try {
+        const { messageId, isPositive, feedbackText, promptText } = req.body;
+        const AIChatMemory = require('../models/AIChatMemory');
+
+        if (promptText) {
+            const memory = await AIChatMemory.findOne({ queryPattern: promptText });
+            if (memory) {
+                if (isPositive) {
+                    memory.confidenceScore += 1.0;
+                } else {
+                    memory.confidenceScore = Math.max(0.1, memory.confidenceScore - 0.5);
+                    if (feedbackText) {
+                        memory.learnedResponse = `[Correction Applied]: ${feedbackText}`;
+                    }
+                }
+                await memory.save();
+            }
+        }
+
+        console.log(`[RLHF-FEEDBACK] Chat Message ${messageId} Rated: ${isPositive ? '👍 POSITIVE' : '👎 NEGATIVE'}`);
+        res.json({ success: true, message: isPositive ? "Thank you! AI engine reinforced this response (+1.0 Confidence)." : "Thank you! Feedback recorded for AI retraining." });
+    } catch (err) {
+        res.status(500).json({ error: "Feedback error", details: err.message });
+    }
+});
+
 module.exports = router;

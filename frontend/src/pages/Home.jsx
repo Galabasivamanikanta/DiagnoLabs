@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     MapPin,
@@ -29,13 +29,7 @@ const Home = () => {
     const [locLoading, setLocLoading] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Automatically request GPS on app load
-        detectLocation();
-        // eslint-disable-next-line
-    }, []);
-
-    const detectLocation = () => {
+    const detectLocation = useCallback(() => {
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
             return;
@@ -49,7 +43,6 @@ const Home = () => {
                 setCoords({ lat, lng });
                 
                 try {
-                    // Reverse geocode to get city name for visual feedback
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                     const data = await res.json();
                     const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || '';
@@ -65,10 +58,13 @@ const Home = () => {
             (error) => {
                 console.error(error);
                 setLocLoading(false);
-                alert("Geo-sync failed. Please check your browser location permissions.");
             }
         );
-    };
+    }, []);
+
+    useEffect(() => {
+        detectLocation();
+    }, [detectLocation]);
 
     const handleSearch = () => {
         // Redirect to Labs view if exploring without a specific test
@@ -104,7 +100,7 @@ const Home = () => {
         <div style={{ background: 'var(--background)', minHeight: '100vh', paddingBottom: '0' }}>
             {/* Ultra-Premium Hero Section */}
             <section style={{
-                padding: '14rem 0 12rem 0',
+                padding: 'clamp(7rem, 12vw, 11rem) 0 clamp(3rem, 6vw, 6rem) 0',
                 background: 'linear-gradient(to bottom, #f0f7ff 0%, #ffffff 100%)',
                 textAlign: 'center',
                 position: 'relative',
@@ -170,13 +166,30 @@ const Home = () => {
                                 <button
                                     onClick={detectLocation}
                                     disabled={locLoading}
-                                    className="btn btn-outline"
-                                    style={{ padding: '0.85rem', width: '54px', height: '54px', borderRadius: '16px', flexShrink: 0 }}
+                                    style={{ 
+                                        padding: '0', 
+                                        width: '54px', 
+                                        height: '54px', 
+                                        borderRadius: '50%', 
+                                        flexShrink: 0,
+                                        background: 'white',
+                                        border: coords ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        color: coords ? 'var(--primary)' : 'var(--text-muted)'
+                                    }}
+                                    onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; }}
+                                    title="My Location"
                                 >
                                     {locLoading ? (
-                                        <Activity size={24} style={{ animation: 'pulse 1s infinite' }} />
+                                        <Activity size={22} style={{ animation: 'pulse 1s infinite' }} />
                                     ) : (
-                                        <LocateFixed size={24} style={{ color: coords ? 'var(--success)' : 'var(--text-muted)' }} />
+                                        <LocateFixed size={22} style={{ color: 'inherit' }} />
                                     )}
                                 </button>
 

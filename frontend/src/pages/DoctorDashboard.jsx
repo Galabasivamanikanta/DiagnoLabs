@@ -5,8 +5,10 @@ import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import { 
     Stethoscope, FileText, AlertTriangle, MessageSquare, CheckCircle, 
-    Clock, Search, User, ShieldCheck, Send, AlertCircle, LogOut, ChevronRight, X
+    Clock, Search, User, ShieldCheck, Send, AlertCircle, LogOut, ChevronRight, X, Menu
 } from 'lucide-react';
+import '../styles/DashboardShared.css';
+import { syncTelemetryToAI } from '../utils/telemetry';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ const DoctorDashboard = () => {
   const [interpretationNote, setInterpretationNote] = useState('');
   const [classification, setClassification] = useState('Normal');
   const [docReply, setDocReply] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mock Data for Doctor Priority Queue
   const [reportsQueue, setReportsQueue] = useState([
@@ -44,6 +47,14 @@ const DoctorDashboard = () => {
 
   const submitReportReview = (e) => {
     e.preventDefault();
+    
+    // Telemetry Sync to AI for self-learning
+    syncTelemetryToAI(
+      "Medical Interpretation Submitted",
+      `Doctor diagnosed ${selectedReport.patient}'s report as [${classification}] with note: "${interpretationNote}"`,
+      "doctor"
+    );
+
     alert(`Medical Interpretation submitted for ${selectedReport.patient}! Classification: [${classification}]. Patient notified via email.`);
     setReportsQueue(prev => prev.map(r => r.id === selectedReport.id ? { ...r, status: classification, reviewed: true } : r));
     setSelectedReport(null);
@@ -51,6 +62,13 @@ const DoctorDashboard = () => {
   };
 
   const resolveChatEscalation = (id) => {
+    // Telemetry Sync to AI for self-learning
+    syncTelemetryToAI(
+      "AI Chat Escalation Resolved",
+      `Doctor provided manual medical guidance to resolve escalation #${id}. Reply: "${docReply}"`,
+      "doctor"
+    );
+
     alert(`Doctor response transmitted to patient. Chat Escalation [${id}] resolved.`);
     setChatEscalations(prev => prev.filter(c => c.id !== id));
     setSelectedBotChat(null);
@@ -58,15 +76,27 @@ const DoctorDashboard = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="dashboard-layout">
+      {/* Mobile Overlay */}
+      <div 
+        className={`dashboard-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 12px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Stethoscope size={24} color="#003366" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 12px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Stethoscope size={24} color="#003366" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#003366', margin: 0 }}>DiagnoLabs</h2>
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Physician Portal</span>
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Clinical Physician Portal</span>
+          {/* Close button for mobile sidebar */}
+          <div className="dashboard-header-mobile-toggle" style={{ border: 'none', padding: 0, margin: 0 }} onClick={() => setSidebarOpen(false)}>
+             <X size={24} color="#64748b" />
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -102,12 +132,17 @@ const DoctorDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="dashboard-main">
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Review Workspace</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Dr. Jenkins. Medical HIPAA Audit Logging is Active.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button className="dashboard-header-mobile-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} color="#0f172a" />
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '800', color: '#0f172a' }}>Clinical Review Workspace</h1>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>Welcome back, Dr. Jenkins. Medical HIPAA Audit Logging is Active.</p>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '100px', fontWeight: '800', fontSize: '0.8rem' }}>
             <ShieldCheck size={16} /> Patient Consent Enforcement Active
@@ -115,7 +150,7 @@ const DoctorDashboard = () => {
         </div>
 
         {/* Top KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Reports Pending Review</div>
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#003366', marginTop: '6px' }}>{reportsQueue.filter(r => !r.reviewed).length}</div>
@@ -138,17 +173,18 @@ const DoctorDashboard = () => {
         {activeTab === 'queue' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Priority Lab Report Review Queue (Urgency Sorted)</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Report ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Diagnostic Test</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Key Findings</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Urgency Level</th>
-                  <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
-                </tr>
-              </thead>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Report ID</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Patient Name</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Diagnostic Test</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Key Findings</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a', fontWeight: '800' }}>Urgency Level</th>
+                    <th style={{ padding: '12px', textAlign: 'center', color: '#0f172a', fontWeight: '800' }}>Action</th>
+                  </tr>
+                </thead>
               <tbody>
                 {reportsQueue.map(r => (
                   <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: r.status === 'CRITICAL' ? '#fff5f5' : 'white' }}>
@@ -175,6 +211,7 @@ const DoctorDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 
@@ -210,16 +247,17 @@ const DoctorDashboard = () => {
         {activeTab === 'patients' && (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Patient Directory (Consent Verified)</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Patient ID</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Name</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Consent Status</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Total Tests</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Last Consultation</th>
-                </tr>
-              </thead>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Patient ID</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Name</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Consent Status</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Total Tests</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: '#0f172a' }}>Last Consultation</th>
+                  </tr>
+                </thead>
               <tbody>
                 {patients.map(p => (
                   <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -232,6 +270,7 @@ const DoctorDashboard = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </main>
