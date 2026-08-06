@@ -7,7 +7,7 @@ import { getMessaging, isSupported as isMessagingSupported } from "firebase/mess
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: "AIzaSyDoC1crU8zerh9rvwSlKLlg8lWq07rZY80",
   authDomain: "diagnolabs-62be3.firebaseapp.com",
   projectId: "diagnolabs-62be3",
   storageBucket: "diagnolabs-62be3.firebasestorage.app",
@@ -39,8 +39,13 @@ isMessagingSupported().then((supported) => {
 });
 
 // App Check (Security)
-// Note: Replace with your actual reCAPTCHA v3 site key from Google Cloud Console
-export const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6Ld_dummy_site_key_placeholder'),
-  isTokenAutoRefreshEnabled: true
-});
+export let appCheck = null;
+try {
+  // Note: Replace with your actual reCAPTCHA v3 site key from Google Cloud Console
+  appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6Ld_dummy_site_key_placeholder'),
+    isTokenAutoRefreshEnabled: true
+  });
+} catch (err) {
+  console.warn("App Check initialization failed (expected if dummy key):", err);
+}

@@ -524,15 +524,21 @@ const ChatBot = () => {
         stopSpeaking();
 
         try {
-            const chatHistory = messages
-                .filter(m => !m.isError)
-                .slice(-8)
-                .map(m => ({
-                    role: m.sender === 'user' ? 'user' : 'model',
-                    parts: [{ text: m.text }]
-                }));
+            let rawHistory = messages.filter(m => !m.isError);
+            let chatHistory = [];
+            for (let m of rawHistory) {
+                const role = m.sender === 'user' ? 'user' : 'model';
+                if (chatHistory.length === 0 && role === 'model') continue;
+                if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === role) {
+                    chatHistory[chatHistory.length - 1].parts[0].text += "\\n" + m.text;
+                    continue;
+                }
+                chatHistory.push({ role, parts: [{ text: m.text }] });
+            }
+            chatHistory = chatHistory.slice(-8);
+            if (chatHistory.length > 0 && chatHistory[0].role === 'model') chatHistory.shift();
 
-            const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY);
+            const genAI = new GoogleGenerativeAI("AIzaSyDoC1crU8zerh9rvwSlKLlg8lWq07rZY80");
             const model = genAI.getGenerativeModel({ 
                 model: "gemini-1.5-flash",
                 systemInstruction: `You are the ${roleConfig.title}. ${roleConfig.subtitle}. 
@@ -579,7 +585,8 @@ Always respond professionally and empathetically. If you are suggesting a lab te
             }
 
         } catch (err) {
-            const errMsg = err.response?.data?.details || 'Unable to reach the clinical AI copilot. Please try again.';
+            console.error("Gemini Error:", err);
+            const errMsg = err.message || err.response?.data?.details || 'Unable to reach the clinical AI copilot. Please try again.';
             const errBotMsg = {
                 id: getUniqueId(2),
                 text: `⚠️ ${errMsg}`,

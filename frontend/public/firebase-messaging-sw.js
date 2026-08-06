@@ -9,7 +9,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Since it's public anyway, we will place the static config here.
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBfe9TyMLMgewjMy7XTGcCiM5BCbVIMHjA", 
+  apiKey: "AIzaSyDoC1crU8zerh9rvwSlKLlg8lWq07rZY80", 
   authDomain: "diagnolabs-62be3.firebaseapp.com",
   projectId: "diagnolabs-62be3",
   storageBucket: "diagnolabs-62be3.firebasestorage.app",
