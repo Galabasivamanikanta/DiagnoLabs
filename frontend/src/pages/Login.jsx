@@ -4,8 +4,6 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../config/firebase";
 import { User, Lock, Eye, EyeOff, ShieldCheck, Users, Sparkles, ChevronRight, Activity, Mail, Phone } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 
@@ -54,41 +52,26 @@ const Login = () => {
         setRegData({ ...regData, [e.target.name]: e.target.value });
     };
 
-    const setUpRecaptcha = () => {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response) => {
-                    // reCAPTCHA solved
-                }
-            });
-        }
-    };
-
     const handleSendOTP = async (e) => {
         if (e) e.preventDefault();
         try {
-            setUpRecaptcha();
-            const appVerifier = window.recaptchaVerifier;
-            const formattedPhone = regData.phone.startsWith('+') ? regData.phone : `+91${regData.phone}`;
+            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, { 
+                email: regData.email,
+                phone: regData.phone
+            });
             
-            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-            window.confirmationResult = confirmationResult;
-            
-            setOtpSent(true);
-            setTimer(60); 
-            if (!e) {
-                alert("A new OTP has been sent via Firebase!");
-            } else {
-                alert("OTP sent successfully via Firebase!");
+            if (res.status === 200) {
+                setOtpSent(true);
+                setTimer(60); 
+                if (!e) {
+                    alert("A new OTP has been sent to your email!");
+                } else {
+                    alert("OTP sent successfully to your email!");
+                }
             }
         } catch (err) {
             console.error(err);
-            alert("Failed to send OTP. See console for details.");
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.clear();
-                window.recaptchaVerifier = null;
-            }
+            alert(err.response?.data?.message || "Failed to send OTP. See console for details.");
         }
     };
 
@@ -96,15 +79,10 @@ const Login = () => {
         e.preventDefault();
         setVerifying(true);
         try {
-            const confirmationResult = window.confirmationResult;
-            const result = await confirmationResult.confirm(otp);
-            const user = result.user;
-            
-            const idToken = await user.getIdToken();
-            
-            const res = await axios.post(`${API_BASE_URL}/api/auth/verify-firebase-token`, {
-                idToken: idToken,
-                role: regData.role
+            const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, {
+                email: regData.email,
+                phone: regData.phone,
+                otp: otp
             });
             
             if (res.status === 200) {
@@ -118,7 +96,7 @@ const Login = () => {
                 }
             }
         } catch (err) {
-            alert(err.response?.data?.message || err.message || "OTP Verification Failed");
+            alert(err.response?.data?.message || "Invalid OTP or Verification Failed");
         } finally {
             setVerifying(false);
         }
@@ -129,34 +107,18 @@ const Login = () => {
         e.preventDefault();
         try {
             const isEmail = forgotPhone.includes('@');
+            const payload = isEmail ? { email: forgotPhone } : { phone: forgotPhone };
             
-            if (isEmail) {
-                const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, { email: forgotPhone });
-                if (res.status === 200) {
-                    setForgotStep('otp');
-                    setTimer(60); 
-                    alert("OTP sent to your registered email!");
-                }
-            } else {
-                // Use Firebase for phone numbers (SMS)
-                setUpRecaptcha();
-                const appVerifier = window.recaptchaVerifier;
-                const formattedPhone = forgotPhone.startsWith('+') ? forgotPhone : `+91${forgotPhone}`;
-                
-                const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-                window.confirmationResult = confirmationResult;
-                
+            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, payload);
+            
+            if (res.status === 200) {
                 setForgotStep('otp');
                 setTimer(60); 
-                alert("OTP sent to your registered phone number!");
+                alert(`OTP sent to your registered ${isEmail ? 'email' : 'email (linked to your phone)'}!`);
             }
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || err.message || "Failed to send OTP. Check console for details.");
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.clear();
-                window.recaptchaVerifier = null;
-            }
         }
     };
 
@@ -164,16 +126,8 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            const isEmail = forgotPhone.includes('@');
-            if (isEmail) {
-                // Email OTP verification happens at the reset step to avoid double token generation
-                setForgotStep('new_password');
-            } else {
-                // Phone OTP verification via Firebase
-                const confirmationResult = window.confirmationResult;
-                await confirmationResult.confirm(forgotOtp);
-                setForgotStep('new_password');
-            }
+            // Actual verification happens during reset
+            setForgotStep('new_password');
         } catch (err) {
             alert("Invalid OTP");
         } finally {
@@ -185,25 +139,11 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            const isEmail = forgotPhone.includes('@');
-            let res;
-            
-            if (isEmail) {
-                res = await axios.post(`${API_BASE_URL}/api/auth/reset-password-otp`, {
-                    identifier: forgotPhone,
-                    otp: forgotOtp,
-                    newPassword: forgotNewPassword
-                });
-            } else {
-                const user = auth.currentUser;
-                if (!user) throw new Error("User not authenticated via OTP");
-                const idToken = await user.getIdToken();
-                
-                res = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, {
-                    idToken,
-                    newPassword: forgotNewPassword
-                });
-            }
+            const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password-otp`, {
+                identifier: forgotPhone,
+                otp: forgotOtp,
+                newPassword: forgotNewPassword
+            });
             
             if (res.status === 200) {
                 alert("Password reset successfully! Please login with your new password.");
@@ -727,7 +667,6 @@ const Login = () => {
                     </div>
 
                     {/* Tabs switcher */}
-                    <div id="recaptcha-container"></div>
                     <div className="flex border-b border-gray-100 mb-6 relative">
                         <button 
                             className={`flex-1 py-3 text-sm font-bold text-center transition-all ${activeTab === 'login' ? 'text-[#0a1e46] border-b-2 border-[#0a1e46]' : 'text-gray-400'}`}
