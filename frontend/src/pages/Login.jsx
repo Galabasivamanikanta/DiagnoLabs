@@ -856,7 +856,7 @@ const Login = () => {
                                                 maxLength="6"
                                                 required 
                                             />
-                                            <p className="text-xs text-gray-400 mt-2">Sent to {regData.phone || regData.email}</p>
+                                            <p className="text-xs text-gray-400 mt-2">Sent to {regData.email}</p>
                                         </div>
                                         
                                         <button type="submit" disabled={verifying} className="w-full py-3 bg-[var(--success)] text-white rounded-[12px] font-bold hover:shadow-lg transition-all">
