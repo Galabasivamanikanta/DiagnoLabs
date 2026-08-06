@@ -82,7 +82,12 @@ router.post('/register', authLimiter, async (req, res) => {
 // LOGIN (Patient & Admin via MongoDB)
 router.post('/login', authLimiter, async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.body.email });
+        const user = await User.findOne({
+            $or: [
+                { email: req.body.email },
+                { phone: req.body.email }
+            ]
+        });
         if (!user) return res.status(401).json("Wrong credentials!");
 
         // Staff are no longer blocked from regular login to support double-roles (Patient + Staff)
