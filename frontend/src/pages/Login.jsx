@@ -32,6 +32,14 @@ const Login = () => {
     const [verifying, setVerifying] = useState(false);
     const [timer, setTimer] = useState(0);
 
+    // Forgot Password States
+    const [forgotModalOpen, setForgotModalOpen] = useState(false);
+    const [forgotStep, setForgotStep] = useState('phone'); // 'phone', 'otp', 'new_password'
+    const [forgotPhone, setForgotPhone] = useState('');
+    const [forgotOtp, setForgotOtp] = useState('');
+    const [forgotNewPassword, setForgotNewPassword] = useState('');
+    const [forgotVerifying, setForgotVerifying] = useState(false);
+
     useEffect(() => {
         let interval;
         if (timer > 0) {
@@ -115,6 +123,73 @@ const Login = () => {
             setVerifying(false);
         }
     };
+
+    // --- Forgot Password Flow ---
+    const handleForgotSendOTP = async (e) => {
+        e.preventDefault();
+        try {
+            setUpRecaptcha();
+            const appVerifier = window.recaptchaVerifier;
+            const formattedPhone = forgotPhone.startsWith('+') ? forgotPhone : `+91${forgotPhone}`;
+            
+            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+            window.confirmationResult = confirmationResult;
+            
+            setForgotStep('otp');
+            setTimer(60); 
+            alert("OTP sent to your registered phone number!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to send OTP. Check console for details.");
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+                window.recaptchaVerifier = null;
+            }
+        }
+    };
+
+    const handleForgotVerifyOTP = async (e) => {
+        e.preventDefault();
+        setForgotVerifying(true);
+        try {
+            const confirmationResult = window.confirmationResult;
+            await confirmationResult.confirm(forgotOtp);
+            setForgotStep('new_password');
+        } catch (err) {
+            alert("Invalid OTP");
+        } finally {
+            setForgotVerifying(false);
+        }
+    };
+
+    const handlePasswordReset = async (e) => {
+        e.preventDefault();
+        setForgotVerifying(true);
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error("User not authenticated via OTP");
+            const idToken = await user.getIdToken();
+            
+            const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, {
+                idToken,
+                newPassword: forgotNewPassword
+            });
+            
+            if (res.status === 200) {
+                alert("Password reset successfully! Please login with your new password.");
+                setForgotModalOpen(false);
+                setForgotStep('phone');
+                setForgotPhone('');
+                setForgotOtp('');
+                setForgotNewPassword('');
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || err.message || "Password Reset Failed");
+        } finally {
+            setForgotVerifying(false);
+        }
+    };
+    // ----------------------------
 
     const from = location.state?.from?.pathname || null;
     const fromState = location.state?.from?.state || null;
@@ -694,7 +769,7 @@ const Login = () => {
                                             onChange={(e) => setRememberMe(e.target.checked)} 
                                         /> Remember me
                                     </label>
-                                    <a href="#" className="text-[var(--primary-hover)] hover:underline">Forgot Password?</a>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); setForgotModalOpen(true); }} className="text-[var(--primary-hover)] hover:underline">Forgot Password?</a>
                                 </div>
 
                                 {/* Login Button */}
@@ -860,6 +935,81 @@ const Login = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Forgot Password Modal */}
+            {forgotModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-[90%] max-w-[400px]">
+                        <h2 className="text-xl font-bold text-[#0a1e46] mb-4">Reset Password</h2>
+                        
+                        {forgotStep === 'phone' && (
+                            <form onSubmit={handleForgotSendOTP} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-700">Phone Number</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g. 9876543210" 
+                                        className="w-full px-4 py-2 mt-1 border-[1.5px] border-[#e6e8ee] rounded-[11px] outline-none focus:border-[#0a1e46]"
+                                        value={forgotPhone}
+                                        onChange={(e) => setForgotPhone(e.target.value)}
+                                        required 
+                                    />
+                                </div>
+                                <button type="submit" className="w-full py-2 bg-[#0a1e46] text-white rounded-[11px] font-bold">
+                                    Send OTP
+                                </button>
+                            </form>
+                        )}
+
+                        {forgotStep === 'otp' && (
+                            <form onSubmit={handleForgotVerifyOTP} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-700">Enter OTP</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="6-digit code" 
+                                        className="w-full px-4 py-2 mt-1 border-[1.5px] border-[#e6e8ee] rounded-[11px] outline-none focus:border-[#0a1e46]"
+                                        value={forgotOtp}
+                                        onChange={(e) => setForgotOtp(e.target.value)}
+                                        required 
+                                    />
+                                    <div className="text-xs text-gray-500 mt-2">
+                                        Time remaining: {timer}s
+                                    </div>
+                                </div>
+                                <button type="submit" disabled={forgotVerifying} className="w-full py-2 bg-[#0a1e46] text-white rounded-[11px] font-bold disabled:opacity-50">
+                                    {forgotVerifying ? "Verifying..." : "Verify OTP"}
+                                </button>
+                            </form>
+                        )}
+
+                        {forgotStep === 'new_password' && (
+                            <form onSubmit={handlePasswordReset} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="text-sm font-semibold text-gray-700">New Password</label>
+                                    <input 
+                                        type="password" 
+                                        placeholder="Enter new password" 
+                                        className="w-full px-4 py-2 mt-1 border-[1.5px] border-[#e6e8ee] rounded-[11px] outline-none focus:border-[#0a1e46]"
+                                        value={forgotNewPassword}
+                                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                                        required 
+                                    />
+                                </div>
+                                <button type="submit" disabled={forgotVerifying} className="w-full py-2 bg-[#059669] text-white rounded-[11px] font-bold disabled:opacity-50">
+                                    {forgotVerifying ? "Resetting..." : "Reset Password"}
+                                </button>
+                            </form>
+                        )}
+
+                        <div className="mt-4 text-center">
+                            <button onClick={() => { setForgotModalOpen(false); setForgotStep('phone'); }} className="text-sm text-gray-500 hover:text-gray-700 font-semibold">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

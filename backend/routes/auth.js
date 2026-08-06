@@ -376,6 +376,41 @@ router.post('/verify-firebase-token', async (req, res) => {
     }
 });
 
+// FORGOT PASSWORD / RESET PASSWORD VIA FIREBASE
+router.post('/reset-password', async (req, res) => {
+    const { idToken, newPassword } = req.body;
+    try {
+        if (!idToken || !newPassword) {
+            return res.status(400).json({ message: "Missing token or new password" });
+        }
+
+        // 1. Verify the Firebase ID token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const phoneNumber = decodedToken.phone_number;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "No phone number found in token" });
+        }
+
+        // 2. Find user in DB by phone
+        let user = await User.findOne({ phone: phoneNumber });
+        if (!user) {
+            return res.status(404).json({ message: "User with this phone number not found." });
+        }
+
+        // 3. Hash the new password and update
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password reset successfully. You can now login with your new password." });
+    } catch (err) {
+        console.error("Reset Password Error:", err);
+        res.status(500).json({ message: "Password Reset Failed: " + err.message });
+    }
+});
+
 // UPDATE USER PROFILE (User themselves or Admin)
 router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
     try {
