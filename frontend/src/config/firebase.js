@@ -56,13 +56,5 @@ isMessagingSupported().then((supported) => {
   }
 });
 
-// App Check (Security)
+// App Check is disabled because of configuration issues.
 export let appCheck = null;
-try {
-  appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('6Ld8JngtAAAAAA6G_HIZ85cZnkQcdMvXdp52Sa3L'),
-    isTokenAutoRefreshEnabled: true
-  });
-} catch (err) {
-  console.warn("App Check initialization failed:", err);
-}
