@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from '../config/firebase';
 import '../styles/DashboardShared.css'; // Reuse some basic styles if needed
 
 const AdminProfile = ({ inline = false }) => {
@@ -48,19 +50,29 @@ const AdminProfile = ({ inline = false }) => {
         setTimeout(() => setCopiedId(false), 2500);
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
                 setMessage({ text: 'Image must be under 2MB', type: 'error' });
                 return;
             }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result);
-                setMessage({ text: 'Profile photo ready to save.', type: 'info' });
-            };
-            reader.readAsDataURL(file);
+            
+            // local preview
+            const localPreview = URL.createObjectURL(file);
+            setPreviewImage(localPreview);
+            setMessage({ text: 'Uploading to secure cloud... please wait.', type: 'info' });
+            
+            try {
+                const fileRef = ref(storage, `profile_pictures/admin_${user._id}_${Date.now()}`);
+                await uploadBytes(fileRef, file);
+                const downloadURL = await getDownloadURL(fileRef);
+                setPreviewImage(downloadURL);
+                setMessage({ text: 'Cloud upload successful! Click Save Profile to apply.', type: 'info' });
+            } catch (error) {
+                console.error("Firebase upload error:", error);
+                setMessage({ text: 'Failed to upload image to cloud.', type: 'error' });
+            }
         }
     };
 

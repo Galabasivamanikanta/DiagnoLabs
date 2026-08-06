@@ -28,12 +28,7 @@ const NurseDashboard = () => {
 
   const [showFollowupModal, setShowFollowupModal] = useState(false);
 
-  // Mock Data
-  const [queue, setQueue] = useState([
-    { id: 'N-201', patient: 'John Doe', test: 'IV Blood Draw & Vitals Check', priority: 'High', location: 'Home Visit - Jubilee Hills', doctorNote: 'Check BP before draw' },
-    { id: 'N-202', patient: 'Emma Watson', test: 'Pediatric Venipuncture Supervision', priority: 'Normal', location: 'Clinic Room A-102', doctorNote: 'Use butterfly needle' },
-    { id: 'N-203', patient: 'Michael Scott', test: 'Post-Report Vitals & ECG Check', priority: 'Normal', location: 'Clinic Room B-205', doctorNote: 'Monitor pulse' }
-  ]);
+  const [] = useState([]);
 
   const [followups, setFollowups] = useState([
     { id: 'F-501', patient: 'Suresh Raina', phone: '+91 98765 22114', test: 'Lipid Profile', status: 'Pending', note: 'Check if statin dosage started' },

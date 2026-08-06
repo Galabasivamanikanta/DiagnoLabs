@@ -20,13 +20,7 @@ export default function StaffDashboard() {
     const [showTicketModal, setShowTicketModal] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Mock Data for General Staff Dashboard
-    const [tasks, setTasks] = useState([
-        { id: 'TSK-101', title: 'Verify Walk-in IDs for Morning Batch', priority: 'High', dueDate: 'Today, 11:30 AM', status: 'In Progress', note: 'Checked 12 out of 15 patients' },
-        { id: 'TSK-102', title: 'Call Customer #DL-2026-88 regarding appointment reschedule', priority: 'Medium', dueDate: 'Today, 02:00 PM', status: 'To-do', note: 'Customer requested evening slot' },
-        { id: 'TSK-103', title: 'Cross-check sample bag barcode counts with Phlebotomy team', priority: 'High', dueDate: 'Today, 04:00 PM', status: 'To-do', note: 'Batch #402' },
-        { id: 'TSK-104', title: 'Clean and archive yesterday walk-in receipts', priority: 'Low', dueDate: 'Tomorrow, 10:00 AM', status: 'Completed', note: 'Archived 45 receipts' }
-    ]);
+    const [] = useState([]);
 
     const [announcements] = useState([
         { id: 1, title: 'NABL Inspection Scheduled for Friday', date: 'Aug 04, 2026', sender: 'Admin System Manager', priority: 'Urgent', content: 'All General Staff requested to verify all patient identity verification files are up to date.' },

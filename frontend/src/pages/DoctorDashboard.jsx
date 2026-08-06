@@ -22,23 +22,9 @@ const DoctorDashboard = () => {
   const [docReply, setDocReply] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Mock Data for Doctor Priority Queue
-  const [reportsQueue, setReportsQueue] = useState([
-    { id: 'REP-401', patient: 'Charlie Brown', age: 45, gender: 'Male', test: 'Complete Blood Count (CBC)', status: 'CRITICAL', date: '2026-08-04', urgent: true, consent: true, keyFindings: 'Hemoglobin 6.8 g/dL (Severely Low), Platelets 85,000 /uL' },
-    { id: 'REP-402', patient: 'Diana Prince', age: 34, gender: 'Female', test: 'Lipid Profile & HbA1c', status: 'ABNORMAL', date: '2026-08-04', urgent: false, consent: true, keyFindings: 'HbA1c 8.4% (Uncontrolled Diabetes), Total Cholesterol 260 mg/dL' },
-    { id: 'REP-403', patient: 'Edward Nygma', age: 52, gender: 'Male', test: 'Thyroid Function Test (T3, T4, TSH)', status: 'NORMAL', date: '2026-08-04', urgent: false, consent: true, keyFindings: 'TSH 2.4 uIU/mL, Free T4 1.2 ng/dL' }
-  ]);
-
-  // AI Chatbot Escalations needing Doctor review
-  const [chatEscalations, setChatEscalations] = useState([
-    { id: 'ESC-881', patient: 'Siddharth Rao', time: '10 mins ago', userQuery: 'I have sharp chest pain on the left side radiating to my arm. What should I do?', aiResponse: 'This requires immediate medical attention. Escalating your query to our Chief Physician.', status: 'Pending Review', symptoms: 'Chest pain, Numbness' },
-    { id: 'ESC-882', patient: 'Anita Sharma', time: '35 mins ago', userQuery: 'My HbA1c is 9.2%. Do I need insulin adjustment right away?', aiResponse: 'High blood sugar detected. Escalated to Endocrinology Specialist for review.', status: 'Pending Review', symptoms: 'High Blood Sugar' }
-  ]);
-
-  const [patients] = useState([
-    { id: 'P-101', name: 'Charlie Brown', phone: '+91 98765 11223', consent: true, totalTests: 4, lastConsultation: '2026-08-04' },
-    { id: 'P-102', name: 'Diana Prince', phone: '+91 98765 33445', consent: true, totalTests: 2, lastConsultation: '2026-08-02' }
-  ]);
+  const [reportsQueue, setReportsQueue] = useState([]);
+  const [chatEscalations, setChatEscalations] = useState([]);
+  const [patients] = useState([]);
 
   const handleLogout = () => {
     logout();

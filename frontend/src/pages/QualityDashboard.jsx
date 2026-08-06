@@ -35,19 +35,9 @@ const QualityDashboard = () => {
     note: 'Lab failed 2 consecutive audits. Recommending 30-day suspension pending corrective action.'
   });
 
-  // Mock Open QC Flagged Cases
-  const [qcCases, setQcCases] = useState([
-    { id: 'QC-901', lab: 'Apollo Diagnostics', testType: 'Thyroid Profile', issue: 'Delayed Result SLA (> 8 hrs)', severity: 'Medium', date: '2026-08-04', status: 'Under Review' },
-    { id: 'QC-902', lab: 'Vijaya Pathology Center', testType: 'Lipid Profile', issue: 'Mismatched Cholesterol Value Reported', severity: 'Critical', date: '2026-08-03', status: 'Warning Issued' },
-    { id: 'QC-903', lab: 'MedPlus Diagnostics', testType: 'Complete Blood Count (CBC)', issue: 'Sample Hemolysis Reported', severity: 'High', date: '2026-08-02', status: 'Resolved' }
-  ]);
+  const [] = useState([]);
 
-  // Mock Lab License Compliance Tracker
-  const [labLicenses] = useState([
-    { lab: 'Apollo Diagnostics - Gachibowli', cert: 'NABL Accreditation', expiry: '2026-09-10', daysLeft: 37, status: 'Expiring Soon' },
-    { lab: 'Vijaya Diagnostic Center', cert: 'ISO 9001:2015', expiry: '2027-02-15', daysLeft: 195, status: 'Compliant' },
-    { lab: 'MedPlus Labs', cert: 'CAP Accreditation', expiry: '2026-08-15', daysLeft: 11, status: 'Urgent Renewal Required' }
-  ]);
+  const [] = useState([]);
 
   const handleLogout = () => {
     logout();

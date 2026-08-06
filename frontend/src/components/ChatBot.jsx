@@ -538,9 +538,10 @@ const ChatBot = () => {
             chatHistory = chatHistory.slice(-8);
             if (chatHistory.length > 0 && chatHistory[0].role === 'model') chatHistory.shift();
 
-            const genAI = new GoogleGenerativeAI("AIzaSyDoC1crU8zerh9rvwSlKLlg8lWq07rZY80");
+            const geminiKey = import.meta.env.VITE_GEMINI_KEY;
+            const genAI = new GoogleGenerativeAI(geminiKey);
             const model = genAI.getGenerativeModel({ 
-                model: "gemini-1.5-flash",
+                model: "gemini-3.5-flash",
                 systemInstruction: `You are the ${roleConfig.title}. ${roleConfig.subtitle}. 
 Context: ${buildContext()}
 User Input: ${text}

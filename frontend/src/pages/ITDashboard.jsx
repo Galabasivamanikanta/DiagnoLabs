@@ -22,36 +22,13 @@ const ITDashboard = () => {
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Mock Live Services Health Status
-  const [services] = useState([
-    { name: 'Frontend Client App (Vite / Netlify)', status: 'Operational', uptime: '99.99%', latency: '24ms', type: 'Frontend' },
-    { name: 'Backend REST API Cluster (Node.js)', status: 'Operational', uptime: '99.95%', latency: '48ms', type: 'Backend' },
-    { name: 'Primary Database (PostgreSQL / Mongo)', status: 'Operational', uptime: '100%', latency: '12ms', type: 'Database' },
-    { name: 'Google OAuth 2.0 Auth Service', status: 'Operational', uptime: '99.98%', latency: '110ms', type: 'Integration' },
-    { name: 'Payment Gateway API (Razorpay/Stripe)', status: 'Operational', uptime: '99.90%', latency: '185ms', type: 'Integration' },
-    { name: 'Nodemailer SMTP Email Transporter', status: 'Operational', uptime: '99.85%', latency: '310ms', type: 'Integration' }
-  ]);
+  const [] = useState([]);
 
-  // Mock System Error Logs
-  const [systemLogs] = useState([
-    { id: 'LOG-701', time: '2026-08-04 14:48:22', level: 'ERROR', service: 'Email Transporter', message: 'Nodemailer SMTP timeout (5000ms) on email dispatch to user@gmail.com' },
-    { id: 'LOG-702', time: '2026-08-04 14:45:10', level: 'WARN', service: 'API Cluster', message: 'Memory spike 84% on worker node-2. Garbage collection triggered.' },
-    { id: 'LOG-703', time: '2026-08-04 14:30:00', level: 'INFO', service: 'OAuth Service', message: 'JWT token re-issuance verified for user EMP-402' },
-    { id: 'LOG-704', time: '2026-08-04 14:15:05', level: 'CRITICAL', service: 'Report Upload PDF', message: 'Failed PDF conversion: Ghostscript binary missing on worker image' }
-  ]);
+  const [] = useState([]);
 
-  // Mock Escalated Technical Tickets
-  const [techTickets, setTechTickets] = useState([
-    { id: 'TKT-991', title: 'OAuth Callback 500 Error on Google Login', category: 'Auth / OAuth', priority: 'High', date: '2026-08-04', status: 'Open', reportedBy: 'Support Team' },
-    { id: 'TKT-992', title: 'Payment Gateway Webhook Signature Mismatch', category: 'Payment API', priority: 'Critical', date: '2026-08-04', status: 'In Progress', reportedBy: 'Finance Team' },
-    { id: 'TKT-993', title: 'Patient PDF Report Download Timeout', category: 'Storage / Storage Bucket', priority: 'Medium', date: '2026-08-03', status: 'Resolved', reportedBy: 'Doctor Portal' }
-  ]);
+  const [] = useState([]);
 
-  // Mock Technically Blocked Accounts
-  const [lockedAccounts, setLockedAccounts] = useState([
-    { id: 'ACC-101', user: 'Dr. Suresh Mehta', email: 'suresh.mehta@diagnolabs.com', role: 'Doctor', reason: '5 Consecutive Failed OAuth JWT Attempts', lockTime: '2026-08-04 13:20' },
-    { id: 'ACC-102', user: 'Sunita Rao (Nurse)', email: 'sunita.n@diagnolabs.com', role: 'Nurse', reason: 'Session Expiry Token Loop', lockTime: '2026-08-04 11:45' }
-  ]);
+  const [] = useState([]);
 
   const handleLogout = () => {
     logout();

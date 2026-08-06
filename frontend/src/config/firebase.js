@@ -7,7 +7,7 @@ import { getMessaging, isSupported as isMessagingSupported } from "firebase/mess
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDoC1crU8zerh9rvwSlKLlg8lWq07rZY80",
+  apiKey: "AIzaSyCFdvb9QOaLaMD6eatAiug62yCbpnSYJhM",
   authDomain: "diagnolabs-62be3.firebaseapp.com",
   projectId: "diagnolabs-62be3",
   storageBucket: "diagnolabs-62be3.firebasestorage.app",
@@ -18,9 +18,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
-export const storage = getStorage(app);
-export const db = getFirestore(app);
+export let auth = {};
+export let storage = {};
+export let db = {};
+
+try {
+  auth = getAuth(app);
+} catch (e) {
+  console.error("Firebase Auth failed to initialize. Please check API Key.", e);
+}
+
+try {
+  storage = getStorage(app);
+} catch (e) {
+  console.error("Firebase Storage failed to initialize.", e);
+}
+
+try {
+  db = getFirestore(app);
+} catch (e) {
+  console.error("Firebase Firestore failed to initialize.", e);
+}
 
 // Analytics only works in browser environments, checking support first
 export let analytics = null;

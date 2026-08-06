@@ -23,57 +23,60 @@ const FinanceDashboard = () => {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Mock Lab Partner Payouts
-  const [payouts, setPayouts] = useState([
-    { id: 'PAY-701', labName: 'Apollo Diagnostics - Gachibowli', grossBookings: 84500, commissionPct: 20, platformFee: 16900, netPayout: 67600, cycle: 'July 2026 (W4)', status: 'Pending' },
-    { id: 'PAY-702', labName: 'Vijaya Diagnostic Center - Secunderabad', grossBookings: 120000, commissionPct: 18, platformFee: 21600, netPayout: 98400, cycle: 'July 2026 (W4)', status: 'Pending' },
-    { id: 'PAY-703', labName: 'Metropolis Labs - Hitec City', grossBookings: 56000, commissionPct: 20, platformFee: 11200, netPayout: 44800, cycle: 'July 2026 (W3)', status: 'Processed' }
-  ]);
+  const [payouts, setPayouts] = useState([]);
+  const [refunds, setRefunds] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
 
-  // Mock Refund Requests
-  const [refunds, setRefunds] = useState([
-    { id: 'REF-301', patient: 'Rahul Sharma', bookingId: 'BK-8821', amount: 1450, reason: 'Patient cancelled 4 hours prior', gatewayTxn: 'pay_N99281A', status: 'Pending' },
-    { id: 'REF-302', patient: 'Priya Singh', bookingId: 'BK-8844', amount: 850, reason: 'Sample collector delayed > 2 hours', gatewayTxn: 'pay_N99312B', status: 'Pending' },
-    { id: 'REF-303', patient: 'Kiran Kumar', bookingId: 'BK-8790', amount: 2200, reason: 'Incorrect test booked', gatewayTxn: 'pay_N99105C', status: 'Approved' }
-  ]);
-
-  // Mock Invoices
-  const [invoices] = useState([
-    { id: 'INV-2026-001', entity: 'Rahul Sharma', type: 'Patient B2C', amount: 1450, gstAmount: 261, date: '2026-08-04', status: 'Paid' },
-    { id: 'INV-2026-002', entity: 'Apollo Diagnostics', type: 'Lab B2B Commission', amount: 16900, gstAmount: 3042, date: '2026-08-03', status: 'Issued' },
-    { id: 'INV-2026-003', entity: 'Vijaya Diagnostics', type: 'Lab B2B Commission', amount: 21600, gstAmount: 3888, date: '2026-08-02', status: 'Paid' }
-  ]);
-
-  // Mock Expenses
-  const [expenses, setExpenses] = useState([
-    { id: 'EXP-001', category: 'Salary', amount: 45000, description: 'August Payroll', date: '2026-08-01' },
-    { id: 'EXP-002', category: 'Technology', amount: 12000, description: 'AWS Hosting', date: '2026-08-02' },
-    { id: 'EXP-003', category: 'Marketing', amount: 8500, description: 'FB Ads', date: '2026-08-03' }
-  ]);
-
-  // Mock Audit Trail
-  const [auditLogs] = useState([
-    { id: 'AUD-001', timestamp: '2026-08-05 14:30', action: 'Payout Processed', user: 'Admin', details: 'Processed PAY-703', amount: 44800, status: 'Success' },
-    { id: 'AUD-002', timestamp: '2026-08-05 13:15', action: 'Refund Approved', user: 'Finance Mgr', details: 'Approved REF-303', amount: 2200, status: 'Success' },
-    { id: 'AUD-003', timestamp: '2026-08-04 09:00', action: 'Invoice Generated', user: 'System', details: 'Generated INV-2026-001', amount: 1450, status: 'Success' },
-    { id: 'AUD-004', timestamp: '2026-08-03 10:20', action: 'Expense Added', user: 'Admin', details: 'Added Technology Exp', amount: 12000, status: 'Success' }
-  ]);
+  // Fetch initial data from backend
+  useEffect(() => {
+    const fetchFinanceData = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/finance/dashboard`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setPayouts(res.data.payouts || []);
+        setRefunds(res.data.refunds || []);
+        setInvoices(res.data.invoices || []);
+        setExpenses(res.data.expenses || []);
+        setAuditLogs(res.data.auditLogs || []);
+      } catch (err) {
+        console.error("Error fetching finance data:", err);
+      }
+    };
+    fetchFinanceData();
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate('/adminlogin');
   };
 
-  const handleConfirmPayout = (payoutId) => {
-    alert(`Payout [${payoutId}] successfully DISBURSED via Razorpay X Bank Transfer! Notification sent to Lab Partner.`);
-    setPayouts(prev => prev.map(p => p.id === payoutId ? { ...p, status: 'Processed' } : p));
-    setShowPayoutModal(null);
+  const handleConfirmPayout = async (payoutId) => {
+    try {
+      await axios.put(`${API_BASE_URL}/api/finance/payout/${payoutId}/process`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      alert(`Payout [${payoutId}] successfully DISBURSED via Razorpay X Bank Transfer! Notification sent to Lab Partner.`);
+      setPayouts(prev => prev.map(p => p.id === payoutId ? { ...p, status: 'Processed' } : p));
+      setShowPayoutModal(null);
+    } catch (err) {
+      alert('Error processing payout');
+    }
   };
 
-  const handleConfirmRefund = (refundId) => {
-    alert(`Refund [${refundId}] APPROVED & PROCESSED! ₹ amount credited back to patient's payment method via Razorpay. Email sent.`);
-    setRefunds(prev => prev.map(r => r.id === refundId ? { ...r, status: 'Approved' } : r));
-    setShowRefundModal(null);
+  const handleConfirmRefund = async (refundId) => {
+    try {
+      await axios.put(`${API_BASE_URL}/api/finance/refund/${refundId}/approve`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      alert(`Refund [${refundId}] APPROVED & PROCESSED! ₹ amount credited back to patient's payment method via Razorpay. Email sent.`);
+      setRefunds(prev => prev.map(r => r.id === refundId ? { ...r, status: 'Approved' } : r));
+      setShowRefundModal(null);
+    } catch (err) {
+      alert('Error approving refund');
+    }
   };
 
   const handleAddExpense = (e) => {

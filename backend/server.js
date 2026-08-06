@@ -204,6 +204,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/staff', require('./routes/staff'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/finance', require('./routes/finance'));
 
 // ADMINISTRATIVE ACTIONS
 app.post('/api/admin/sync-india', async (req, res) => {

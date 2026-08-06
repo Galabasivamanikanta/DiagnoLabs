@@ -20,12 +20,7 @@ const InventoryDashboard = () => {
   const [showPOModal, setShowPOModal] = useState(false);
   const [poForm, setPoForm] = useState({ item: 'Blood Collection Tubes (Red)', supplier: 'MedEquip Inc', qty: '500', price: '4500' });
 
-  // Mock Lab Restock Requests
-  const [restockRequests, setRestockRequests] = useState([
-    { id: 'REQ-901', labName: 'Apollo Diagnostics - Gachibowli', item: 'Blood Collection Tubes (Red)', requestedQty: 500, currentStock: 20, urgency: 'High', date: '2026-08-04', status: 'Pending' },
-    { id: 'REQ-902', labName: 'Vijaya Diagnostic Center - Secunderabad', item: 'N95 Respirator Masks', requestedQty: 300, currentStock: 30, urgency: 'High', date: '2026-08-04', status: 'Pending' },
-    { id: 'REQ-903', labName: 'Metropolis Labs - Hitec City', item: 'Syringes 5ml (Luer Lock)', requestedQty: 1000, currentStock: 150, urgency: 'Medium', date: '2026-08-03', status: 'Approved' }
-  ]);
+  const [] = useState([]);
 
   const [stock] = useState([
     { id: 1, name: 'Latex Gloves (Medium)', category: 'PPE', quantity: 450, maxLevel: 1000, minLevel: 200, status: 'OK' },

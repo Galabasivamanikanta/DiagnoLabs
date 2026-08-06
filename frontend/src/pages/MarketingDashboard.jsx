@@ -30,19 +30,9 @@ const MarketingDashboard = () => {
     message: 'Book your comprehensive diagnostic package today and get 20% off using code DIAGNO20. Valid till end of month!'
   });
 
-  // Mock Active Campaigns
-  const [campaigns, setCampaigns] = useState([
-    { id: 'CAMP-101', title: 'Monsoon Preventive Health Drive', channel: 'Email & Push', reach: '45,000', leads: 820, conversions: 164, roi: '+142%', status: 'Active' },
-    { id: 'CAMP-102', title: 'Senior Citizen Cardiac Care', channel: 'SMS Broadcast', reach: '12,000', leads: 310, conversions: 88, roi: '+95%', status: 'Active' },
-    { id: 'CAMP-103', title: 'Diabetes Awareness Screening', channel: 'Social Banner', reach: '28,000', leads: 490, conversions: 102, roi: '+110%', status: 'Completed' }
-  ]);
+  const [] = useState([]);
 
-  // Mock Active Coupons
-  const [coupons, setCoupons] = useState([
-    { code: 'DIAGNO20', discount: '20% OFF', minBooking: '₹999', redemptions: 412, expiry: '2026-08-31', active: true },
-    { code: 'FLAT200', discount: '₹200 OFF', minBooking: '₹1,499', redemptions: 189, expiry: '2026-09-15', active: true },
-    { code: 'SENIOR50', discount: '50% OFF', minBooking: '₹1,999', redemptions: 95, expiry: '2026-08-15', active: true }
-  ]);
+  const [] = useState([]);
 
   // Mock Referral Program
   const [referrals] = useState({

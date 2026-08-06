@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { collection, query, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
 import { 
     LifeBuoy, MessageSquare, Clock, AlertOctagon, CheckCircle2, 
-    Send, ShieldAlert, BookOpen, ArrowRightLeft, User, Search, Filter, LogOut, ChevronRight, X, Menu
+    Send, ShieldAlert, BookOpen, ArrowRightLeft, User, Search, Filter, LogOut, ChevronRight, X, Menu, MessageCircle
 } from 'lucide-react';
 import '../styles/DashboardShared.css';
 
@@ -28,13 +29,33 @@ const SupportDashboard = () => {
     { title: 'Report Processing Status', text: 'Your diagnostic samples are currently undergoing quality processing at the lab. Your verified digital report will be uploaded within 2 hours.' }
   ];
 
-  // Mock Support Tickets Queue
-  const [tickets, setTickets] = useState([
-    { id: 'TKT-8801', raisedBy: 'Rahul Sharma (Patient)', role: 'Patient', issueType: 'Payment Refund Mismatch', priority: 'Critical', slaTimer: '12 mins remaining', date: '2026-08-04 14:10', status: 'Open', description: 'Charged twice for Blood Profile booking via UPI.', assignedTo: null },
-    { id: 'TKT-8802', raisedBy: 'Apollo Diagnostics (Lab Partner)', role: 'Lab Partner', issueType: 'Reagent Supply Delay', priority: 'High', slaTimer: '45 mins remaining', date: '2026-08-04 13:30', status: 'In Progress', description: 'Need urgent restock of Blood Collection Red Tubes.', assignedTo: 'me' },
-    { id: 'TKT-8803', raisedBy: 'Nurse Clara (Staff)', role: 'Internal Staff', issueType: 'App Vitals Sync Bug', priority: 'Medium', slaTimer: '2 hours remaining', date: '2026-08-04 12:00', status: 'In Progress', description: 'Patient BP vitals not syncing to doctor dashboard.', assignedTo: 'me' },
-    { id: 'TKT-8804', raisedBy: 'Priya Singh (Patient)', role: 'Patient', issueType: 'Sample Collection Reschedule', priority: 'Low', slaTimer: 'SLA Met', date: '2026-08-04 10:00', status: 'Resolved', description: 'Requesting time slot shift from 8 AM to 11 AM.', assignedTo: 'me' }
-  ]);
+  // Real-time Support Tickets Queue
+  const [tickets, setTickets] = useState([]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'support_tickets'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedTickets = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTickets(fetchedTickets);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSeedData = async () => {
+    const initialData = [
+      { raisedBy: 'Rahul Sharma (Patient)', role: 'Patient', issueType: 'Payment Refund Mismatch', priority: 'Critical', slaTimer: '12 mins remaining', date: '2026-08-04 14:10', status: 'Open', description: 'Charged twice for Blood Profile booking via UPI.', assignedTo: null },
+      { raisedBy: 'Apollo Diagnostics (Lab Partner)', role: 'Lab Partner', issueType: 'Reagent Supply Delay', priority: 'High', slaTimer: '45 mins remaining', date: '2026-08-04 13:30', status: 'In Progress', description: 'Need urgent restock of Blood Collection Red Tubes.', assignedTo: 'me' },
+      { raisedBy: 'Nurse Clara (Staff)', role: 'Internal Staff', issueType: 'App Vitals Sync Bug', priority: 'Medium', slaTimer: '2 hours remaining', date: '2026-08-04 12:00', status: 'In Progress', description: 'Patient BP vitals not syncing to doctor dashboard.', assignedTo: 'me' },
+      { raisedBy: 'Priya Singh (Patient)', role: 'Patient', issueType: 'Sample Collection Reschedule', priority: 'Low', slaTimer: 'SLA Met', date: '2026-08-04 10:00', status: 'Resolved', description: 'Requesting time slot shift from 8 AM to 11 AM.', assignedTo: 'me' }
+    ];
+    for (let t of initialData) {
+      await addDoc(collection(db, 'support_tickets'), t);
+    }
+    alert("Database Seeded Successfully! Refreshing...");
+  };
 
   useEffect(() => {
     if (tickets.length > 0 && !selectedTicket) {
@@ -47,10 +68,15 @@ const SupportDashboard = () => {
     navigate('/adminlogin');
   };
 
-  const handleAssignToMe = (ticketId) => {
-    setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, assignedTo: 'me', status: 'In Progress' } : t));
-    if (selectedTicket?.id === ticketId) {
-      setSelectedTicket(prev => ({ ...prev, assignedTo: 'me', status: 'In Progress' }));
+  const handleAssignToMe = async (ticketId) => {
+    try {
+      await updateDoc(doc(db, 'support_tickets', ticketId), { assignedTo: 'me', status: 'In Progress' });
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(prev => ({ ...prev, assignedTo: 'me', status: 'In Progress' }));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error assigning ticket");
     }
   };
 
@@ -61,11 +87,16 @@ const SupportDashboard = () => {
     setReplyText('');
   };
 
-  const handleCloseTicket = (ticketId) => {
-    alert(`Ticket [${ticketId}] RESOLVED & CLOSED! CSAT Rating survey sent via Nodemailer to patient.`);
-    setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'Resolved' } : t));
-    if (selectedTicket?.id === ticketId) {
-      setSelectedTicket(prev => ({ ...prev, status: 'Resolved' }));
+  const handleCloseTicket = async (ticketId) => {
+    try {
+      await updateDoc(doc(db, 'support_tickets', ticketId), { status: 'Resolved' });
+      alert(`Ticket RESOLVED & CLOSED! CSAT Rating survey sent via Nodemailer to patient.`);
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(prev => ({ ...prev, status: 'Resolved' }));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error resolving ticket");
     }
   };
 
@@ -176,23 +207,28 @@ const SupportDashboard = () => {
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Resolved Today</div>
-            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>18</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', marginTop: '6px' }}>{tickets.filter(t => t.status === 'Resolved').length}</div>
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Avg. First Response Time</div>
-            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#2563eb', marginTop: '6px' }}>14 mins</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#2563eb', marginTop: '6px' }}>0 mins</div>
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #fee2e2', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>SLA Breach Warning Alerts</div>
-            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>1 Ticket</div>
+            <div style={{ fontSize: '2rem', fontWeight: '800', color: '#dc2626', marginTop: '6px' }}>0 Tickets</div>
           </div>
         </div>
 
-        {/* Zendesk-style Split View Layout */}
+        {/* Content Area */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
           {/* Left Column: Ticket List */}
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)' }}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Ticket Stream Queue</h3>
+            {tickets.length === 0 && (
+                <button onClick={handleSeedData} style={{ width: '100%', padding: '12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', marginBottom: '16px' }}>
+                  Seed Database with Dummy Tickets
+                </button>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {tickets.map(t => (
                 <div 

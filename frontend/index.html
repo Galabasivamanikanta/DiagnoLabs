@@ -8,9 +8,24 @@
   <title>DiagnoLabs | Modern Diagnostics</title>
 </head>
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
+  <body>
+    <div id="error-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,0,0,0.9); color: white; z-index: 9999; padding: 20px; font-family: monospace; overflow: auto;">
+      <h2>Application Crashed</h2>
+      <pre id="error-message" style="white-space: pre-wrap; font-size: 16px;"></pre>
+      <button onclick="window.location.reload()" style="padding: 10px 20px; margin-top: 20px; cursor: pointer;">Reload</button>
+    </div>
+    <script>
+      window.addEventListener('error', function(e) {
+        document.getElementById('error-overlay').style.display = 'block';
+        document.getElementById('error-message').innerText = e.message + '\n\n' + (e.error ? e.error.stack : '');
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        document.getElementById('error-overlay').style.display = 'block';
+        document.getElementById('error-message').innerText = 'Unhandled Promise Rejection: ' + e.reason;
+      });
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 
 </html>

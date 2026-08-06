@@ -8,17 +8,8 @@ const ReceptionDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = JSON.parse(localStorage.getItem('user')) || null;
   
-  const mockAppointments = [
-    { id: 1, time: '09:00 AM', patientName: 'John Doe', test: 'Complete Blood Count', doctor: 'Dr. Smith', status: 'Confirmed' },
-    { id: 2, time: '10:30 AM', patientName: 'Jane Smith', test: 'Lipid Profile', doctor: 'Dr. Adams', status: 'Pending' },
-    { id: 3, time: '11:15 AM', patientName: 'Robert Johnson', test: 'Thyroid Function', doctor: 'Dr. Lee', status: 'Cancelled' },
-    { id: 4, time: '01:00 PM', patientName: 'Emily Davis', test: 'HbA1c', doctor: 'Dr. Smith', status: 'Confirmed' },
-  ];
-
-  const mockBills = [
-    { id: 101, patient: 'John Doe', test: 'Complete Blood Count', amount: '$50', status: 'Paid' },
-    { id: 102, patient: 'Jane Smith', test: 'Lipid Profile', amount: '$80', status: 'Unpaid' },
-  ];
+  const mockAppointments = [];
+  const mockBills = [];
 
   useEffect(() => {
     // Fetch from API

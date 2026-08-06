@@ -2,6 +2,8 @@ import React, { useState, useContext, useRef, useMemo, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from '../config/firebase';
 import { DoctorDashboard, PhlebotomistDashboard, DeliveryPartnerDashboard } from '../components/RoleDashboards';
 import { 
     User, Mail, Phone, MapPin, Calendar, ShieldCheck, Edit3, Check, X, 
@@ -154,21 +156,32 @@ const UserProfile = () => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
                 setMessage({ text: 'Image size should be under 2MB.', type: 'error' });
                 return;
             }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result;
-                setPreviewImage(base64String);
-                setFormData(prev => ({ ...prev, profilePic: base64String }));
-                setMessage({ text: 'New photo selected. Click Save to apply.', type: 'success' });
-            };
-            reader.readAsDataURL(file);
+            
+            // Show local preview immediately
+            const localPreview = URL.createObjectURL(file);
+            setPreviewImage(localPreview);
+            setMessage({ text: 'Uploading to secure cloud... please wait.', type: 'success' });
+            
+            try {
+                // Upload to Firebase Storage
+                const fileRef = ref(storage, `profile_pictures/${user._id}_${Date.now()}`);
+                await uploadBytes(fileRef, file);
+                const downloadURL = await getDownloadURL(fileRef);
+                
+                // Update formData with the Cloud URL instead of Base64
+                setFormData(prev => ({ ...prev, profilePic: downloadURL }));
+                setMessage({ text: 'Cloud upload successful! Click Save to apply.', type: 'success' });
+            } catch (error) {
+                console.error("Firebase upload error:", error);
+                setMessage({ text: 'Failed to upload image to cloud.', type: 'error' });
+            }
         }
     };
 

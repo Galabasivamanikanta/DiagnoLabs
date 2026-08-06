@@ -30,12 +30,7 @@ const DeliveryDashboard = () => {
   const [issueReason, setIssueReason] = useState('Recipient Unavailable');
   const [issueNote, setIssueNote] = useState('');
 
-  // Mock Delivery Assignments
-  const [deliveries, setDeliveries] = useState([
-    { id: 'DEL-501', recipient: 'Apollo Diagnostics Lab', type: 'Sample Transport (Blood/Urine)', address: 'Gachibowli Main Rd, Hyderabad', lat: 17.4401, lng: 78.3489, phone: '+91 98765 43210', status: 'In Transit', payout: 120 },
-    { id: 'DEL-502', recipient: 'Rahul Sharma', type: 'Physical Lab Report', address: 'Plot 42, Jubilee Hills, Hyderabad', lat: 17.4319, lng: 78.4071, phone: '+91 91234 56789', status: 'Assigned', payout: 80 },
-    { id: 'DEL-503', recipient: 'Vijaya Diagnostic Center', type: 'Supervised Sample Vial', address: 'Secunderabad Station Rd', lat: 17.4399, lng: 78.4983, phone: '+91 99887 76655', status: 'Delivered', payout: 150 }
-  ]);
+  const [] = useState([]);
 
   const handleLogout = () => {
     logout();

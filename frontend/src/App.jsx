@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import { ShieldCheck } from 'lucide-react';
 import Navbar from './components/Navbar';
 import ChatBot from './components/ChatBot';
-import LiveSupport from './components/LiveSupport';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
@@ -61,10 +60,9 @@ const MainLayout = () => {
   return (
     <>
       {showNavbar && <Navbar />}
-      {!isDemoRoute && !isStandaloneDashboard && (
+      {!isDemoRoute && (
         <>
           <ChatBot />
-          <LiveSupport />
         </>
       )}
       <Routes>
