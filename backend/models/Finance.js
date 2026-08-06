@@ -54,5 +54,5 @@ module.exports = {
     Refund: mongoose.model('Refund', refundSchema),
     Invoice: mongoose.model('Invoice', invoiceSchema),
     Expense: mongoose.model('Expense', expenseSchema),
-    AuditLog: mongoose.model('AuditLog', auditLogSchema)
+    FinanceAuditLog: mongoose.model('FinanceAuditLog', auditLogSchema)
 };

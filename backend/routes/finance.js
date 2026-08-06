@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Payout, Refund, Invoice, Expense, AuditLog } = require('../models/Finance');
+const { Payout, Refund, Invoice, Expense, FinanceAuditLog } = require('../models/Finance');
 const { verifyTokenAndAdmin } = require('../middleware/auth'); // Require admin access
 
 // GET all finance data (Dashboard View)
@@ -10,7 +10,7 @@ router.get('/dashboard', verifyTokenAndAdmin, async (req, res) => {
         const refunds = await Refund.find();
         const invoices = await Invoice.find();
         const expenses = await Expense.find();
-        const auditLogs = await AuditLog.find().sort({ timestamp: -1 }).limit(20);
+        const auditLogs = await FinanceAuditLog.find().sort({ timestamp: -1 }).limit(20);
 
         res.status(200).json({ payouts, refunds, invoices, expenses, auditLogs });
     } catch (err) {
@@ -36,7 +36,7 @@ router.post('/seed', verifyTokenAndAdmin, async (req, res) => {
             await Expense.insertMany([
                 { id: 'EXP-001', category: 'Salary', amount: 45000, description: 'Payroll', date: new Date() }
             ]);
-            await AuditLog.insertMany([
+            await FinanceAuditLog.insertMany([
                 { id: 'AUD-001', action: 'System Init', user: 'System', details: 'Database Seeded', status: 'Success' }
             ]);
         }
@@ -57,7 +57,7 @@ router.put('/payout/:id/process', verifyTokenAndAdmin, async (req, res) => {
         
         // Log to Audit
         if (payout) {
-            await AuditLog.create({
+            await FinanceAuditLog.create({
                 id: `AUD-${Date.now()}`,
                 action: 'Payout Processed',
                 user: req.user.id || 'Admin',
@@ -81,7 +81,7 @@ router.put('/refund/:id/approve', verifyTokenAndAdmin, async (req, res) => {
         );
         
         if (refund) {
-            await AuditLog.create({
+            await FinanceAuditLog.create({
                 id: `AUD-${Date.now()}`,
                 action: 'Refund Approved',
                 user: req.user.id || 'Admin',
