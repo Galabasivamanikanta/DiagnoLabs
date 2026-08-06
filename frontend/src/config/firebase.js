@@ -59,11 +59,10 @@ isMessagingSupported().then((supported) => {
 // App Check (Security)
 export let appCheck = null;
 try {
-  // Note: Replace with your actual reCAPTCHA v3 site key from Google Cloud Console
   appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('6Ld_dummy_site_key_placeholder'),
+    provider: new ReCaptchaV3Provider('6Ld8JngtAAAAAA6G_HIZ85cZnkQcdMvXdp52Sa3L'),
     isTokenAutoRefreshEnabled: true
   });
 } catch (err) {
-  console.warn("App Check initialization failed (expected if dummy key):", err);
+  console.warn("App Check initialization failed:", err);
 }
