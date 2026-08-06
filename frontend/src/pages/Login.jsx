@@ -129,18 +129,34 @@ const Login = () => {
         e.preventDefault();
         try {
             const isEmail = forgotPhone.includes('@');
-            const payload = isEmail ? { email: forgotPhone } : { phone: forgotPhone };
             
-            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, payload);
-            
-            if (res.status === 200) {
+            if (isEmail) {
+                const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, { email: forgotPhone });
+                if (res.status === 200) {
+                    setForgotStep('otp');
+                    setTimer(60); 
+                    alert("OTP sent to your registered email!");
+                }
+            } else {
+                // Use Firebase for phone numbers (SMS)
+                setUpRecaptcha();
+                const appVerifier = window.recaptchaVerifier;
+                const formattedPhone = forgotPhone.startsWith('+') ? forgotPhone : `+91${forgotPhone}`;
+                
+                const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+                window.confirmationResult = confirmationResult;
+                
                 setForgotStep('otp');
                 setTimer(60); 
-                alert(`OTP sent to your registered ${isEmail ? 'email' : 'email (linked to your phone)'}!`);
+                alert("OTP sent to your registered phone number!");
             }
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.message || err.message || "Failed to send OTP. Check console for details.");
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+                window.recaptchaVerifier = null;
+            }
         }
     };
 
@@ -148,8 +164,16 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            // Actual verification happens during reset
-            setForgotStep('new_password');
+            const isEmail = forgotPhone.includes('@');
+            if (isEmail) {
+                // Email OTP verification happens at the reset step to avoid double token generation
+                setForgotStep('new_password');
+            } else {
+                // Phone OTP verification via Firebase
+                const confirmationResult = window.confirmationResult;
+                await confirmationResult.confirm(forgotOtp);
+                setForgotStep('new_password');
+            }
         } catch (err) {
             alert("Invalid OTP");
         } finally {
@@ -161,11 +185,25 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password-otp`, {
-                identifier: forgotPhone,
-                otp: forgotOtp,
-                newPassword: forgotNewPassword
-            });
+            const isEmail = forgotPhone.includes('@');
+            let res;
+            
+            if (isEmail) {
+                res = await axios.post(`${API_BASE_URL}/api/auth/reset-password-otp`, {
+                    identifier: forgotPhone,
+                    otp: forgotOtp,
+                    newPassword: forgotNewPassword
+                });
+            } else {
+                const user = auth.currentUser;
+                if (!user) throw new Error("User not authenticated via OTP");
+                const idToken = await user.getIdToken();
+                
+                res = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, {
+                    idToken,
+                    newPassword: forgotNewPassword
+                });
+            }
             
             if (res.status === 200) {
                 alert("Password reset successfully! Please login with your new password.");

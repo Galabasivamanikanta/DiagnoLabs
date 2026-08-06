@@ -297,18 +297,8 @@ router.delete('/:id', verifyTokenAndAuthorization, async (req, res) => {
 
 // SEND OTP
 router.post('/send-otp', async (req, res) => {
-    let { phone, email } = req.body;
+    const { phone, email } = req.body;
     try {
-        // If phone is provided but no email, lookup the user's email so we can send the OTP via email
-        if (phone && !email) {
-            const user = await User.findOne({ phone: phone });
-            if (user && user.email) {
-                email = user.email;
-            } else if (!user) {
-                return res.status(404).json({ message: "No account found with this phone number." });
-            }
-        }
-
         const result = await sendVerificationOTP(phone, email);
         if (result.success) {
             res.status(200).json({ message: "OTP sent successfully", data: result });
