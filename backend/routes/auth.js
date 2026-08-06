@@ -333,6 +333,42 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
+// RESET PASSWORD VIA INTERNAL OTP
+router.post('/reset-password-otp', async (req, res) => {
+    const { identifier, otp, newPassword } = req.body;
+    try {
+        if (!identifier || !otp || !newPassword) {
+            return res.status(400).json({ message: "Missing identifier, OTP, or new password" });
+        }
+
+        // 1. Verify OTP
+        const result = verifyOTP(identifier, otp);
+        if (!result.success) {
+            return res.status(400).json({ message: result.message });
+        }
+
+        // 2. Find user in DB
+        let user = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
+        if (!user) {
+            return res.status(404).json({ message: "User with this email/phone not found." });
+        }
+
+        // 3. Hash the new password and update
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        user.password = hashedPassword;
+        await user.save();
+
+        // 4. Clear OTP so it can't be reused
+        clearOTP(identifier);
+
+        res.status(200).json({ message: "Password reset successfully. You can now login with your new password." });
+    } catch (err) {
+        console.error("Reset Password Error:", err);
+        res.status(500).json({ message: "Password Reset Failed: " + err.message });
+    }
+});
+
 // VERIFY FIREBASE TOKEN (Phone Auth)
 router.post('/verify-firebase-token', async (req, res) => {
     const { idToken, role } = req.body;

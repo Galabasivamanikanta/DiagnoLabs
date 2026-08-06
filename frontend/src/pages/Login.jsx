@@ -128,23 +128,19 @@ const Login = () => {
     const handleForgotSendOTP = async (e) => {
         e.preventDefault();
         try {
-            setUpRecaptcha();
-            const appVerifier = window.recaptchaVerifier;
-            const formattedPhone = forgotPhone.startsWith('+') ? forgotPhone : `+91${forgotPhone}`;
+            const isEmail = forgotPhone.includes('@');
+            const payload = isEmail ? { email: forgotPhone } : { phone: forgotPhone };
             
-            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-            window.confirmationResult = confirmationResult;
+            const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, payload);
             
-            setForgotStep('otp');
-            setTimer(60); 
-            alert("OTP sent to your registered phone number!");
+            if (res.status === 200) {
+                setForgotStep('otp');
+                setTimer(60); 
+                alert(`OTP sent to your registered ${isEmail ? 'email' : 'phone number'}!`);
+            }
         } catch (err) {
             console.error(err);
-            alert("Failed to send OTP. Check console for details.");
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.clear();
-                window.recaptchaVerifier = null;
-            }
+            alert(err.response?.data?.message || "Failed to send OTP. Check console for details.");
         }
     };
 
@@ -152,8 +148,7 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            const confirmationResult = window.confirmationResult;
-            await confirmationResult.confirm(forgotOtp);
+            // We just move to the next step, actual verification happens during reset
             setForgotStep('new_password');
         } catch (err) {
             alert("Invalid OTP");
@@ -166,12 +161,9 @@ const Login = () => {
         e.preventDefault();
         setForgotVerifying(true);
         try {
-            const user = auth.currentUser;
-            if (!user) throw new Error("User not authenticated via OTP");
-            const idToken = await user.getIdToken();
-            
-            const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, {
-                idToken,
+            const res = await axios.post(`${API_BASE_URL}/api/auth/reset-password-otp`, {
+                identifier: forgotPhone,
+                otp: forgotOtp,
                 newPassword: forgotNewPassword
             });
             
@@ -945,10 +937,10 @@ const Login = () => {
                         {forgotStep === 'phone' && (
                             <form onSubmit={handleForgotSendOTP} className="flex flex-col gap-4">
                                 <div>
-                                    <label className="text-sm font-semibold text-gray-700">Phone Number</label>
+                                    <label className="text-sm font-semibold text-gray-700">Email or Phone Number</label>
                                     <input 
                                         type="text" 
-                                        placeholder="e.g. 9876543210" 
+                                        placeholder="e.g. email@example.com or 9876543210" 
                                         className="w-full px-4 py-2 mt-1 border-[1.5px] border-[#e6e8ee] rounded-[11px] outline-none focus:border-[#0a1e46]"
                                         value={forgotPhone}
                                         onChange={(e) => setForgotPhone(e.target.value)}
