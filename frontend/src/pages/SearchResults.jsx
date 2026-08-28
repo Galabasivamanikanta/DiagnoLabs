@@ -212,7 +212,7 @@ const SearchResults = () => {
                             filteredTests.map((test, index) => {
                                 const theme = getIconColor(test.testName);
                                 return (
-                                    <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack test-card-compact" style={{
+                                    <div key={test._id} className="glass-card premium-card animate-fade-in mobile-stack test-card-compact search-test-card" style={{
                                         display: 'flex',
                                         flexWrap: 'wrap',
                                         gap: 'clamp(1rem, 2vw, 2rem)',
@@ -228,7 +228,7 @@ const SearchResults = () => {
                                         overflow: 'hidden'
                                     }}>
                                         {/* Accuracy Ribbon */}
-                                        <div style={{ flex: 1, minWidth: '0' }}>
+                                        <div className="search-test-main" style={{ flex: 1, minWidth: '0' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
                                                 <div style={{
                                                     width: 'clamp(44px, 8vw, 64px)',
@@ -342,7 +342,7 @@ const SearchResults = () => {
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                        <div className="search-test-action" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
                                                     <span style={{ fontSize: 'clamp(0.9rem, 2vw, 1.3rem)', fontWeight: '800', color: 'var(--text-main)' }}>₹</span>
@@ -381,27 +381,52 @@ const SearchResults = () => {
                     box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.1) !important;
                     border-color: hsla(var(--primary-hsl), 0.3) !important;
                 }
+                .search-test-card {
+                    display: grid !important;
+                    grid-template-columns: minmax(0, 1fr) !important;
+                    gap: 1.15rem !important;
+                    align-items: stretch !important;
+                    min-height: 0;
+                    padding: 1.35rem !important;
+                    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+                }
+                .search-test-main { min-width: 0 !important; }
+                .search-test-main > div:first-child { margin-bottom: 0.65rem !important; }
+                .search-test-main h3 { max-width: 100%; }
+                .search-test-action {
+                    min-width: 0;
+                    width: 100%;
+                    margin-left: 0 !important;
+                    padding-top: 1rem;
+                    border-top: 1px solid rgba(148, 163, 184, 0.22);
+                    display: grid !important;
+                    grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
+                    gap: 1rem !important;
+                    align-items: center;
+                }
+                .search-test-action > div { align-items: flex-start !important; }
+                .search-test-action button { width: 100%; min-width: 0; justify-content: center; }
                 @media (max-width: 950px) {
-                    .premium-card {
-                        flex-direction: column !important;
+                    .search-test-card {
+                        display: grid !important;
+                        grid-template-columns: 1fr !important;
                         align-items: flex-start !important;
                         padding: 1.5rem !important;
                     }
-                    .premium-card > div:first-child {
+                    .search-test-card > .search-test-main {
                         width: 100% !important;
                     }
-                    div[style*="marginLeft: '5.4rem'"] {
+                    .search-test-card .test-card-details {
                         margin-left: 0 !important;
                         margin-top: 1.5rem !important;
                         gap: 1rem !important;
                     }
-                    div[style*="textAlign: 'right'"] {
+                    .search-test-action {
                         width: 100% !important;
-                        flex-direction: row !important;
-                        justify-content: space-between !important;
-                        margin-top: 2rem !important;
-                        border-top: 1px solid var(--border-light);
-                        padding-top: 1.5rem !important;
+                        grid-template-columns: minmax(90px, auto) minmax(0, 1fr) !important;
+                        margin-top: 0 !important;
+                        border-top: 1px solid rgba(148, 163, 184, 0.22);
+                        padding-top: 1rem !important;
                         text-align: left !important;
                         align-items: center !important;
                     }
@@ -410,15 +435,15 @@ const SearchResults = () => {
                     }
                 }
                 @media (max-width: 600px) {
-                    div[style*="textAlign: 'right'"] {
-                        flex-direction: column !important;
-                        align-items: flex-start !important;
+                    .search-test-action {
+                        grid-template-columns: 1fr !important;
+                        align-items: stretch !important;
                         gap: 1.5rem !important;
                     }
-                    div[style*="textAlign: 'right'"] button {
+                    .search-test-action button {
                         width: 100% !important;
                     }
-                    div[style*="fontSize: '2.8rem'"] {
+                    .search-test-action span[style*="fontSize"] {
                         font-size: 2.2rem !important;
                     }
                 }

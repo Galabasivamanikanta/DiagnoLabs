@@ -156,32 +156,37 @@ const LabDetails = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
+                            <div className="diagnostic-test-grid">
                                 {filteredTests.map((test) => (
-                                    <div key={test._id} className="glass-card premium-card" style={{ padding: '2rem', background: 'white', borderRadius: '28px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
-                                            <div style={{ width: '50px', height: '50px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <FlaskConical size={24} />
+                                    <article key={test._id} className="diagnostic-test-card premium-card">
+                                        <div className="diagnostic-test-icon">
+                                            <FlaskConical size={24} />
+                                        </div>
+                                        <div className="diagnostic-test-content">
+                                            <div className="diagnostic-test-badges">
+                                                <span>{test.category || 'Clinical Test'}</span>
+                                                {test.isNablAccredited && <span>NABL</span>}
                                             </div>
-                                            <div style={{ padding: '0.4rem 0.8rem', background: '#f8fafc', borderRadius: '100px', fontSize: '0.65rem', fontWeight: '900', color: '#64748b', border: '1px solid #e2e8f0' }}>
-                                                {test.category || 'Clinical Test'}
+                                            <h3>{test.testName}</h3>
+                                            <div className="diagnostic-test-meta">
+                                                <span><MapPin size={14} /> {lab.city || 'Local centre'}</span>
+                                                <span><Clock size={14} /> Results in 24 hours</span>
                                             </div>
                                         </div>
-                                        <h3 style={{ fontSize: '1.35rem', fontWeight: '900', marginBottom: '1.5rem', color: '#0f172a' }}>{test.testName}</h3>
-                                        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div className="diagnostic-test-action">
                                             <div>
-                                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase' }}>FEE PORTFOLIO</div>
-                                                <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a' }}>₹{test.price}</div>
+                                                <div className="diagnostic-test-fee-label">TEST FEE</div>
+                                                <div className="diagnostic-test-price">₹{test.discountedPrice || test.price}</div>
                                             </div>
                                             <button 
                                                 onClick={() => navigate('/checkout', { state: { test } })}
                                                 className="btn btn-primary" 
-                                                style={{ width: '50px', height: '50px', padding: 0, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                aria-label={`Book ${test.testName}`}
                                             >
-                                                <ArrowRight size={20} />
+                                                Book Appointment <ArrowRight size={18} />
                                             </button>
                                         </div>
-                                    </div>
+                                    </article>
                                 ))}
                             </div>
                         </div>
@@ -256,6 +261,33 @@ const LabDetails = () => {
                 }
                 .premium-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
                 .premium-card:hover { border-color: var(--primary) !important; transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+                .diagnostic-test-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+                .diagnostic-test-card {
+                    display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 1.25rem; align-items: center;
+                    padding: 1.25rem 1.4rem; background: white; border: 1px solid #e2e8f0; border-radius: 22px;
+                }
+                .diagnostic-test-icon {
+                    width: 58px; height: 58px; display: flex; align-items: center; justify-content: center;
+                    color: var(--primary); background: var(--primary-light); border-radius: 16px;
+                }
+                .diagnostic-test-badges { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+                .diagnostic-test-badges span {
+                    padding: 0.28rem 0.6rem; border-radius: 999px; background: #f1f5f9; color: #475569;
+                    border: 1px solid #e2e8f0; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em;
+                }
+                .diagnostic-test-content h3 { margin: 0 0 0.55rem; color: #0f172a; font-size: 1.2rem; font-weight: 900; }
+                .diagnostic-test-meta { display: flex; gap: 1rem; flex-wrap: wrap; color: #64748b; font-size: 0.8rem; font-weight: 700; }
+                .diagnostic-test-meta span { display: inline-flex; align-items: center; gap: 0.35rem; }
+                .diagnostic-test-action { display: flex; align-items: center; gap: 1.25rem; }
+                .diagnostic-test-fee-label { color: #94a3b8; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.06em; }
+                .diagnostic-test-price { color: #0f172a; font-size: 1.65rem; font-weight: 900; white-space: nowrap; }
+                .diagnostic-test-action .btn { min-height: 52px; padding: 0.85rem 1.35rem; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem; white-space: nowrap; }
+                @media (max-width: 700px) {
+                    .diagnostic-test-card { grid-template-columns: 48px minmax(0, 1fr); gap: 0.9rem; padding: 1rem; }
+                    .diagnostic-test-icon { width: 48px; height: 48px; border-radius: 13px; }
+                    .diagnostic-test-content h3 { font-size: 1.05rem; }
+                    .diagnostic-test-action { grid-column: 1 / -1; justify-content: space-between; padding-top: 0.8rem; border-top: 1px solid #eef2f6; }
+                }
             `}</style>
         </div>
     );
