@@ -538,7 +538,10 @@ const ChatBot = () => {
             chatHistory = chatHistory.slice(-8);
             if (chatHistory.length > 0 && chatHistory[0].role === 'model') chatHistory.shift();
 
-            const geminiKey = import.meta.env.VITE_GEMINI_KEY;
+            const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!geminiKey) {
+                throw new Error('VITE_GEMINI_API_KEY environment variable is not set. Please configure your .env file with a valid Gemini API key from https://aistudio.google.com/app/apikey');
+            }
             const genAI = new GoogleGenerativeAI(geminiKey);
             const model = genAI.getGenerativeModel({ 
                 model: "gemini-3.5-flash",

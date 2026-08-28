@@ -204,8 +204,8 @@ router.post('/google', async (req, res) => {
                 customerId = `DL-${year}${month}-${rnd}`;
                 existing = await User.findOne({ customerId });
             } while (existing);
+            await User.updateOne({ _id: user._id }, { $set: { customerId } });
             user.customerId = customerId;
-            await user.save();
             sendCustomerIdNotification({ name: user.name, email: user.email, phone: user.phone, customerId: user.customerId }).catch(e => console.error("ID Notification Error:", e));
         }
 

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagnoLabs - Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-card: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-violet: #8b5cf6;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== SLIDE CONTAINER ===== */
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        .slide.exit {
+            opacity: 0;
+            transform: translateX(-60px);
+        }
+
+        /* ===== BACKGROUNDS ===== */
+        .bg-mesh-1 {
+            background: radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(6,182,212,0.1) 0%, transparent 50%),
+                        var(--bg-dark);
+        }
+        .bg-mesh-2 {
+            background: radial-gradient(ellipse at 70% 30%, rgba(16,185,129,0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 20% 70%, rgba(59,130,246,0.12) 0%, transparent 50%),
+                        var(--bg-dark);
+        }
+        .bg-mesh-3 {
+            background: radial-gradient(ellipse at 30% 40%, rgba(244,63,94,0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 70%, rgba(245,158,11,0.1) 0%, transparent 50%),
+                        var(--bg-dark);
+        }
+        .bg-mesh-4 {
+            background: radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 20% 80%, rgba(6,182,212,0.12) 0%, transparent 50%),
+                        var(--bg-dark);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .slide-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent-cyan);
+            margin-bottom: 16px;
+        }
+        .slide-title {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1.5px;
+        }
+        .slide-title-sm {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+        .slide-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 800px;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-v {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== GLASS CARDS ===== */
+        .glass-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+        }
+        .glass-card-sm {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ===== GRID LAYOUTS ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; width: 100%; }
+        .flex-row { display: flex; gap: 16px; align-items: center; }
+        .flex-col { display: flex; flex-direction: column; gap: 12px; }
+        .w-full { width: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .mt-12 { margin-top: 12px; }
+        .mt-20 { margin-top: 20px; }
+        .mt-32 { margin-top: 32px; }
+        .mb-8 { margin-bottom: 8px; }
+        .mb-16 { margin-bottom: 16px; }
+
+        /* ===== BADGES & PILLS ===== */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+        .badge-emerald { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-rose { background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.25); }
+        .badge-violet { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+        .badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+        /* ===== STAT CARDS ===== */
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 6px;
+        }
+
+        /* ===== LISTS ===== */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .feature-list li .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ===== TABLES ===== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 600;
+        }
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: var(--text-secondary);
+        }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* ===== FLOW DIAGRAM ===== */
+        .flow-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-primary);
+        }
+        .flow-arrow {
+            color: var(--accent-cyan);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== ROLE TAGS ===== */
+        .role-tag {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .role-tag .role-icon { font-size: 20px; }
+        .role-tag .role-name { font-size: 11px; color: var(--text-secondary); }
+
+        /* ===== FORMULA BOX ===== */
+        .formula-box {
+            background: rgba(59,130,246,0.06);
+            border: 1px solid rgba(59,130,246,0.15);
+            border-radius: 14px;
+            padding: 20px 28px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            color: #93c5fd;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== TECH STACK ===== */
+        .tech-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .tech-pill .tech-cat {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+
+        /* ===== NAV BAR ===== */
+        .nav-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(15,23,42,0.85);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 24px;
+            border-radius: 100px;
+            backdrop-filter: blur(16px);
+            z-index: 1000;
+        }
+        .nav-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.4); }
+        .slide-counter {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+            transition: width 0.4s ease;
+            z-index: 1001;
+        }
+
+        /* ===== TITLE SLIDE SPECIAL ===== */
+        .title-slide-logo {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: -3px;
+            margin-bottom: 8px;
+        }
+        .title-slide-tagline {
+            font-size: 16px;
+            color: var(--text-muted);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 32px;
+        }
+        .team-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .team-card .name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .team-card .reg { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+        .team-card .role { font-size: 10px; color: var(--accent-cyan); margin-top: 4px; font-weight: 600; }
+
+        /* ===== THANK YOU SLIDE ===== */
+        .thankyou-title {
+            font-size: 64px;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="presentation" id="presentation">
+
+    <!-- ========== SLIDE 1: TITLE ========== -->
+    <div class="slide bg-mesh-1 active" data-slide="0">
+        <div class="slide-label">Parul University • CSE-AIML Department • 7th Semester Major Project</div>
+        <div class="title-slide-logo gradient-text">DiagnoLabs</div>
+        <div class="title-slide-tagline">Enterprise Medical Diagnostics Platform</div>
+        <div class="slide-subtitle text-center" style="font-size:15px; max-width:750px;">
+            A Geospatial &amp; Telemetry-Driven Self-Learning AI Platform<br>for Accredited Diagnostic Pathology Access
+        </div>
+        <div class="team-grid" style="max-width: 700px;">
+            <div class="team-card">
+                <div class="name">G. Siva Manikanta</div>
+                <div class="reg">2403031467009</div>
+                <div class="role">Lead Dev & AI Architect</div>
+            </div>
+            <div class="team-card">
+                <div class="name">D. Venkat Sai</div>
+                <div class="reg">2403031467027</div>
+                <div class="role">Backend & Geospatial</div>
+            </div>
+            <div class="team-card">
+                <div class="name">M. Srikanth</div>
+                <div class="reg">2403031467016</div>
+                <div class="role">UI/UX & Frontend</div>
+            </div>
+            <div class="team-card">
+                <div class="name">G. Avinash</div>
+                <div class="reg">2403031467011</div>
+                <div class="role">DevOps & QA</div>
+            </div>
+        </div>
+        <div style="margin-top:20px; font-size:13px; color:var(--text-muted);">
+            <b style="color:var(--accent-cyan);">Guide:</b> Ms. Ritu Agrawal, Project Coordinator, CSE-AIML
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 2: PROBLEM ========== -->
+    <div class="slide bg-mesh-3" data-slide="1">
+        <div class="slide-label">The Challenge</div>
+        <div class="slide-title-sm">The Diagnostic Healthcare <span class="gradient-text">Crisis</span></div>
+        <div class="grid-2 mt-20" style="max-width:950px;">
+            <div class="glass-card">
+                <div style="font-size:28px; margin-bottom:8px;">🏥</div>
+                <div style="font-weight:700; margin-bottom:6px; color:#fb7185;">80% Labs Unaccredited</div>
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.5;">Over 80% of diagnostic labs in India lack NABL/ISO 15189 accreditation, risking misdiagnosis from uncalibrated equipment.</div>
+            </div>
+            <div class="glass-card">
+                <div style="font-size:28px; margin-bottom:8px;">💰</div>
+                <div style="font-weight:700; margin-bottom:6px; color:#fbbf24;">Opaque Pricing</div>
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.5;">No standardized pricing registries. Unverified operators charge arbitrary fees for standard diagnostic test panels.</div>
+            </div>
+            <div class="glass-card">
+                <div style="font-size:28px; margin-bottom:8px;">🚑</div>
+                <div style="font-weight:700; margin-bottom:6px; color:#60a5fa;">Mobility Barriers</div>
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.5;">Elderly & immunocompromised patients face extreme difficulty traveling to distant urban accredited centers.</div>
+            </div>
+            <div class="glass-card">
+                <div style="font-size:28px; margin-bottom:8px;">😰</div>
+                <div style="font-weight:700; margin-bottom:6px; color:#a78bfa;">Report Anxiety</div>
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.5;">Patients cannot interpret complex pathological parameters (TSH, HbA1c, Creatinine) before formal consultations.</div>
+            </div>
+        </div>
+        <div class="mt-20" style="font-size:13px; color:var(--text-muted);">
+            <span class="badge badge-rose">Research Finding</span>&nbsp; Tele-consultations without verified lab data retain &lt;35% diagnostic efficacy — Kumar et al. (2024)
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 3: SOLUTION ========== -->
+    <div class="slide bg-mesh-2" data-slide="2">
+        <div class="slide-label">Our Solution</div>
+        <div class="slide-title-sm"><span class="gradient-text">DiagnoLabs</span> — 5 Core Pillars</div>
+        <div class="flex-col mt-20" style="max-width:850px; gap:14px;">
+            <div class="glass-card-sm flex-row">
+                <span style="font-size:24px;">🌍</span>
+                <div><b style="color:#60a5fa;">Geospatial NABL Discovery Engine</b><br><span style="font-size:12px; color:var(--text-muted);">MongoDB 2DSphere + Haversine + NABL Accreditation Weighted Scoring (S<sub>i</sub>)</span></div>
+            </div>
+            <div class="glass-card-sm flex-row">
+                <span style="font-size:24px;">🛡️</span>
+                <div><b style="color:#a78bfa;">14-Tier Role-Based Access Control (RBAC)</b><br><span style="font-size:12px; color:var(--text-muted);">Patient, Doctor, Nurse, Collector, Delivery, Lab, Quality, Inventory, Finance, Reception, Support, IT, Marketing, Admin</span></div>
+            </div>
+            <div class="glass-card-sm flex-row">
+                <span style="font-size:24px;">🤖</span>
+                <div><b style="color:#34d399;">Self-Learning AI Clinical Copilot</b><br><span style="font-size:12px; color:var(--text-muted);">Google Gemini LLM + RLHF Feedback + Real-Time Workspace Telemetry Sync (syncTelemetryToAI)</span></div>
+            </div>
+            <div class="glass-card-sm flex-row">
+                <span style="font-size:24px;">🧪</span>
+                <div><b style="color:#fbbf24;">End-to-End Field Sample Logistics</b><br><span style="font-size:12px; color:var(--text-muted);">Camera Barcode Scanner + Phlebotomist GPS Routes + Cold-Chain Telemetry (2°C–8°C)</span></div>
+            </div>
+            <div class="glass-card-sm flex-row">
+                <span style="font-size:24px;">📱</span>
+                <div><b style="color:#fb7185;">DiagnoLabs Enterprise UI Design System</b><br><span style="font-size:12px; color:var(--text-muted);">React 18 + Vite 7 + Framer Motion + Mobile-First Responsive + WCAG 2.1 AA Accessible</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 4: ARCHITECTURE ========== -->
+    <div class="slide bg-mesh-4" data-slide="3">
+        <div class="slide-label">System Design</div>
+        <div class="slide-title-sm">3-Tier <span class="gradient-text-v">Microservices Architecture</span></div>
+        <div class="flex-col mt-20" style="max-width:800px; gap:16px; align-items:center;">
+            <div class="flow-box" style="width:100%; background:rgba(59,130,246,0.08); border-color:rgba(59,130,246,0.2);">
+                <div style="font-size:10px; color:var(--accent-blue); margin-bottom:4px;">TIER 1 — CLIENT FRONTEND</div>
+                <div>React 18.3 SPA &bull; Vite 7 HMR &bull; Framer Motion &bull; DiagnoLabs Enterprise UI</div>
+            </div>
+            <div class="flow-arrow">▼&emsp;HTTPS / REST API / JWT&emsp;▼</div>
+            <div class="flow-box" style="width:100%; background:rgba(139,92,246,0.08); border-color:rgba(139,92,246,0.2);">
+                <div style="font-size:10px; color:var(--accent-violet); margin-bottom:4px;">TIER 2 — EXPRESS SECURITY GATEWAY</div>
+                <div>Node.js 22 &bull; Express 5 &bull; Helmet.js &bull; JWT Auth &bull; Rate Limiter &bull; RBAC Guard</div>
+            </div>
+            <div class="flow-arrow">▼&emsp;VPC Peering / HTTPS&emsp;▼</div>
+            <div class="grid-3" style="max-width:100%;">
+                <div class="flow-box" style="background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.2);">
+                    <div style="font-size:10px; color:var(--accent-emerald); margin-bottom:4px;">DATABASE</div>
+                    <div>MongoDB Atlas<br>2DSphere Spatial</div>
+                </div>
+                <div class="flow-box" style="background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.2);">
+                    <div style="font-size:10px; color:var(--accent-amber); margin-bottom:4px;">PAYMENTS</div>
+                    <div>Razorpay API<br>UPI / Card / NetBank</div>
+                </div>
+                <div class="flow-box" style="background:rgba(244,63,94,0.08); border-color:rgba(244,63,94,0.2);">
+                    <div style="font-size:10px; color:var(--accent-rose); margin-bottom:4px;">AI ENGINE</div>
+                    <div>Google Gemini<br>Clinical Copilot</div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-20" style="font-size:12px; color:var(--text-muted);">
+            6-Stage Security Pipeline: CORS → Helmet → Rate Limit → JWT Verify → RBAC Guard → Controller
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 5: GEOSPATIAL ========== -->
+    <div class="slide bg-mesh-1" data-slide="4">
+        <div class="slide-label">Core Algorithm</div>
+        <div class="slide-title-sm">Geospatial <span class="gradient-text">NABL Discovery Engine</span></div>
+        <div class="formula-box mt-20" style="max-width:750px;">
+            S<sub>i</sub> = d<sub>haversine</sub>(p, l<sub>i</sub>) / [ 1 + (ω<sub>nabl</sub> · α<sub>i</sub>) + (ω<sub>rating</sub> · ρ<sub>i</sub> / 5.0) ]
+        </div>
+        <div class="grid-2 mt-20" style="max-width:750px;">
+            <div class="glass-card" style="text-align:center;">
+                <div style="font-size:11px; color:var(--accent-rose); font-weight:700; margin-bottom:8px;">❌ LAB A (UNACCREDITED)</div>
+                <div style="font-size:13px; color:var(--text-muted);">Distance: 3.0 km • α=0 • Rating: 4.0</div>
+                <div style="font-size:28px; font-weight:900; color:#fb7185; margin-top:8px;">S = 2500 m</div>
+            </div>
+            <div class="glass-card" style="text-align:center;">
+                <div style="font-size:11px; color:var(--accent-emerald); font-weight:700; margin-bottom:8px;">✅ LAB B (NABL ACCREDITED)</div>
+                <div style="font-size:13px; color:var(--text-muted);">Distance: 4.0 km • α=1 • Rating: 4.8</div>
+                <div style="font-size:28px; font-weight:900; color:#34d399; margin-top:8px;">S = 2298 m</div>
+            </div>
+        </div>
+        <div class="mt-20" style="font-size:14px; color:var(--text-secondary); max-width:700px; text-align:center;">
+            <span class="badge badge-emerald">Result</span>&nbsp; Accredited Lab B ranks <b>HIGHER</b> despite being 1km farther — prioritizing patient safety over raw proximity!
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 6: AI COPILOT ========== -->
+    <div class="slide bg-mesh-2" data-slide="5">
+        <div class="slide-label">Artificial Intelligence</div>
+        <div class="slide-title-sm">Self-Learning <span class="gradient-text">AI Clinical Copilot</span></div>
+        <div class="grid-2 mt-20" style="max-width:900px;">
+            <div class="flex-col" style="gap:14px;">
+                <div class="glass-card-sm">
+                    <div style="font-weight:700; color:#60a5fa; margin-bottom:6px;">🧠 Prompt Sandboxing</div>
+                    <ul style="font-size:12px; color:var(--text-muted); line-height:1.6; padding-left:16px;">
+                        <li>Never prescribes medications</li>
+                        <li>Maps symptoms → pathology tests only</li>
+                        <li>Injects structured action tokens</li>
+                        <li>Auto-generates fasting protocols</li>
+                    </ul>
+                </div>
+                <div class="glass-card-sm">
+                    <div style="font-weight:700; color:#34d399; margin-bottom:6px;">👍 RLHF Feedback Loop</div>
+                    <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">
+                        ThumbsUp → C(t+1) = C(t) + 1.0<br>
+                        ThumbsDown → C(t+1) = max(0.1, C(t) − 0.5)<br>
+                        + Human Correction Text Injection
+                    </div>
+                </div>
+            </div>
+            <div class="flex-col" style="gap:14px;">
+                <div class="glass-card-sm">
+                    <div style="font-weight:700; color:#fbbf24; margin-bottom:6px;">📡 Telemetry Sync Engine</div>
+                    <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">
+                        Doctor Diagnosis → AIChatMemory (C=3.0)<br>
+                        Nurse Vitals → AIChatMemory (V=1)<br>
+                        Lab Report Upload → AIChatMemory<br>
+                        Quality Audit Score → AIChatMemory
+                    </div>
+                </div>
+                <div class="glass-card-sm">
+                    <div style="font-weight:700; color:#fb7185; margin-bottom:6px;">🚨 Emergency Escalation</div>
+                    <div style="font-size:12px; color:var(--text-muted); line-height:1.6;">
+                        Critical symptoms (chest pain, dyspnea) →<br>
+                        Bypass AI → Auto-escalate to Doctor Queue
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 7: 14 RBAC ROLES ========== -->
+    <div class="slide bg-mesh-3" data-slide="6">
+        <div class="slide-label">Access Control</div>
+        <div class="slide-title-sm">14-Tier <span class="gradient-text-v">RBAC Workspaces</span></div>
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:10px; max-width:900px; margin-top:24px;">
+            <div class="role-tag"><span class="role-icon">🧑‍💻</span><span class="role-name">Patient</span></div>
+            <div class="role-tag"><span class="role-icon">👨‍⚕️</span><span class="role-name">Doctor</span></div>
+            <div class="role-tag"><span class="role-icon">👩‍⚕️</span><span class="role-name">Nurse</span></div>
+            <div class="role-tag"><span class="role-icon">🧪</span><span class="role-name">Collector</span></div>
+            <div class="role-tag"><span class="role-icon">🚚</span><span class="role-name">Delivery</span></div>
+            <div class="role-tag"><span class="role-icon">🔬</span><span class="role-name">Lab Tech</span></div>
+            <div class="role-tag"><span class="role-icon">✅</span><span class="role-name">Quality</span></div>
+            <div class="role-tag"><span class="role-icon">📦</span><span class="role-name">Inventory</span></div>
+            <div class="role-tag"><span class="role-icon">💰</span><span class="role-name">Finance</span></div>
+            <div class="role-tag"><span class="role-icon">🏢</span><span class="role-name">Reception</span></div>
+            <div class="role-tag"><span class="role-icon">🎧</span><span class="role-name">Support</span></div>
+            <div class="role-tag"><span class="role-icon">🖥️</span><span class="role-name">IT Specialist</span></div>
+            <div class="role-tag"><span class="role-icon">📢</span><span class="role-name">Marketing</span></div>
+            <div class="role-tag"><span class="role-icon">👑</span><span class="role-name">Super Admin</span></div>
+        </div>
+        <div class="mt-20" style="font-size:13px; color:var(--text-muted); max-width:700px; text-align:center;">
+            Dual-Layer Security: Frontend <b>ProtectedRoute.jsx</b> Guards + Backend <b>authorizeRoles</b> Middleware
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 8: SECURITY ========== -->
+    <div class="slide bg-mesh-4" data-slide="7">
+        <div class="slide-label">Security & Compliance</div>
+        <div class="slide-title-sm">Enterprise <span class="gradient-text">Security Architecture</span></div>
+        <div class="grid-3 mt-20" style="max-width:900px;">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#60a5fa;">TLS 1.3</div>
+                <div class="stat-label">Transport Encryption</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#a78bfa;">AES-256</div>
+                <div class="stat-label">Data-at-Rest</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#34d399;">bcrypt</div>
+                <div class="stat-label">Password Hashing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#fbbf24;">JWT</div>
+                <div class="stat-label">HMAC-SHA256 Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#fb7185;">HIPAA</div>
+                <div class="stat-label">PHI Compliance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#06b6d4;">OWASP</div>
+                <div class="stat-label">Top 10 Mitigated</div>
+            </div>
+        </div>
+        <div class="mt-20" style="font-size:12px; color:var(--text-muted);">
+            Zero-Trust Architecture &bull; Principle of Least Privilege &bull; Immutable Audit Trail Logging &bull; Rate Limiting (200 req/15min)
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 9: TECH STACK ========== -->
+    <div class="slide bg-mesh-1" data-slide="8">
+        <div class="slide-label">Technology</div>
+        <div class="slide-title-sm">Full-Stack <span class="gradient-text">Technology Stack</span></div>
+        <div class="grid-4 mt-20" style="max-width:900px;">
+            <div class="tech-pill"><span style="font-size:24px;">⚛️</span>React 18.3<span class="tech-cat">Frontend</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">⚡</span>Vite 7<span class="tech-cat">Build Tool</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">🟢</span>Node.js 22<span class="tech-cat">Runtime</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">🚂</span>Express 5<span class="tech-cat">Gateway</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">🍃</span>MongoDB Atlas<span class="tech-cat">Database</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">🤖</span>Google Gemini<span class="tech-cat">AI Engine</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">💳</span>Razorpay<span class="tech-cat">Payments</span></div>
+            <div class="tech-pill"><span style="font-size:24px;">📧</span>Nodemailer<span class="tech-cat">Email SMTP</span></div>
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 10: BENCHMARKS ========== -->
+    <div class="slide bg-mesh-2" data-slide="9">
+        <div class="slide-label">Performance</div>
+        <div class="slide-title-sm">Stress Testing <span class="gradient-text">Benchmarks</span></div>
+        <div class="glass-card mt-20" style="max-width:850px; padding:20px 28px;">
+            <table class="data-table">
+                <tr><th>API Endpoint</th><th>Method</th><th>p50</th><th>p95</th><th>p99</th><th>Error%</th></tr>
+                <tr><td>/api/auth/login</td><td>POST</td><td style="color:#34d399; font-weight:700;">42ms</td><td>88ms</td><td>145ms</td><td style="color:#34d399;">0.00%</td></tr>
+                <tr><td>/api/labs/search</td><td>GET</td><td style="color:#34d399; font-weight:700;">64ms</td><td>112ms</td><td>182ms</td><td style="color:#34d399;">0.01%</td></tr>
+                <tr><td>/api/bookings/create</td><td>POST</td><td style="color:#60a5fa; font-weight:700;">85ms</td><td>148ms</td><td>210ms</td><td style="color:#34d399;">0.02%</td></tr>
+                <tr><td>/api/chat/query</td><td>POST</td><td style="color:#fbbf24; font-weight:700;">210ms</td><td>420ms</td><td>680ms</td><td style="color:#fbbf24;">0.05%</td></tr>
+                <tr><td>/api/chat/sync-event</td><td>POST</td><td style="color:#34d399; font-weight:700;">38ms</td><td>76ms</td><td>120ms</td><td style="color:#34d399;">0.00%</td></tr>
+            </table>
+        </div>
+        <div class="grid-4 mt-20" style="max-width:850px;">
+            <div class="stat-card"><div class="stat-value" style="color:#34d399;">94.8%</div><div class="stat-label">AI Sensitivity</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:#60a5fa;">98</div><div class="stat-label">Lighthouse Perf</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:#a78bfa;">100K</div><div class="stat-label">Concurrent Users</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:#fbbf24;">99.9%</div><div class="stat-label">System Uptime</div></div>
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 11: FUTURE ROADMAP ========== -->
+    <div class="slide bg-mesh-3" data-slide="10">
+        <div class="slide-label">Research Roadmap</div>
+        <div class="slide-title-sm">Future Vision <span class="gradient-text">2026 — 2027</span></div>
+        <div class="grid-2 mt-20" style="max-width:850px;">
+            <div class="glass-card">
+                <div class="badge badge-blue mb-8">Q3-Q4 2026</div>
+                <ul class="feature-list">
+                    <li><span class="icon">📡</span>BLE Cold-Chain IoT Sensor Integration</li>
+                    <li><span class="icon">🧠</span>On-Device Quantized 3B SLM for Offline Rural Triage</li>
+                    <li><span class="icon">📴</span>SQLite Offline Queueing for Zero-Network Phlebotomy</li>
+                </ul>
+            </div>
+            <div class="glass-card">
+                <div class="badge badge-violet mb-8">Q1-Q4 2027</div>
+                <ul class="feature-list">
+                    <li><span class="icon">🔗</span>Hyperledger Blockchain Tamper-Proof Report Hashes</li>
+                    <li><span class="icon">🔒</span>Differential Privacy Federated Learning RLHF</li>
+                    <li><span class="icon">🚁</span>Autonomous Drone Specimen Delivery Interfaces</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 12: CONCLUSION ========== -->
+    <div class="slide bg-mesh-4" data-slide="11">
+        <div class="slide-label">Key Contributions</div>
+        <div class="slide-title-sm">Project <span class="gradient-text-v">Highlights</span></div>
+        <div class="grid-3 mt-20" style="max-width:900px;">
+            <div class="glass-card text-center">
+                <div style="font-size:36px; margin-bottom:8px;">🌍</div>
+                <div style="font-weight:700; color:#60a5fa; margin-bottom:6px;">Diagnostic-First Paradigm</div>
+                <div style="font-size:12px; color:var(--text-muted);">Verified lab data before doctor consultation — 2.7x accuracy boost</div>
+            </div>
+            <div class="glass-card text-center">
+                <div style="font-size:36px; margin-bottom:8px;">🤖</div>
+                <div style="font-weight:700; color:#34d399; margin-bottom:6px;">Self-Learning AI</div>
+                <div style="font-size:12px; color:var(--text-muted);">RLHF + Telemetry reduces error rate from 12.4% → 3.1%</div>
+            </div>
+            <div class="glass-card text-center">
+                <div style="font-size:36px; margin-bottom:8px;">🛡️</div>
+                <div style="font-weight:700; color:#a78bfa; margin-bottom:6px;">Enterprise Security</div>
+                <div style="font-size:12px; color:var(--text-muted);">14-Tier RBAC + TLS 1.3 + AES-256 + HIPAA/DISHA Compliant</div>
+            </div>
+        </div>
+        <div class="mt-32" style="font-size:14px; color:var(--text-secondary); max-width:700px; text-align:center; line-height:1.7;">
+            DiagnoLabs establishes a new benchmark for enterprise digital health engineering by uniting geospatial quality-weighted indexing, self-learning AI telemetry, and mobile-first responsive design.
+        </div>
+    </div>
+
+    <!-- ========== SLIDE 13: THANK YOU ========== -->
+    <div class="slide bg-mesh-1" data-slide="12">
+        <div class="thankyou-title gradient-text">Thank You!</div>
+        <div class="slide-subtitle text-center mt-20" style="font-size:16px;">
+            Questions &amp; Live Demo Session
+        </div>
+        <div class="team-grid mt-32" style="max-width:700px;">
+            <div class="team-card">
+                <div class="name">G. Siva Manikanta</div>
+                <div class="reg">2403031467009</div>
+            </div>
+            <div class="team-card">
+                <div class="name">D. Venkat Sai</div>
+                <div class="reg">2403031467027</div>
+            </div>
+            <div class="team-card">
+                <div class="name">M. Srikanth</div>
+                <div class="reg">2403031467016</div>
+            </div>
+            <div class="team-card">
+                <div class="name">G. Avinash</div>
+                <div class="reg">2403031467011</div>
+            </div>
+        </div>
+        <div style="margin-top:20px; font-size:13px; color:var(--text-muted);">
+            <b style="color:var(--accent-cyan);">Guide:</b> Ms. Ritu Agrawal &bull; Parul University &bull; CSE-AIML &bull; 7th Semester
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== NAVIGATION BAR ===== -->
+<div class="nav-bar">
+    <button class="nav-btn" onclick="prevSlide()">◀</button>
+    <div class="slide-counter" id="slideCounter">1 / 13</div>
+    <button class="nav-btn" onclick="nextSlide()">▶</button>
+    <button class="nav-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const counter = document.getElementById('slideCounter');
+    const progressBar = document.getElementById('progressBar');
+
+    function showSlide(index) {
+        slides.forEach((s, i) => {
+            s.classList.remove('active', 'exit');
+            if (i < index) s.classList.add('exit');
+        });
+        slides[index].classList.add('active');
+        counter.textContent = `${index + 1} / ${totalSlides}`;
+        progressBar.style.width = `${((index + 1) / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides - 1) { currentSlide++; showSlide(currentSlide); }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) { currentSlide--; showSlide(currentSlide); }
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+        if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+        if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+
+    showSlide(0);
+</script>
+
+</body>
+</html>

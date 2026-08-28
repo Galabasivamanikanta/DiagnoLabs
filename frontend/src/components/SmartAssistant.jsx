@@ -27,7 +27,11 @@ const SmartAssistant = () => {
         // Initialize Gemini model when component mounts
         try {
             // NOTE: For a real app, do not expose Gemini API keys in the frontend. Use a backend proxy.
-            const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY);
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) {
+                throw new Error('VITE_GEMINI_API_KEY environment variable is not set. Please get an API key from https://aistudio.google.com/app/apikey');
+            }
+            const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({ 
                 model: "gemini-1.5-flash",
                 systemInstruction: "You are a helpful, empathetic, and professional AI assistant for DiagnoLabs, a clinical pathology lab. You help users understand diagnostic tests, booking procedures, and general health info. Never give formal medical diagnoses. Always recommend consulting a doctor for serious issues."
