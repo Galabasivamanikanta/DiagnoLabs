@@ -185,7 +185,7 @@ router.post('/google', async (req, res) => {
                 name: name,
                 email: email,
                 password: hashedPassword,
-                phone: "Not Provided",
+                phone: `Google-${email}`,
                 role: role,
                 customerId
             });
