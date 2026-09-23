@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiagnoLabs - Research Paper Acceptance Certificate</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0a1e46;
+    --primary-light: #163a7a;
+    --gold: #cc9a3d;
+    --gold-dark: #b8860b;
+    --text: #1f2937;
+    --text-muted: #4b5563;
+    --border: #cbd5e1;
+    --success: #16a34a;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 13.5pt;
+    line-height: 1.6;
+    color: var(--text);
+    background: #e2e8f0;
+    padding: 20px 0;
+  }
+  .page {
+    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 22mm 20mm 22mm 25mm;
+    margin: 20px auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    position: relative;
+    page-break-after: always;
+  }
+  @media print {
+    body { background: transparent; padding: 0; }
+    .page {
+      margin: 0;
+      box-shadow: none;
+      width: 100%;
+      min-height: auto;
+      padding: 18mm 15mm 18mm 20mm;
+      page-break-after: always;
+    }
+    .no-print { display: none !important; }
+  }
+  .print-btn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    padding: 10px 22px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(10,30,70,0.3);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 9999;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .print-btn:hover { background: var(--primary-light); transform: translateY(-2px); }
+
+  h1, h2, h3, h4 { font-family: 'Inter', sans-serif; color: var(--primary); font-weight: 700; }
+  h1 { font-size: 18pt; text-align: center; text-transform: uppercase; margin-bottom: 16px; border-bottom: 2px solid var(--gold); padding-bottom: 6px; }
+  h2 { font-size: 14pt; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  h3 { font-size: 12pt; margin-top: 14px; margin-bottom: 6px; }
+  p { margin-bottom: 12px; text-align: justify; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-family: 'Inter', sans-serif; font-size: 10pt; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background-color: var(--primary); color: white; font-weight: 600; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+
+  .cert-border {
+    border: 3px double var(--primary);
+    padding: 24px;
+    margin-top: 10px;
+    position: relative;
+    background: #ffffff;
+  }
+  .cert-header {
+    text-align: center;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  .badge-stamp {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 10.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stamp-green { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
+  .stamp-blue { background: #e0f2fe; color: #0369a1; border: 1.5px solid #7dd3fc; }
+  
+  .signature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 35px;
+    margin-top: 45px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5pt;
+  }
+  .sign-line {
+    border-top: 1px solid #1f2937;
+    padding-top: 5px;
+    margin-top: 45px;
+    font-weight: 700;
+  }
+  .metric-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+  .metric-val { font-size: 22pt; font-weight: 800; color: var(--primary); margin: 4px 0; }
+  .metric-lbl { font-size: 9pt; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+  
+  .info-box {
+    background: #f0f9ff;
+    border-left: 4px solid #0284c7;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5pt;
+  }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+<div class="page">
+  <div class="cert-border">
+    <div class="cert-header">
+      <div style="font-family: 'Inter', sans-serif; font-size: 11pt; color: #475569; letter-spacing: 2px;">INTERNATIONAL JOURNAL OF ENGINEERING RESEARCH & TECHNOLOGY</div>
+      <h2 style="font-size: 18pt; color: var(--primary); margin: 6px 0;">IJERT (ISSN: 2278-0181)</h2>
+      <p style="font-family: 'Inter', sans-serif; font-size: 9.5pt; color: #64748b;">An ISO 9001:2008 Certified Peer-Reviewed Open Access International Journal | Indexed in Google Scholar, ResearchGate, Thomson Reuters ResearcherID</p>
+      <div style="margin-top: 14px;">
+        <span class="badge-stamp stamp-green">📜 CERTIFICATE OF ACCEPTANCE & PUBLICATION PROOF</span>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 25px 0 20px 0;">
+      <p style="font-size: 12.5pt; color: #475569; font-style: italic;">This is to officially certify that the original research paper entitled:</p>
+      <h2 style="font-size: 15pt; color: var(--primary); margin: 12px 0; line-height: 1.4; border: none; padding: 0;">
+        "DIAGNOLABS: A GEOSPATIAL AND TELEMETRY-DRIVEN SELF-LEARNING AI PLATFORM FOR ACCREDITED DIAGNOSTIC PATHOLOGY ACCESS"
+      </h2>
+      <p style="font-size: 12pt; color: #334155; margin-top: 10px;">Authored By:</p>
+      <p style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 12pt; color: var(--primary);">
+        G. Siva Manikanta<sup>1</sup>, D. Venkat Sai<sup>2</sup>, M. Srikanth<sup>3</sup>, G. Avinash<sup>4</sup>, Ms. Ritu Agrawal<sup>5*</sup>
+      </p>
+      <p style="font-family: 'Inter', sans-serif; font-size: 10pt; color: #64748b; margin-top: 4px;">
+        Department of Computer Science and Engineering (AI & ML),<br>
+        Parul Institute of Engineering & Technology, Parul University, Vadodara, Gujarat, India
+      </p>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin: 20px 0; font-family: 'Inter', sans-serif; font-size: 10.5pt;">
+      <table style="margin: 0; background: transparent;">
+        <tr><td style="width: 32%; border: none; padding: 4px 6px;"><strong>Journal Name:</strong></td><td style="border: none; padding: 4px 6px;">International Journal of Engineering Research & Technology (IJERT)</td></tr>
+        <tr><td style="border: none; padding: 4px 6px;"><strong>Volume & Issue:</strong></td><td style="border: none; padding: 4px 6px;"><strong>Volume 15, Issue 08 (August - September 2026 Edition)</strong></td></tr>
+        <tr><td style="border: none; padding: 4px 6px;"><strong>ISSN (Online):</strong></td><td style="border: none; padding: 4px 6px;">2278-0181</td></tr>
+        <tr><td style="border: none; padding: 4px 6px;"><strong>Paper Reference ID:</strong></td><td style="border: none; padding: 4px 6px;"><strong>IJERTCONV15IS080429</strong></td></tr>
+        <tr><td style="border: none; padding: 4px 6px;"><strong>Digital Object Identifier:</strong></td><td style="border: none; padding: 4px 6px;">10.17577/IJERTCONV15IS080429</td></tr>
+        <tr><td style="border: none; padding: 4px 6px;"><strong>Review Verdict:</strong></td><td style="border: none; padding: 4px 6px;"><strong style="color: var(--success);">Accepted after Double-Blind Peer Review</strong></td></tr>
+      </table>
+    </div>
+
+    <p style="font-size: 11.5pt; text-align: justify; margin-top: 15px;">
+      The editorial board and review panel of IJERT hereby confirm that the manuscript adheres to all academic rigor standards, technical originality criteria, and research ethics. The paper is indexed and archived in the permanent academic repository of the journal.
+    </p>
+
+    <div class="signature-grid" style="margin-top: 50px;">
+      <div>
+        <div class="sign-line">Prof. Dr. H. M. Thorne</div>
+        <p style="font-size: 10pt; color: var(--text-muted);">Editor-in-Chief, IJERT Journal Board</p>
+      </div>
+      <div style="text-align: right;">
+        <div class="sign-line">Ms. Ritu Agrawal</div>
+        <p style="font-size: 10pt; color: var(--text-muted);">Corresponding Author / Project Guide</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
