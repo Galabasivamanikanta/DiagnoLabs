@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DiagnoLabs - HD Diagrams</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e2e8f0; padding: 20px; }
+    .diagram-box { background: white; padding: 40px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    h2 { text-align: center; color: #333; margin-bottom: 20px; }
+    .mermaid { display: flex; justify-content: center; transform: scale(1.1); transform-origin: top center; margin-bottom: 30px;}
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center; color:#0f172a;">DiagnoLabs System Diagrams</h1>
+  <p style="text-align:center; color:#64748b;">Take a screenshot of these diagrams. They are rendered in Vector Format, meaning they will not blur.</p>
+
+  <!-- Level 0 DFD -->
+  <div class="diagram-box">
+    <h2>Level-0 DFD (Context Diagram)</h2>
+    <pre class="mermaid">
+      flowchart TD
+        Patient["Patient"]
+        MedStaff["Medical Staff (Doctors/Pathologists)"]
+        FieldStaff["Field Staff (Phlebotomists/Delivery)"]
+        Admin["Admin & Operations (Quality/Finance)"]
+        ExtAPI["External APIs (Razorpay, Twilio, Gemini)"]
+        System((("0.0\nDiagnoLabs\nEnterprise System")))
+
+        Patient -- "Symptoms, Bookings, Payments" --> System
+        System -- "AI Triage, OTPs, Final Reports" --> Patient
+
+        MedStaff -- "Lab Results, AI Corrections" --> System
+        System -- "Assigned Tests, AI Suggestions" --> MedStaff
+
+        FieldStaff -- "Live Location, Barcode, Temp" --> System
+        System -- "Optimized Routes, Collection Tasks" --> FieldStaff
+
+        Admin -- "Configurations, Approvals" --> System
+        System -- "Audit Logs, Inventory Alerts" --> Admin
+
+        System -- "API Requests" --> ExtAPI
+        ExtAPI -- "Webhooks & Responses" --> System
+
+        classDef plain fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+        class Patient,MedStaff,FieldStaff,Admin,ExtAPI,System plain
+    </pre>
+  </div>
+
+  <!-- Level 1 DFD -->
+  <div class="diagram-box">
+    <h2>Level-1 DFD (Sub-Processes)</h2>
+    <pre class="mermaid">
+      flowchart TD
+        Patient["Patient"]
+        Staff["Lab & Field Staff"]
+        Admin["Super-Admin / Auditors"]
+
+        P1((("1.0\nIAM Security\n& RBAC")))
+        P2((("2.0\nAI Copilot\n& Triage")))
+        P3((("3.0\nGeospatial\nBooking")))
+        P4((("4.0\nSample\nLogistics")))
+        P5((("5.0\nResult\nProcessing")))
+        P6((("6.0\nAudit & \nInventory")))
+
+        Patient -- "Login/Register" --> P1
+        Patient -- "Enters Symptoms" --> P2
+        P2 -- "Test Recommendations" --> Patient
+        Patient -- "Confirms Booking" --> P3
+        P3 -- "Booking Details" --> P4
+        P4 -- "Assign Pickup Route" --> Staff
+        Staff -- "Scan Barcode, BLE Temp" --> P4
+        P4 -- "Sample Delivered" --> P5
+        Staff -- "Uploads Test Values" --> P5
+        P5 -- "Secure PDF Report" --> Patient
+        P1 -- "User Access Data" --> P6
+        P5 -- "Test Kit Used" --> P6
+        P6 -- "HIPAA Logs, Alerts" --> Admin
+
+        classDef plain fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+        class Patient,Staff,Admin,P1,P2,P3,P4,P5,P6 plain
+    </pre>
+  </div>
+
+</body>
+</html>

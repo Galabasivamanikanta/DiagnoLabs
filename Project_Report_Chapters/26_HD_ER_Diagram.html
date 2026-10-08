@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DiagnoLabs - HD ER Diagram</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e2e8f0; padding: 20px; }
+    .diagram-box { background: white; padding: 40px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    h2 { text-align: center; color: #333; margin-bottom: 20px; }
+    .mermaid { display: flex; justify-content: center; transform: scale(1.1); transform-origin: top center; margin-bottom: 30px;}
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center; color:#0f172a;">Entity-Relationship (ER) Model</h1>
+  <p style="text-align:center; color:#64748b;">Take a screenshot of this Vector ER Diagram. It covers the entire MongoDB schema.</p>
+
+  <div class="diagram-box">
+    <pre class="mermaid">
+      erDiagram
+        %% Core Relationships
+        USER ||--o{ BOOKING : "places (Patient)"
+        USER ||--o{ AI_CHAT_MEMORY : "interacts with"
+        USER ||--o{ SUPPORT_TICKET : "raises/resolves"
+        USER ||--o{ AUDIT_LOG : "generates log"
+        
+        LAB ||--o{ USER : "employs (Staff)"
+        LAB ||--o{ INVENTORY : "manages stock"
+        LAB ||--o{ BOOKING : "fulfills"
+        LAB ||--o{ TEST_CATALOG : "provides tests"
+
+        TEST_CATALOG ||--o{ BOOKING : "included in"
+
+        %% Booking Workflow Relationships
+        BOOKING ||--|| PAYMENT : "paid via (Razorpay)"
+        BOOKING ||--|| SAMPLE_TRACKING : "physical tracking"
+        BOOKING ||--|| TEST_RESULT : "generates"
+
+        USER ||--o{ SAMPLE_TRACKING : "collects (Phlebotomist)"
+        USER ||--o{ TEST_RESULT : "verifies (Pathologist)"
+
+        %% Entities & Attributes
+        USER {
+            ObjectId _id PK
+            String role "14-Tier Enum"
+            String phone_otp_verified
+            String password_hash
+        }
+        
+        LAB {
+            ObjectId _id PK
+            String lab_name
+            Point location "2dsphere GeoJSON"
+            Boolean is_nabl_accredited
+            Float quality_rating
+        }
+        
+        TEST_CATALOG {
+            ObjectId _id PK
+            ObjectId lab_id FK
+            String test_name
+            Float price
+        }
+        
+        BOOKING {
+            ObjectId _id PK
+            ObjectId patient_id FK
+            ObjectId lab_id FK
+            String status "Requested/Collected/Reported"
+        }
+        
+        SAMPLE_TRACKING {
+            ObjectId _id PK
+            ObjectId booking_id FK
+            ObjectId collector_id FK
+            String tube_barcode
+            Float ble_temperature "IoT Data"
+        }
+        
+        TEST_RESULT {
+            ObjectId _id PK
+            ObjectId booking_id FK
+            ObjectId pathologist_id FK
+            String pdf_report_url
+            String secure_qr_hash
+        }
+        
+        PAYMENT {
+            ObjectId _id PK
+            ObjectId booking_id FK
+            String razorpay_tx_id
+            String payment_status
+        }
+        
+        INVENTORY {
+            ObjectId _id PK
+            ObjectId lab_id FK
+            String item_name
+            Int stock_count
+        }
+        
+        AI_CHAT_MEMORY {
+            ObjectId _id PK
+            ObjectId user_id FK
+            String symptom_query
+            String corrected_test
+            Float confidence_score
+        }
+        
+        AUDIT_LOG {
+            ObjectId _id PK
+            ObjectId user_id FK
+            String action_type "HIPAA Log"
+            Date timestamp
+        }
+    </pre>
+  </div>
+
+</body>
+</html>

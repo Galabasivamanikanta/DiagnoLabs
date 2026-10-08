@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiagnoLabs - Rewritten IEEE Paper</title>
+<style>
+  /* Print formatting for IEEE 2-Column Standard */
+  @page { size: A4 portrait; margin: 18mm 15mm; }
+  body { font-family: "Times New Roman", Times, serif; background: #cbd5e1; margin: 0; padding: 20px; color: #000; }
+  
+  .page-container { background: white; width: 210mm; min-height: 297mm; padding: 18mm 15mm; margin: 0 auto; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+  
+  @media print { 
+    body { background: white; padding: 0; } 
+    .page-container { box-shadow: none; width: 100%; margin: 0; padding: 0; } 
+    .no-print { display: none !important; } 
+  }
+  
+  .pbtn { position: fixed; top: 15px; right: 20px; background: #1e3a8a; color: white; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;}
+  
+  /* Title and Authors */
+  .paper-title { text-align: center; font-size: 22pt; margin-bottom: 15px; line-height: 1.2; }
+  .authors { text-align: center; font-size: 11pt; margin-bottom: 25px; line-height: 1.4; }
+  .authors span { font-style: italic; }
+  
+  /* 2-Column Layout */
+  .content { column-count: 2; column-gap: 8mm; text-align: justify; font-size: 10pt; line-height: 1.15; }
+  
+  h3 { text-transform: uppercase; font-size: 10pt; text-align: center; margin-top: 18px; margin-bottom: 8px; font-weight: normal; }
+  h4 { font-size: 10pt; font-style: italic; margin-top: 12px; margin-bottom: 4px; font-weight: normal; }
+  
+  p { margin-top: 0; margin-bottom: 10px; text-indent: 4mm; }
+  .abstract { font-weight: bold; font-style: italic; }
+  .abstract-text { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<button class="pbtn no-print" onclick="window.print()">🖨️ Download IEEE PDF</button>
+
+<div class="page-container">
+  <div class="paper-title">DiagnoLabs: A Geospatial and Telemetry-Driven Self-Learning AI Platform for Accredited Diagnostic Pathology Access</div>
+  
+  <div class="authors">
+    D. Venkat Sai, M. Srikanth, G. Siva Manikanta, G. Avinash<br>
+    <span>Department of Computer Science & Engineering (AIML), Parul University, Vadodara, Gujarat, India<br>
+    Under the guidance of Ms. Ritu Agrawal, Project Coordinator</span>
+  </div>
+
+  <div class="content">
+    <p class="abstract-text"><span class="abstract">Abstract—</span>Securing dependable pathology services remains a significant hurdle across various Indian regions. Current statistics indicate that over four-fifths of operational testing centers lack formal National Accreditation Board for Testing and Calibration Laboratories (NABL) certification, with certified entities primarily clustered within major metropolitan zones. To bridge this gap, we introduce DiagnoLabs, an innovative web-based ecosystem prioritizing diagnostic integrity. The framework seamlessly integrates laboratory discovery, appointment scheduling, physical sample procurement, and digital reporting. Our architecture comprises five foundational pillars: (1) a proprietary geospatial sorting mechanism combining Haversine distance calculations with quality accreditations and consumer ratings; (2) an expansive 14-tier Role-Based Access Control (RBAC) matrix governing interactions from patients to executive administrators; (3) an intelligent Clinical Copilot that translates patient symptoms into relevant test recommendations while continuously refining its accuracy through a confidence-weighted physician feedback loop; (4) a resilient physical logistics module enforcing a four-digit digital handshake, barcode integration, and Bluetooth-driven cold-chain temperature surveillance; and (5) a highly adaptive, mobile-optimized graphical interface. Empirical evaluations demonstrated a median geographic query latency of 64 milliseconds, spatial precision of 99.98% within a 50-meter radius, and AI triage sensitivity reaching 94.8%. Furthermore, continuous feedback integration successfully diminished triage inaccuracies from 12.4% down to 3.1% across 750 sequential interactions.</p>
+    
+    <p><b>Index Terms—</b>Healthcare informatics, clinical AI triage, geospatial indexing, NABL accreditation, RBAC, human-feedback learning, telepathology logistics, mobile responsive design, MERN stack, cold-chain IoT.</p>
+
+    <h3>I. INTRODUCTION</h3>
+    <p>The foundation of effective medical intervention heavily relies on accurate pathology outcomes. Critical actions ranging from hospital admissions to pharmacological prescriptions depend entirely on preliminary laboratory data. Consequently, any diagnostic miscalculation propagates through subsequent therapeutic phases. The Indian diagnostic landscape currently exhibits severe fragmentation. Although regulatory bodies enforce stringent operational benchmarks—such as personnel expertise and equipment calibration via ISO 15189:2022 standards—the vast majority of centers continue to function without these critical endorsements.</p>
+    <p>Populations residing beyond tier-one cities frequently encounter recurring systemic hurdles. These include erratic pricing models, poorly calibrated reference intervals, and extreme logistical difficulties for elderly or immunocompromised individuals seeking sample collection. Furthermore, contemporary telehealth platforms generally treat pathology as a secondary afterthought, focusing instead on virtual doctor consultations. Extensive research indicates that initiating telemedicine sessions without prior access to verified biochemical reports yields successful clinical outcomes in only about a third of all cases.</p>
+    <p>DiagnoLabs disrupts this conventional workflow by positioning diagnostics at the forefront of the patient journey. By unifying algorithmic facility discovery, intelligent symptom analysis, and robust sample supply-chain monitoring into a singular enterprise architecture, we ensure that clinicians possess reliable diagnostic evidence before initiating consultations.</p>
+
+    <h4>A. Motivation</h4>
+    <p>Our initiative stems from several observed infrastructural shortcomings. Primarily, rural and semi-urban demographics typically select testing centers based on geographical convenience or financial affordability, largely ignoring quality certifications. This inevitably leads to flawed medical guidance. Secondly, conventional booking aggregators present static directories; if a facility subsequently fails an operational audit, consumers remain uninformed. Lastly, modern medical chatbots operate in informational silos. They fail to adapt when their suggestions are countermanded by human practitioners. Our platform was engineered to resolve these exact discrepancies.</p>
+
+    <h4>B. Problem Statement and Objectives</h4>
+    <p>The core objective is to architect and deploy a robust digital framework that: (a) evaluates diagnostic centers using a composite metric of physical distance, compliance status, and user satisfaction; (b) guarantees strict data isolation across diverse business roles; (c) provides AI-driven test recommendations within predefined safety parameters while learning from human corrections; and (d) mathematically tracks biological samples from collection to processing to prevent tampering. Performance benchmarks included achieving sub-100 millisecond response times, supporting 1,000 simultaneous users, and systematically reducing AI hallucination rates over time.</p>
+
+    <h3>II. RELATED WORK AND LITERATURE SURVEY</h3>
+    <p>Current digital healthcare ecosystems predominantly prioritize virtual physician consultations. Within these marketplaces, laboratories are merely listed as ancillary services, completely severing the link between recommended procedures and the operational legitimacy of the testing facility. Global health directives strongly advocate for comprehensive, integrated diagnostic networks tailored for emerging economies—a paradigm that directly inspired our development approach.</p>
+    <p>Traditional proximity-based health applications rely heavily on static postal codes or rudimentary flat-plane arithmetic. While functional over negligible distances, failing to account for the Earth's spherical curvature introduces severe computational errors when applied to rural geographies. By implementing spherical trigonometric calculations combined with robust spatial indexing, we eliminate these geographical distortions.</p>
+    <p>Furthermore, integrating Large Language Models (LLMs) into healthcare introduces substantial risks regarding clinical hallucinations. While retraining entire neural networks to mitigate this is computationally prohibitive, our system neutralizes the threat at the application level. We utilize a localized, confidence-decaying memory architecture that actively shapes the LLM’s context window using verified physician corrections.</p>
+
+    <h3>III. SYSTEM ARCHITECTURE</h3>
+    <p>The software framework is constructed on a decoupled three-tier topology. The client-facing layer utilizes React 18.3, accelerated by the Vite 7 build tool for rapid module replacement. The middleware logic is handled by a Node.js 22 runtime running Express 5, structurally divided into dedicated modules for geospatial routing, AI inference, and supply-chain logistics. Persistent data storage is managed via MongoDB Atlas, chosen specifically for its native capability to execute 2dsphere indexing queries.</p>
+
+    <h4>A. Frontend Layer</h4>
+    <p>Operating as a Single Page Application (SPA), the client interface integrates Tailwind CSS for styling and Leaflet for dynamic mapping. To ensure optimal performance on bandwidth-constrained mobile devices, we implemented strict route-level code splitting, compressing the initial user payload to under 180 kilobytes. Complex graphical elements, such as cartographic tiles, are rendered asynchronously only upon user interaction.</p>
+
+    <h4>B. Backend Gateway Layer</h4>
+    <p>Every incoming network request traverses a rigorous, six-tier defensive pipeline. This includes Cross-Origin Resource Sharing (CORS) validation, HTTP header hardening via Helmet.js, brute-force mitigation (capped at 200 requests per fifteen-minute window), JSON Web Token (JWT) validation, and strict RBAC verification. These protocols ensure that unauthorized data extraction is intercepted long before reaching the core execution controllers.</p>
+
+    <h3>IV. GEOSPATIAL NABL DISCOVERY ALGORITHM</h3>
+    <p>To eliminate the inaccuracies of flat-map projections, geographic proximity is calculated using the Haversine trigonometric model, which accounts for planetary curvature.</p>
+    <p>Once the precise physical distance is computed, the engine applies our proprietary Effective Distance formula. Rather than simply displaying the closest facility, the algorithm artificially discounts the distance of laboratories possessing active NABL accreditation and superior user ratings. Consequently, a highly-rated, certified laboratory situated four kilometers away will computationally outrank an uncertified facility located just three kilometers away, thereby structurally prioritizing clinical safety over sheer physical convenience.</p>
+    <p>Because the database utilizes native spatial indexing, the initial coordinate matching executes in logarithmic time complexity. During stress testing involving 40,000 distinct coordinate pairs, the entire geographic sorting and dynamic re-ranking process averaged a mere 64 milliseconds.</p>
+
+    <h3>V. SELF-LEARNING AI CLINICAL COPILOT</h3>
+    <p>Functioning under strict operational constraints, the digital assistant is programmed exclusively to map physiological symptoms to corresponding pathology examinations and dietary preparation protocols. It is explicitly prohibited from generating pharmacological prescriptions.</p>
+    <p>Rather than executing expensive full-model fine-tuning, our architecture relies on a dynamic vector-similarity memory cache. Whenever a licensed medical professional overrides or confirms an AI-generated suggestion, that specific interaction is logged with a corresponding confidence modifier. Over time, obsolete or incorrect medical guidance mathematically decays, ensuring that the highest-scoring, physician-validated context is perpetually fed back into the LLM during subsequent patient interactions.</p>
+    <p>To guarantee absolute patient safety, all outgoing AI text is intercepted by a deterministic regular expression validator. If the algorithm detects syntax resembling drug dosages or medication names, it instantly terminates the response and reverts to a pre-approved, hardcoded clinical template.</p>
+
+    <h3>VI. 14-TIER ROLE-BASED ACCESS CONTROL</h3>
+    <p>The access control matrix spans fourteen distinct operational boundaries, ensuring that users only interact with data pertinent to their specific organizational function. Roles range from patients and phlebotomists to quality auditors and financial managers.</p>
+    <p>Data visibility is governed at the database level using Mongoose field projections, automatically scrubbing Protected Health Information (PHI) from API payloads unless explicitly requested by an authorized medical role. This multi-layered enforcement guarantees that lateral privilege escalation remains virtually impossible.</p>
+
+    <h3>VII. FIELD SAMPLE LOGISTICS</h3>
+    <p>Physical sample integrity is maintained through a robust supply chain protocol. Upon arriving at a patient's residence, the collection agent must process a synchronized 4-digit cryptographic OTP to verify the patient's identity.</p>
+    <p>Following successful authentication, the physical vial's barcode is digitally bound to the cloud database via the agent's smartphone camera, eliminating manual transcription errors. During transit, Bluetooth Low Energy (BLE) thermal sensors continuously monitor the internal environment of the transport container, instantly triggering automated alerts if temperatures breach acceptable viability thresholds.</p>
+
+    <h3>VIII. EXPERIMENTAL EVALUATION</h3>
+    <p>Empirical testing revealed a median API response time of 64 milliseconds for geospatial queries. Load simulations confirmed sustained stability up to 1,500 simultaneous connections before latency degradation occurred.</p>
+    <p>The integration of the physician-feedback loop proved highly successful; baseline triage errors plummeted from 12.4% to a mere 3.1% after processing 750 distinct interactions. Furthermore, geographic precision tests across 2,000 randomized waypoints confirmed 99.98% calculation accuracy within a strict 50-meter variance window.</p>
+
+    <h3>IX. CONCLUSION</h3>
+    <p>The DiagnoLabs initiative successfully demonstrates that combining algorithmic compliance-weighting, robust cryptographic logistics, and a localized human-feedback AI loop drastically elevates the reliability of remote pathology networks. Future development cycles will focus on migrating the digital audit trails to a Hyperledger blockchain framework, ensuring absolute post-generation immutability for patient laboratory reports.</p>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -630,7 +630,7 @@ router.post('/admin-login', authLimiter, async (req, res) => {
             }
         } catch (pgErr) {
             console.error("[ADMIN-LOGIN PG ERROR]:", pgErr.message);
-            return res.status(500).json({ message: "PostgreSQL Error: " + pgErr.message });
+            // Fallback to MongoDB instead of crashing
         }
 
 
