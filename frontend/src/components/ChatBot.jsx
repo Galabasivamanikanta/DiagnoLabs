@@ -113,7 +113,7 @@ const generateClinicalFallback = (text, userName) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Reusable In-Chat Login Card Component
+// Reusable In-Chat Login Card Component with Voice Auto-Login
 // ─────────────────────────────────────────────────────────────
 const InChatLoginCard = ({ onLoginSuccess, speak }) => {
     const { login, googleLogin } = useContext(AuthContext);
@@ -122,6 +122,11 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Voice Auto-Login States
+    const [isVoiceLoggingIn, setIsVoiceLoggingIn] = useState(false);
+    const [voiceStatusText, setVoiceStatusText] = useState('');
+    const recognitionRef = useRef(null);
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
@@ -141,31 +146,163 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         }
     };
 
-    const handleManualSubmit = async (e) => {
-        e.preventDefault();
-        if (!identifier || !password) {
-            setError("Please enter your email, phone, or User ID and password.");
+    const executeLogin = useCallback(async (idToUse, pwdToUse) => {
+        const id = (idToUse || identifier).trim();
+        const pwd = (pwdToUse || password).trim();
+        if (!id || !pwd) {
+            setError("Please provide both email/phone/User ID and password.");
             return;
         }
         try {
             setLoading(true);
             setError('');
-            const res = await login(identifier, password);
+            const res = await login(id, pwd);
             if (res.success) {
-                if (speak) speak(`Login successful. Welcome, ${res.user.name || 'User'}!`);
+                if (speak) speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
                 onLoginSuccess(res.user);
             } else {
                 setError(res.message || "Invalid credentials.");
+                if (speak) speak("Login failed. Please check your credentials.");
             }
         } catch {
             setError("Login failed. Please check your credentials.");
+            if (speak) speak("Login failed. Please check your credentials.");
         } finally {
             setLoading(false);
+            setIsVoiceLoggingIn(false);
+            setVoiceStatusText('');
+        }
+    }, [identifier, password, login, speak, onLoginSuccess]);
+
+    const handleManualSubmit = async (e) => {
+        e.preventDefault();
+        executeLogin(identifier, password);
+    };
+
+    // Voice Auto-Login Parser
+    const handleVoiceLoginInput = useCallback((rawSpeech) => {
+        const raw = (rawSpeech || '').trim();
+        if (!raw) return;
+
+        // Clean common spoken phrases e.g. " at " -> "@", " dot " -> "."
+        const normalized = raw
+            .replace(/\s+at\s+/gi, '@')
+            .replace(/\s+dot\s+/gi, '.')
+            .replace(/\s+underscore\s+/gi, '_')
+            .replace(/\s+dash\s+/gi, '-');
+
+        setVoiceStatusText(`Heard: "${raw}"`);
+
+        // Check if both identifier & password were spoken
+        const passIndex = normalized.toLowerCase().indexOf('password');
+        const passKeyIndex = normalized.toLowerCase().indexOf('pass');
+
+        const splitIndex = passIndex !== -1 ? passIndex : (passKeyIndex !== -1 ? passKeyIndex : -1);
+
+        if (splitIndex !== -1) {
+            let idPart = normalized.substring(0, splitIndex)
+                .replace(/(?:login\s+with|my\s+email\s+is|email\s+is|phone\s+is|user\s+id\s+is|email|phone|user(?:\s+id)?|id|is)\s*/gi, '')
+                .replace(/\s+/g, '')
+                .trim();
+
+            let pwdPart = normalized.substring(splitIndex + (passIndex !== -1 ? 8 : 4))
+                .replace(/^(?:is|\s|:)+/i, '')
+                .trim();
+
+            if (idPart && pwdPart) {
+                // Auto-fill fields in front of user's eyes
+                setIdentifier(idPart);
+                setPassword(pwdPart);
+                setVoiceStatusText(`Auto-filling: ${idPart} & Password...`);
+                if (speak) speak(`Credentials recognized for ${idPart}. Logging you in automatically now.`);
+
+                // Automatically trigger login after short animation delay
+                setTimeout(() => {
+                    executeLogin(idPart, pwdPart);
+                }, 1000);
+                return;
+            }
+        }
+
+        // If only identifier was spoken first
+        if (normalized.includes('@') || /^[0-9]{10}$/.test(normalized.replace(/\s+/g, ''))) {
+            const cleanId = normalized.replace(/(?:email\s+is|my\s+email\s+is|phone\s+is|user\s+id\s+is|email|phone|is)\s*/gi, '').replace(/\s+/g, '').trim();
+            setIdentifier(cleanId);
+            setVoiceStatusText(`Email/ID set to ${cleanId}. Now please speak your password.`);
+            if (speak) speak(`Email set to ${cleanId}. Now please speak your password.`);
+            return;
+        }
+
+        // If identifier is already filled and user is now speaking password
+        if (identifier && !password) {
+            const cleanPwd = normalized.replace(/^(?:my\s+)?(?:password|pass|pin)\s+(?:is\s+)?/i, '').trim();
+            if (cleanPwd) {
+                setPassword(cleanPwd);
+                setVoiceStatusText(`Password set. Logging in...`);
+                if (speak) speak(`Password captured. Logging in now.`);
+                setTimeout(() => {
+                    executeLogin(identifier, cleanPwd);
+                }, 1000);
+            }
+        }
+    }, [identifier, password, executeLogin, speak]);
+
+    const startVoiceLogin = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Voice recognition is supported in Google Chrome and Microsoft Edge.");
+            return;
+        }
+
+        if (isVoiceLoggingIn) {
+            try {
+                recognitionRef.current?.stop();
+            } catch {
+                // Ignore
+            }
+            setIsVoiceLoggingIn(false);
+            setVoiceStatusText('');
+            return;
+        }
+
+        setIsVoiceLoggingIn(true);
+        setVoiceStatusText('Listening... Speak "Email [your-email] password [your-password]"');
+        if (speak) speak('Please speak your email or User ID, followed by your password.');
+
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = true;
+        rec.lang = 'en-IN';
+
+        rec.onresult = (e) => {
+            let final = '';
+            for (let i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) final += e.results[i][0].transcript;
+            }
+            if (final) {
+                handleVoiceLoginInput(final);
+            }
+        };
+
+        rec.onerror = () => {
+            setIsVoiceLoggingIn(false);
+            setVoiceStatusText('');
+        };
+
+        rec.onend = () => {
+            setIsVoiceLoggingIn(false);
+        };
+
+        recognitionRef.current = rec;
+        try {
+            rec.start();
+        } catch (err) {
+            console.warn("Speech start error:", err);
         }
     };
 
     return (
-        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm my-1">
+        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm my-1 transition-all">
             <div className="text-[0.76rem] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                     <Lock size={13} className="text-[#0a1e46]" /> Secure Portal Login:
@@ -173,8 +310,30 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 <span className="text-[0.68rem] text-amber-700 font-semibold lowercase">patient access</span>
             </div>
 
-            {/* 1. Google One-Click Login */}
-            <div className="w-full flex justify-center py-1">
+            {/* 1. Voice Auto-Fill & Auto-Login Button */}
+            <button
+                type="button"
+                onClick={startVoiceLogin}
+                className={`w-full py-2 px-3 rounded-xl border font-bold text-[0.78rem] flex items-center justify-center gap-2 transition-all ${
+                    isVoiceLoggingIn
+                        ? 'bg-red-500 text-white border-red-600 animate-pulse shadow-md shadow-red-500/20'
+                        : 'bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-500 shadow-sm hover:from-teal-500 hover:to-teal-600 cursor-pointer'
+                }`}
+            >
+                <Mic size={14} className={isVoiceLoggingIn ? 'animate-bounce' : ''} />
+                <span>{isVoiceLoggingIn ? 'Listening to your credentials...' : 'Voice Auto-Login (Speak Details)'}</span>
+            </button>
+
+            {/* Voice Status Toast */}
+            {voiceStatusText && (
+                <div className="text-[0.72rem] text-teal-800 bg-teal-50 border border-teal-200 p-2 rounded-xl flex items-center gap-1.5 animate-fadeIn font-medium">
+                    <Radio size={12} className="text-teal-600 animate-pulse shrink-0" />
+                    <span className="truncate">{voiceStatusText}</span>
+                </div>
+            )}
+
+            {/* 2. Google One-Click Login */}
+            <div className="w-full flex justify-center py-0.5">
                 <GoogleLogin
                     onSuccess={handleGoogleSuccess}
                     onError={() => setError("Google Sign-In Failed")}
@@ -188,11 +347,11 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
 
             <div className="flex items-center gap-2 my-0.5">
                 <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-[0.68rem] text-slate-400 font-bold uppercase">or sign in with credentials</span>
+                <span className="text-[0.66rem] text-slate-400 font-bold uppercase">or sign in with credentials</span>
                 <div className="flex-1 h-px bg-slate-200" />
             </div>
 
-            {/* 2. Manual Login Form */}
+            {/* 3. Manual / Auto-Filled Login Form */}
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-2">
                 {error && (
                     <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
@@ -201,8 +360,10 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                     </div>
                 )}
                 
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
-                    <User size={14} className="text-slate-400 shrink-0" />
+                <div className={`flex items-center gap-2 px-3 py-2 bg-white border rounded-xl transition-all ${
+                    identifier ? 'border-teal-500 ring-2 ring-teal-500/10' : 'border-slate-200 focus-within:border-[#0a1e46]'
+                }`}>
+                    <User size={14} className={identifier ? 'text-teal-600 shrink-0' : 'text-slate-400 shrink-0'} />
                     <input 
                         type="text" 
                         placeholder="Email, Phone, or User ID" 
@@ -213,8 +374,10 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                     />
                 </div>
 
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
-                    <Lock size={14} className="text-slate-400 shrink-0" />
+                <div className={`flex items-center gap-2 px-3 py-2 bg-white border rounded-xl transition-all ${
+                    password ? 'border-teal-500 ring-2 ring-teal-500/10' : 'border-slate-200 focus-within:border-[#0a1e46]'
+                }`}>
+                    <Lock size={14} className={password ? 'text-teal-600 shrink-0' : 'text-slate-400 shrink-0'} />
                     <input 
                         type={showPassword ? "text" : "password"} 
                         placeholder="Password" 
@@ -235,7 +398,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 >
                     {loading ? (
                         <>
-                            <Loader2 size={13} className="animate-spin" /> Verifying...
+                            <Loader2 size={13} className="animate-spin" /> Verifying & Logging in...
                         </>
                     ) : (
                         <>
