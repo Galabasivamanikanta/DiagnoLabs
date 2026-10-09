@@ -135,7 +135,6 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
             setError('');
             const res = await googleLogin(credentialResponse.credential);
             if (res.success) {
-                if (speak) speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
                 onLoginSuccess(res.user);
             } else {
                 setError(res.message || "Google Authentication failed");
@@ -159,7 +158,6 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
             setError('');
             const res = await login(id, pwd);
             if (res.success) {
-                if (speak) speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
                 onLoginSuccess(res.user);
             } else {
                 setError(res.message || "Invalid credentials.");
@@ -1132,10 +1130,9 @@ const ChatBot = () => {
 
         if (speak) speak(`Authentication verified. Welcome back, ${userName}. Shifting to your dashboard now.`);
 
-        // Shift / navigate page to user's dashboard
-        setTimeout(() => {
-            navigate(targetPath);
-        }, 1200);
+        // Close chat and shift page immediately to user's dashboard
+        setIsOpen(false);
+        navigate(targetPath, { replace: true });
     };
 
     const renderText = (text) => {
@@ -1201,14 +1198,11 @@ const ChatBot = () => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <div className="text-[0.98rem] font-extrabold text-[#0a1e46] tracking-tight leading-tight flex items-center gap-1.5">
-                                        <span>DiagnoLabs</span>
-                                        <span className="px-1.5 py-0.5 rounded-full text-[0.6rem] font-bold bg-[#0a1e46] text-[#d4af37] border border-[#d4af37]/30 tracking-wider">
-                                            GEMINI AI
-                                        </span>
+                                    <div className="text-[0.98rem] font-extrabold text-[#0a1e46] tracking-tight leading-tight">
+                                        DiagnoLabs
                                     </div>
                                     <div className="text-[0.62rem] font-bold text-[#b58b22] tracking-widest uppercase">
-                                        CLINICAL TRIAGE &amp; DISCOVERY
+                                        CLINICAL DISCOVERY
                                     </div>
                                 </div>
                             </div>
