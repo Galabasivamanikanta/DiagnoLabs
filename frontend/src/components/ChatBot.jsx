@@ -69,47 +69,52 @@ const testIcon = (name = '') => {
 const generateClinicalFallback = (text, userName) => {
     const q = (text || '').toLowerCase().trim();
 
+    // Friendly greeting handler (no page shifts)
+    if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'good morning' || q === 'good afternoon' || q === 'good evening') {
+        return `Hello ${userName || ''}! I am the DiagnoLabs clinical assistant.\n\nI am here to guide you across our platform:\n• Learn about diagnostic tests & accredited packages\n• Discover our cold-chain home collection & OTP security\n• Check your verified digital lab reports with QR authenticity\n• Ask about medical fasting, test preparation, or symptoms\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Comprehensive Full Body Package]`;
+    }
+
     if (q.includes('fever') || q.includes('temperature') || q.includes('chills') || q.includes('dengue') || q.includes('malaria') || q.includes('typhoid') || q.includes('jwaram') || q.includes('cold') || q.includes('flu')) {
-        return `Based on your reported fever and chills, a complete infection screening panel is clinically indicated to differentiate between Viral, Dengue, Malaria, or Typhoid etiology.\n\nRecommended Diagnostic Tests:\n1. Complete Blood Count (CBC) — Evaluates White Blood Cell count, Platelets, and Infection markers.\n2. Dengue NS1 Antigen & IgM/IgG — Detects early dengue viral markers.\n3. Typhoid (Widal / Typhidot) — Identifies enteric Salmonella infection.\n4. Urine Routine Examination — Rules out secondary urinary tract infections.\n\nPre-Test Preparation: No strict fasting required. Maintain hydration. If body temperature exceeds 101°F, consult a physician promptly.\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Dengue Serology Panel][ACTION: BOOK: Complete Blood Count (CBC)]`;
+        return `Based on your reported fever and chills, a complete infection screening panel is clinically indicated to differentiate between Viral, Dengue, Malaria, or Typhoid etiology.\n\nRecommended Diagnostic Tests:\n1. Complete Blood Count (CBC) — Evaluates White Blood Cell count, Platelets, and Infection markers.\n2. Dengue NS1 Antigen & IgM/IgG — Detects early dengue viral markers.\n3. Typhoid (Widal / Typhidot) — Identifies enteric Salmonella infection.\n4. Urine Routine Examination — Rules out secondary urinary tract infections.\n\nPre-Test Preparation: No strict fasting required. Maintain hydration. If body temperature exceeds 101°F, consult a physician promptly.\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Dengue Serology Panel]`;
     }
 
     if (q.includes('diabetes') || q.includes('sugar') || q.includes('glucose') || q.includes('hba1c') || q.includes('madhumeham') || q.includes('thirst') || q.includes('urination')) {
-        return `For comprehensive Diabetes screening and blood glucose monitoring, the standard clinical protocol includes:\n\n• HbA1c (Glycated Hemoglobin): Evaluates 3-month average plasma glucose (No fasting required).\n• Fasting Blood Sugar (FBS): Requires 8 to 10 hours overnight fasting (plain water is permitted).\n• Post-Prandial Blood Sugar (PPBS): Sample drawn exactly 2 hours after a standard meal.\n• Lipid Profile: Screens for associated cardiovascular and metabolic risk.\n\nFasting Protocol: Take water freely during fasting. Take morning insulin or oral medications only after sample draw.\n\n[RECOMMEND: HbA1c (Glycated Hemoglobin)][RECOMMEND: Fasting Blood Sugar (FBS)][ACTION: BOOK: HbA1c (Glycated Hemoglobin)]`;
+        return `For comprehensive Diabetes screening and blood glucose monitoring, the standard clinical protocol includes:\n\n• HbA1c (Glycated Hemoglobin): Evaluates 3-month average plasma glucose (No fasting required).\n• Fasting Blood Sugar (FBS): Requires 8 to 10 hours overnight fasting (plain water is permitted).\n• Post-Prandial Blood Sugar (PPBS): Sample drawn exactly 2 hours after a standard meal.\n• Lipid Profile: Screens for associated cardiovascular and metabolic risk.\n\nFasting Protocol: Take water freely during fasting. Take morning insulin or oral medications only after sample draw.\n\n[RECOMMEND: HbA1c (Glycated Hemoglobin)][RECOMMEND: Fasting Blood Sugar (FBS)]`;
     }
 
     if (q.includes('thyroid') || q.includes('t3') || q.includes('t4') || q.includes('tsh') || q.includes('weight gain') || q.includes('weight loss') || q.includes('hair fall') || q.includes('fatigue') || q.includes('neerasam') || q.includes('weakness')) {
-        return `For evaluating thyroid endocrine function and metabolic fatigue:\n\n• Thyroid Profile Total (T3, T4, TSH): Assesses hypothyroidism or hyperthyroidism.\n• Vitamin D3 & Vitamin B12: Essential micronutrients whose deficiency mimics chronic thyroid exhaustion.\n• Complete Blood Count (CBC): Screens for anemia and decreased oxygenation capacity.\n\nPreparation: Morning fasting sample (8 hours) is preferred. Thyroid replacement medication should be taken after blood draw.\n\n[RECOMMEND: Thyroid Profile Total (T3, T4, TSH)][RECOMMEND: Vitamin D3 & B12 Combo][ACTION: BOOK: Thyroid Profile Total (T3, T4, TSH)]`;
+        return `For evaluating thyroid endocrine function and metabolic fatigue:\n\n• Thyroid Profile Total (T3, T4, TSH): Assesses hypothyroidism or hyperthyroidism.\n• Vitamin D3 & Vitamin B12: Essential micronutrients whose deficiency mimics chronic thyroid exhaustion.\n• Complete Blood Count (CBC): Screens for anemia and decreased oxygenation capacity.\n\nPreparation: Morning fasting sample (8 hours) is preferred. Thyroid replacement medication should be taken after blood draw.\n\n[RECOMMEND: Thyroid Profile Total (T3, T4, TSH)][RECOMMEND: Vitamin D3 & B12 Combo]`;
     }
 
     if (q.includes('heart') || q.includes('chest') || q.includes('cholesterol') || q.includes('bp') || q.includes('blood pressure') || q.includes('cardiac') || q.includes('lipid') || q.includes('palpitation')) {
-        return `For cardiovascular risk evaluation and lipid metabolic assessment:\n\n• Lipid Profile Extended: Quantifies Total Cholesterol, HDL (Protective), LDL (Atherogenic), VLDL, and Triglycerides.\n• High-Sensitivity CRP (hs-CRP): Evaluates vascular arterial inflammation.\n• Serum Electrolytes (Na+, K+, Cl-): Monitors myocardial conduction balance.\n\nImportant Fasting Note: Complete Lipid Profile strictly requires 10 to 12 hours overnight fasting (plain water is permitted).\n\n[RECOMMEND: Lipid Profile Extended][RECOMMEND: Cardiac Risk Assessment Panel][ACTION: BOOK: Lipid Profile Extended]`;
+        return `For cardiovascular risk evaluation and lipid metabolic assessment:\n\n• Lipid Profile Extended: Quantifies Total Cholesterol, HDL (Protective), LDL (Atherogenic), VLDL, and Triglycerides.\n• High-Sensitivity CRP (hs-CRP): Evaluates vascular arterial inflammation.\n• Serum Electrolytes (Na+, K+, Cl-): Monitors myocardial conduction balance.\n\nImportant Fasting Note: Complete Lipid Profile strictly requires 10 to 12 hours overnight fasting (plain water is permitted).\n\n[RECOMMEND: Lipid Profile Extended][RECOMMEND: Cardiac Risk Assessment Panel]`;
     }
 
     if (q.includes('liver') || q.includes('jaundice') || q.includes('yellow') || q.includes('bilirubin') || q.includes('sgot') || q.includes('sgpt') || q.includes('gastric') || q.includes('nausea')) {
-        return `For hepatic function evaluation and enzyme screening:\n\n• Liver Function Test (LFT): Total & Direct Bilirubin, SGOT/AST, SGPT/ALT, Alkaline Phosphatase, and Serum Albumin.\n• Viral Hepatitis Panel (HBsAg & HCV): Identifies infectious viral hepatitis markers.\n\nPreparation: 8 hours fasting recommended. Avoid alcohol for at least 48 hours prior to testing.\n\n[RECOMMEND: Liver Function Test (LFT)][ACTION: BOOK: Liver Function Test (LFT)]`;
+        return `For hepatic function evaluation and enzyme screening:\n\n• Liver Function Test (LFT): Total & Direct Bilirubin, SGOT/AST, SGPT/ALT, Alkaline Phosphatase, and Serum Albumin.\n• Viral Hepatitis Panel (HBsAg & HCV): Identifies infectious viral hepatitis markers.\n\nPreparation: 8 hours fasting recommended. Avoid alcohol for at least 48 hours prior to testing.\n\n[RECOMMEND: Liver Function Test (LFT)]`;
     }
 
     if (q.includes('kidney') || q.includes('urine') || q.includes('burning') || q.includes('creatinine') || q.includes('bun') || q.includes('uric acid') || q.includes('rft') || q.includes('kft')) {
-        return `For renal function assessment and urinary tract evaluation:\n\n• Renal Function Test (RFT / KFT): Serum Creatinine, Blood Urea Nitrogen (BUN), and Uric Acid.\n• Urine Routine & Microscopic Examination: Identifies proteinuria, hematuria, and pus cell counts.\n• Serum Electrolytes: Monitors electrolyte filtration balance.\n\nSample Collection: Collect mid-stream clean-catch morning urine sample.\n\n[RECOMMEND: Renal Function Test (RFT)][RECOMMEND: Urine Routine Examination][ACTION: BOOK: Renal Function Test (RFT)]`;
+        return `For renal function assessment and urinary tract evaluation:\n\n• Renal Function Test (RFT / KFT): Serum Creatinine, Blood Urea Nitrogen (BUN), and Uric Acid.\n• Urine Routine & Microscopic Examination: Identifies proteinuria, hematuria, and pus cell counts.\n• Serum Electrolytes: Monitors electrolyte filtration balance.\n\nSample Collection: Collect mid-stream clean-catch morning urine sample.\n\n[RECOMMEND: Renal Function Test (RFT)][RECOMMEND: Urine Routine Examination]`;
     }
 
     if (q.includes('full body') || q.includes('checkup') || q.includes('package') || q.includes('annual') || q.includes('master') || q.includes('routine')) {
-        return `The DiagnoLabs Comprehensive Full Body Health Package comprises 75+ vital parameters:\n\n1. Complete Blood Count (CBC - 24 parameters)\n2. Diabetes Screening (HbA1c & Fasting Glucose)\n3. Complete Lipid Profile (Cholesterol Fractions)\n4. Liver Function Test (LFT - 11 parameters)\n5. Kidney Function Test (KFT - Serum Creatinine & Uric Acid)\n6. Thyroid Profile (T3, T4, TSH)\n7. Vitamin D3 & Vitamin B12 Levels\n8. Urine Routine & Microscopy\n\nFasting Required: 10 to 12 hours overnight fasting.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+        return `The DiagnoLabs Comprehensive Full Body Health Package comprises 75+ vital parameters:\n\n1. Complete Blood Count (CBC - 24 parameters)\n2. Diabetes Screening (HbA1c & Fasting Glucose)\n3. Complete Lipid Profile (Cholesterol Fractions)\n4. Liver Function Test (LFT - 11 parameters)\n5. Kidney Function Test (KFT - Serum Creatinine & Uric Acid)\n6. Thyroid Profile (T3, T4, TSH)\n7. Vitamin D3 & Vitamin B12 Levels\n8. Urine Routine & Microscopy\n\nFasting Required: 10 to 12 hours overnight fasting.\n\n[RECOMMEND: Comprehensive Full Body Health Package]`;
     }
 
     if (q.includes('fasting') || q.includes('empty stomach') || q.includes('prepare') || q.includes('diet') || q.includes('rules')) {
-        return `Official Pre-Test Preparation & Fasting Guidelines:\n\n• Lipid Profile & Fasting Blood Sugar: 10 to 12 hours strict fasting. Only plain water is permitted.\n• Thyroid Profile (TSH): 8 hours fasting preferred. Take thyroid tablets after sample draw.\n• Full Body Health Packages: 10 to 12 hours overnight fasting.\n• CBC, Vitamin D, Vitamin B12: No strict fasting required; a light meal is permitted.\n\n[ACTION: CHECKOUT]`;
+        return `Official Pre-Test Preparation & Fasting Guidelines:\n\n• Lipid Profile & Fasting Blood Sugar: 10 to 12 hours strict fasting. Only plain water is permitted.\n• Thyroid Profile (TSH): 8 hours fasting preferred. Take thyroid tablets after sample draw.\n• Full Body Health Packages: 10 to 12 hours overnight fasting.\n• CBC, Vitamin D, Vitamin B12: No strict fasting required; a light meal is permitted.`;
     }
 
     if (q.includes('report') || q.includes('result') || q.includes('download') || q.includes('pdf') || q.includes('view report') || q.includes('status')) {
-        return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are available immediately upon Pathologist clinical verification.\n• Each report contains a tamper-proof cryptographic QR code for instant authenticity verification.\n\n[ACTION: REPORT_ANALYZED]`;
+        return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are available immediately upon Pathologist clinical verification.\n• Each report contains a tamper-proof cryptographic QR code for instant authenticity verification.`;
     }
 
     if (q.includes('book') || q.includes('appointment') || q.includes('schedule') || q.includes('home collection')) {
-        return `You can schedule home sample collection across all verified NABL labs in your area with zero collection fee.\n\nPopular Diagnostic Packages:\n• Complete Blood Count (CBC) — ₹299\n• HbA1c Diabetes Screen — ₹450\n• Comprehensive Full Body Package — ₹1,499\n\n[ACTION: CHECKOUT]`;
+        return `You can schedule home sample collection across all verified NABL labs in your area with zero collection fee.\n\nPopular Diagnostic Packages:\n• Complete Blood Count (CBC) — ₹299\n• HbA1c Diabetes Screen — ₹450\n• Comprehensive Full Body Package — ₹1,499\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Comprehensive Full Body Package]`;
     }
 
-    return `Hello ${userName || ''}. I am the DiagnoLabs clinical assistant.\n\nHow can I help you today?\n• Explore diagnostic tests & packages\n• Book an appointment for home sample collection\n• Check your verified digital lab report status\n• Ask any medical preparation or health question\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+    return `Hello ${userName || ''}! I am the DiagnoLabs clinical assistant.\n\nHow can I help you today?\n• Explore diagnostic tests & packages\n• Learn about home sample collection & cold-chain safety\n• Check your verified digital lab report status\n• Ask any medical preparation or health question\n\n[RECOMMEND: Comprehensive Full Body Health Package]`;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -754,9 +759,12 @@ const ChatBot = () => {
             setMessages(prev => [...prev, botMsg]);
             speak(cleanedText);
 
-            if (action && action.startsWith('BOOK:')) {
+            // Only navigate if the user explicitly requested a page shift (e.g. "show me", "take me to", "open", "book now", "dikhao", "chupinchu")
+            const isExplicitAction = /^(show\s+me|open|go\s+to|navigate|take\s+me|book\s+now|teesuk|chupinchu|dikhao)/i.test(text.trim());
+
+            if (isExplicitAction && action && action.startsWith('BOOK:')) {
                 const testName = action.replace('BOOK:', '').trim();
-                setTimeout(() => navigate(`/search?q=${encodeURIComponent(testName)}`), 2000);
+                setTimeout(() => navigate(`/search?q=${encodeURIComponent(testName)}`), 1200);
             }
 
         } catch (err) {

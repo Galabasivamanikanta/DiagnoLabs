@@ -238,6 +238,20 @@ export const GlobalVoiceAssistant = () => {
             .trim();
 
         // ─────────────────────────────────────────────────────────────
+        // 0.0. GREETING HANDLER (SPOKEN & VISUAL ONLY - NO PAGE SHIFT)
+        // ─────────────────────────────────────────────────────────────
+        if (cmd === 'hi' || cmd === 'hello' || cmd === 'hey' || cmd === 'namaste' || cmd === 'good morning' || cmd === 'good evening' || cmd === 'good afternoon') {
+            setLastActionText('Greeting: Hello!');
+            if (location.pathname === '/demo') {
+                speak('Hello! Welcome to the DiagnoLabs interactive demo. Say "Explain demo" for a marketing tour, or "Take me to login" when you are ready.');
+            } else {
+                speak('Hello! I am your DiagnoLabs AI assistant. How can I help you today? You can say "Show reports", "Find labs near me", or "Explain demo".');
+            }
+            setIsProcessing(false);
+            return;
+        }
+
+        // ─────────────────────────────────────────────────────────────
         // 0. LOCATION ON / OFF VOICE CONTROLS
         // ─────────────────────────────────────────────────────────────
         if (
@@ -709,7 +723,7 @@ export const GlobalVoiceAssistant = () => {
         setLastActionText(`Recognized: "${rawTranscript}"`);
         speak(fallbackSpeech);
         setIsProcessing(false);
-    }, [navigate, speak, logout, login, turnOnLocation, turnOffLocation, showLocationPromptModal]);
+    }, [navigate, location, speak, logout, login, turnOnLocation, turnOffLocation, showLocationPromptModal]);
 
     // Continuous Speech Recognition Engine Setup
     useEffect(() => {
