@@ -895,14 +895,15 @@ const Demo = () => {
               </AnimatePresence>
             </div>
 
-            {/* 4. Bottom Conversion Bar */}
+            {/* 4. Bottom Conversion & Navigation Bar */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '1rem',
-              paddingTop: '1.25rem'
+              paddingTop: '1.25rem',
+              position: 'relative'
             }}>
               {/* Voice Command Hint */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -924,8 +925,42 @@ const Demo = () => {
                 </span>
               </div>
 
-              {/* Navigation Arrows & Slide Counter */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {/* Center Pagination Dots (Fixed Position for all slides) */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                justifyContent: 'center'
+              }}>
+                {marketingTourSteps.map((_, idx) => {
+                  const isActive = activeTourIndex === idx;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setActiveTourIndex(idx);
+                        setSlideProgress(0);
+                        if (isNarrating) speakMarketingText(marketingTourSteps[idx].speech);
+                      }}
+                      title={`Go to slide ${idx + 1}`}
+                      style={{
+                        width: isActive ? '24px' : '7px',
+                        height: '7px',
+                        borderRadius: '100px',
+                        background: isActive ? 'linear-gradient(90deg, #0284c7, #38bdf8)' : '#cbd5e1',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: isActive ? '0 0 10px rgba(2, 132, 199, 0.6)' : 'none'
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Navigation Arrows */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <button
                   onClick={() => {
                     const prev = (activeTourIndex - 1 + marketingTourSteps.length) % marketingTourSteps.length;
@@ -935,21 +970,21 @@ const Demo = () => {
                   }}
                   title="Previous Slide"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#94a3b8',
+                    background: '#f1f5f9',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
                     cursor: 'pointer',
-                    padding: '0.2rem',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={16} />
                 </button>
-
-                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '700' }}>
-                  {activeTourIndex + 1} of {marketingTourSteps.length}
-                </span>
 
                 <button
                   onClick={() => {
@@ -960,16 +995,20 @@ const Demo = () => {
                   }}
                   title="Next Slide"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#94a3b8',
+                    background: '#f1f5f9',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
                     cursor: 'pointer',
-                    padding: '0.2rem',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>
