@@ -241,6 +241,30 @@ const ChatBot = () => {
         recognitionRef.current = rec;
     }, []);
 
+    // Global Event Listeners for Voice Assistant integration
+    useEffect(() => {
+        const handleOpenChatEvent = (e) => {
+            setIsOpen(true);
+            if (e.detail?.query) {
+                setTimeout(() => {
+                    handleSend(e.detail.query);
+                }, 300);
+            }
+        };
+
+        const handleCloseChatEvent = () => {
+            setIsOpen(false);
+        };
+
+        window.addEventListener('diagnolabs:open-chat', handleOpenChatEvent);
+        window.addEventListener('diagnolabs:close-chat', handleCloseChatEvent);
+
+        return () => {
+            window.removeEventListener('diagnolabs:open-chat', handleOpenChatEvent);
+            window.removeEventListener('diagnolabs:close-chat', handleCloseChatEvent);
+        };
+    }, []);
+
     const toggleListening = () => {
         if (!recognitionRef.current) {
             alert('Voice recognition is supported in Google Chrome, Microsoft Edge, and modern Android browsers.');
