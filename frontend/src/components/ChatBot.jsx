@@ -6,7 +6,7 @@ import {
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     ClipboardList, CreditCard, BookOpen, Stethoscope, Package, Landmark,
     Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck, Radio, Compass,
-    Sparkle, Mic2, CornerDownLeft
+    Sparkle, Mic2, MapPin, Calendar, FileCheck, Info, Check, HelpCircle
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -66,71 +66,71 @@ const testIcon = (name = '') => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Role-Specific Chatbot Configurations
+// Role-Specific Chatbot Configurations (Clean Medical Styling)
 // ─────────────────────────────────────────────────────────────
 const ROLE_CHAT_CONFIGS = {
     patient: {
         title: 'Patient Health AI Copilot',
-        subtitle: 'Symptom Triage · Test Booking · Voice Flow',
+        subtitle: 'Clinical Triage · Lab Booking · Voice Assistant',
         icon: <Sparkles size={20} className="text-sky-300" />,
-        greeting: `Hello! 👋 I'm your **DiagnoLabs Personal Health & Voice Copilot**.\n\n🎙️ **Voice Commands Active:** You can speak or type to:\n• 🤒 Analyze symptoms & suggest NABL lab tests\n• 📅 Book tests instantly (*e.g. "Book CBC test"*)\n• 📄 Explain lab reports & normal reference ranges\n• 💊 Pre-test fasting rules & preparation guidelines\n• 📍 Find nearest verified pathology labs`,
+        greeting: `Welcome to **DiagnoLabs Clinical Voice Copilot**.\n\nI am your intelligent health assistant. You can speak or type to:\n• **Symptom Triage:** Analyze symptoms & get NABL diagnostic test suggestions\n• **Instant Booking:** Schedule sample collections (e.g., "Book CBC Test")\n• **Report Interpretation:** Understand biomarker values & normal reference intervals\n• **Preparation Guidelines:** Pre-test fasting rules & dietary protocols\n• **Lab Discovery:** Find nearest accredited pathology laboratories`,
         prompts: [
-            { label: '🤒 Fever & Infection', text: 'I have fever, chills, and body aches for 2 days. What tests should I get?' },
-            { label: '🩸 Diabetes Check', text: 'Suggest the best diagnostic tests for Diabetes screening and monitoring.' },
-            { label: '⚡ Thyroid & Fatigue', text: 'I have extreme fatigue and sudden weight gain. Which thyroid test is best?' },
-            { label: '📋 Fasting Rules', text: 'Do I need 10 to 12 hours fasting before my Lipid Profile and Sugar tests?' },
-            { label: '🌟 Full Body Package', text: 'What tests are included in the Comprehensive Full Body Health Package?' }
+            { label: 'Fever & Infection', icon: <Thermometer size={13} className="text-amber-500" />, text: 'I have fever, chills, and body aches for 2 days. What tests should I get?' },
+            { label: 'Diabetes Check', icon: <Droplets size={13} className="text-rose-500" />, text: 'Suggest the best diagnostic tests for Diabetes screening and monitoring.' },
+            { label: 'Thyroid & Fatigue', icon: <Zap size={13} className="text-yellow-500" />, text: 'I have extreme fatigue and sudden weight gain. Which thyroid test is best?' },
+            { label: 'Fasting Guidelines', icon: <ClipboardList size={13} className="text-emerald-500" />, text: 'Do I need 10 to 12 hours fasting before my Lipid Profile and Sugar tests?' },
+            { label: 'Full Body Package', icon: <Activity size={13} className="text-sky-500" />, text: 'What tests are included in the Comprehensive Full Body Health Package?' }
         ]
     },
     doctor: {
         title: 'Doctor AI Clinical Copilot',
         subtitle: 'Differential Diagnosis · Decision Support',
         icon: <Stethoscope size={20} className="text-sky-300" />,
-        greeting: `Welcome Doctor! 🩺 I'm your **Clinical Decision Copilot**.\n\nReady to assist your clinical workflows:\n• 🔬 Differential diagnosis from lab parameters\n• 📋 Standard clinical prescription templates\n• 🩸 Patient biomarker trends & critical flag alerts\n• ⚠️ Drug-lab test interaction checks`,
+        greeting: `Welcome Doctor. I am your **Clinical Decision Copilot**.\n\nReady to assist your diagnostic workflows:\n• **Differential Diagnosis:** Parameter correlation from patient lab values\n• **Prescription Templates:** Standard clinical management protocols\n• **Biomarker Trends:** Longitudinal patient health tracking & critical alerts\n• **Drug-Test Interactions:** Potential analytical interferences`,
         prompts: [
-            { label: '🔬 Differential Diagnosis', text: 'Patient has Elevated TSH (8.5) and Low Free T4. What is the diagnosis and treatment?' },
-            { label: '📋 Type-2 Diabetes Rx', text: 'Draft a standard prescription and monitoring protocol for Type-2 Diabetes.' },
-            { label: '⚠️ Drug-Lab Interaction', text: 'Does Biotin or Metformin interfere with Thyroid panel tests?' }
+            { label: 'Differential Diagnosis', icon: <Activity size={13} className="text-sky-500" />, text: 'Patient has Elevated TSH (8.5) and Low Free T4. What is the diagnosis and treatment?' },
+            { label: 'Type-2 Diabetes Rx', icon: <Pill size={13} className="text-purple-500" />, text: 'Draft a standard prescription and monitoring protocol for Type-2 Diabetes.' },
+            { label: 'Drug-Lab Interaction', icon: <ShieldCheck size={13} className="text-emerald-500" />, text: 'Does Biotin or Metformin interfere with Thyroid panel tests?' }
         ]
     },
     nurse: {
         title: 'Nurse Clinical Assistant AI',
         subtitle: 'Vitals · Sterile Care Coordination',
         icon: <HeartPulse size={20} className="text-pink-300" />,
-        greeting: `Hello Nurse! 🩺 I'm your **Clinical Care Assistant**.\n\nReady to help with your shift:\n• 🩸 Patient vitals entry guidelines (BP, SpO2, Pulse)\n• 💉 Sterile blood collection protocol & vacutainer sequence\n• 📋 Patient queue prioritization & triage rules`,
+        greeting: `Welcome Nurse. I am your **Clinical Care Assistant**.\n\nReady to assist your shift operations:\n• **Patient Vitals Entry:** Standard reference limits for BP, SpO2, and Pulse\n• **Sterile Phlebotomy:** Vacutainer tube sequence and aseptic draw protocol\n• **Queue Prioritization:** Emergency and fasting patient triage guidelines`,
         prompts: [
-            { label: '🩸 Vitals Reference Ranges', text: 'What are the normal adult and senior vitals ranges for BP, SpO2, and Pulse?' },
-            { label: '💉 Vacutainer Sequence', text: 'What is the correct order of draw for blood collection tubes (EDTA, Serum, Fluoride)?' }
+            { label: 'Vitals Reference Ranges', icon: <HeartPulse size={13} className="text-rose-500" />, text: 'What are the normal adult and senior vitals ranges for BP, SpO2, and Pulse?' },
+            { label: 'Vacutainer Sequence', icon: <FlaskConical size={13} className="text-cyan-500" />, text: 'What is the correct order of draw for blood collection tubes (EDTA, Serum, Fluoride)?' }
         ]
     },
     phlebotomist: {
         title: 'Phlebotomist Navigator AI',
         subtitle: 'Sample Collection · Cold Chain GPS',
         icon: <Droplets size={20} className="text-rose-300" />,
-        greeting: `Hey Collector! 🩸 I'm your **Field Navigation AI**.\n\nLet's get sample collections completed:\n• 📍 Home address GPS navigation tips\n• 📦 Vacutainer tube color guide (EDTA / Fluoride / Serum)\n• 🔑 Patient 4-digit OTP digital verification protocol\n• ❄️ Cold-chain temperature maintenance (2°C - 8°C)`,
+        greeting: `Field Collector Assistant Active.\n\nAssisting with:\n• **GPS Routing:** Optimized navigation to patient home addresses\n• **Tube Selection:** EDTA, Fluoride, and Serum vacutainer protocols\n• **OTP Digital Verification:** 4-digit patient authentication handshake\n• **Cold-Chain Logistics:** 2°C to 8°C specimen temperature management`,
         prompts: [
-            { label: '📦 Tube Color Guide', text: 'Which tube color is used for HbA1c, Glucose, and Lipid Profile?' },
-            { label: '🔑 OTP Verification', text: 'Explain the 4-digit OTP digital handshake verification procedure.' }
+            { label: 'Tube Color Guide', icon: <Droplets size={13} className="text-rose-500" />, text: 'Which tube color is used for HbA1c, Glucose, and Lipid Profile?' },
+            { label: 'OTP Verification', icon: <ShieldCheck size={13} className="text-emerald-500" />, text: 'Explain the 4-digit OTP digital handshake verification procedure.' }
         ]
     },
     admin: {
         title: 'Admin Master Copilot AI',
         subtitle: 'Platform Governance · RBAC Analytics',
         icon: <Crown size={20} className="text-amber-300" />,
-        greeting: `Greetings Administrator! 👑 I'm your **Platform Master Copilot**.\n\nFull platform governance support:\n• 👤 14-Tier RBAC role permissions management\n• 🏥 Lab partner onboarding & accreditation verification\n• 📈 Platform-wide booking volume, revenue, and SLA analytics`,
+        greeting: `Platform Governance Copilot Active.\n\nAssisting with:\n• **RBAC Governance:** 14-Tier user access permissions & compliance\n• **Lab Accreditation:** NABL onboarding review & verification\n• **Operational Analytics:** Platform-wide booking volume, revenue, and SLA health`,
         prompts: [
-            { label: '👤 14-Tier RBAC Overview', text: 'List the access privileges and data boundaries across the 14 RBAC user roles.' },
-            { label: '🏥 Lab Onboarding Checklist', text: 'What compliance documents are required to approve a new NABL lab partner?' }
+            { label: '14-Tier RBAC Overview', icon: <ShieldCheck size={13} className="text-sky-500" />, text: 'List the access privileges and data boundaries across the 14 RBAC user roles.' },
+            { label: 'Lab Onboarding Checklist', icon: <ClipboardList size={13} className="text-emerald-500" />, text: 'What compliance documents are required to approve a new NABL lab partner?' }
         ]
     },
     employee: {
         title: 'Front Desk Operations AI',
         subtitle: 'Reception · Walk-In Registration',
         icon: <UserCheck size={20} className="text-sky-300" />,
-        greeting: `Welcome Front Desk Team! 📋 I'm your **Reception Assistant**.\n\nHelping you with:\n• 📝 Quick walk-in patient registration\n• 📅 Appointment check-in & token assignment\n• 🧾 Printing patient payment receipts`,
+        greeting: `Reception & Front Desk Assistant Active.\n\nAssisting with:\n• **Walk-In Registration:** Patient intake & test profile selection\n• **Appointment Check-In:** Verification of online scheduled appointments\n• **Invoice Printing:** Tax invoice & token generation`,
         prompts: [
-            { label: '📝 Walk-In Registration', text: 'How do I register a new walk-in patient for a Thyroid and CBC test?' },
-            { label: '📅 Appointment Check-In', text: 'What is the standard procedure to verify and check in an online booked patient?' }
+            { label: 'Walk-In Registration', icon: <UserCheck size={13} className="text-sky-500" />, text: 'How do I register a new walk-in patient for a Thyroid and CBC test?' },
+            { label: 'Appointment Check-In', icon: <Calendar size={13} className="text-emerald-500" />, text: 'What is the standard procedure to verify and check in an online booked patient?' }
         ]
     }
 };
@@ -143,56 +143,56 @@ const generateClinicalFallback = (text, role = 'patient') => {
 
     // 1. FEVER & INFECTIONS
     if (q.includes('fever') || q.includes('temperature') || q.includes('chills') || q.includes('dengue') || q.includes('malaria') || q.includes('typhoid') || q.includes('jwaram') || q.includes('cold') || q.includes('flu')) {
-        return `Based on your symptoms of fever and chills, a complete infection screening is clinically recommended to identify the underlying cause (Viral, Dengue, Malaria, or Typhoid).\n\nRecommended Diagnostic Tests:\n1. **Complete Blood Count (CBC)** — Evaluates WBC, Platelets, and Infection markers.\n2. **Dengue NS1 Antigen & IgM/IgG** — Detects early dengue virus.\n3. **Typhoid (Widal / Typhidot)** — Screens for enteric fever.\n4. **Urine Routine Examination** — Rules out urinary tract infection.\n\n💡 **Pre-Test Rule:** No strict fasting required. Stay well hydrated. If body temperature exceeds 101°F, consult a physician promptly.\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Dengue Serology Panel][ACTION: BOOK: Complete Blood Count (CBC)]`;
+        return `Based on your reported fever and chills, a complete infection screening panel is clinically indicated to differentiate between Viral, Dengue, Malaria, or Typhoid etiology.\n\nRecommended Diagnostic Tests:\n1. **Complete Blood Count (CBC)** — Evaluates White Blood Cell count, Platelets, and Infection markers.\n2. **Dengue NS1 Antigen & IgM/IgG** — Detects early dengue viral markers.\n3. **Typhoid (Widal / Typhidot)** — Identifies enteric Salmonella infection.\n4. **Urine Routine Examination** — Rules out secondary urinary tract infections.\n\n**Pre-Test Preparation:** No strict fasting required. Maintain hydration. If body temperature exceeds 101°F, consult a physician promptly.\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Dengue Serology Panel][ACTION: BOOK: Complete Blood Count (CBC)]`;
     }
 
     // 2. DIABETES & BLOOD SUGAR
     if (q.includes('diabetes') || q.includes('sugar') || q.includes('glucose') || q.includes('hba1c') || q.includes('madhumeham') || q.includes('thirst') || q.includes('urination')) {
-        return `For comprehensive Diabetes screening and blood glucose monitoring, the standard clinical protocol includes:\n\n• **HbA1c (Glycated Hemoglobin)**: Evaluates your average 3-month blood sugar level (No fasting required).\n• **Fasting Blood Sugar (FBS)**: Requires 8–10 hours overnight fasting (only plain water permitted).\n• **Post-Prandial Blood Sugar (PPBS)**: Tested exactly 2 hours after a standard meal.\n• **Lipid Profile**: Assesses associated cardiovascular risk factors.\n\n💡 **Fasting Tip:** Take water freely during fasting. Take morning insulin or medicines only after the blood sample is drawn.\n\n[RECOMMEND: HbA1c (Glycated Hemoglobin)][RECOMMEND: Fasting Blood Sugar (FBS)][ACTION: BOOK: HbA1c (Glycated Hemoglobin)]`;
+        return `For comprehensive Diabetes screening and blood glucose monitoring, the standard clinical protocol includes:\n\n• **HbA1c (Glycated Hemoglobin):** Evaluates 3-month average plasma glucose (No fasting required).\n• **Fasting Blood Sugar (FBS):** Requires 8 to 10 hours overnight fasting (plain water is permitted).\n• **Post-Prandial Blood Sugar (PPBS):** Sample drawn exactly 2 hours after a standard meal.\n• **Lipid Profile:** Screens for associated cardiovascular and metabolic risk.\n\n**Fasting Protocol:** Take water freely during fasting. Take morning insulin or oral medications only after sample draw.\n\n[RECOMMEND: HbA1c (Glycated Hemoglobin)][RECOMMEND: Fasting Blood Sugar (FBS)][ACTION: BOOK: HbA1c (Glycated Hemoglobin)]`;
     }
 
     // 3. THYROID & METABOLISM
     if (q.includes('thyroid') || q.includes('t3') || q.includes('t4') || q.includes('tsh') || q.includes('weight gain') || q.includes('weight loss') || q.includes('hair fall') || q.includes('fatigue') || q.includes('neerasam') || q.includes('weakness')) {
-        return `For evaluating thyroid gland function and chronic fatigue/weight fluctuations, the recommended tests are:\n\n• **Thyroid Profile Total (T3, T4, TSH)**: Evaluates hypothyroidism or hyperthyroidism.\n• **Vitamin D3 & Vitamin B12**: Deficiencies in these vitamins commonly mimic thyroid exhaustion.\n• **Complete Blood Count (CBC)**: Checks for anemia and low hemoglobin.\n\n💡 **Preparation:** Morning fasting sample (8 hours) is preferred. Take thyroid medications only after blood draw.\n\n[RECOMMEND: Thyroid Profile Total (T3, T4, TSH)][RECOMMEND: Vitamin D3 & B12 Combo][ACTION: BOOK: Thyroid Profile Total (T3, T4, TSH)]`;
+        return `For evaluating thyroid endocrine function and metabolic fatigue:\n\n• **Thyroid Profile Total (T3, T4, TSH):** Assesses hypothyroidism or hyperthyroidism.\n• **Vitamin D3 & Vitamin B12:** Essential micronutrients whose deficiency mimics chronic thyroid exhaustion.\n• **Complete Blood Count (CBC):** Screens for anemia and decreased oxygenation capacity.\n\n**Preparation:** Morning fasting sample (8 hours) is preferred. Thyroid replacement medication should be taken after blood draw.\n\n[RECOMMEND: Thyroid Profile Total (T3, T4, TSH)][RECOMMEND: Vitamin D3 & B12 Combo][ACTION: BOOK: Thyroid Profile Total (T3, T4, TSH)]`;
     }
 
     // 4. CARDIAC, CHOLESTEROL & BLOOD PRESSURE
     if (q.includes('heart') || q.includes('chest') || q.includes('cholesterol') || q.includes('bp') || q.includes('blood pressure') || q.includes('cardiac') || q.includes('lipid') || q.includes('palpitation')) {
-        return `For cardiovascular health and cholesterol risk assessment, the following NABL-accredited diagnostic panel is recommended:\n\n• **Lipid Profile Extended**: Measures Total Cholesterol, HDL (Good), LDL (Bad), VLDL, and Triglycerides.\n• **High-Sensitivity CRP (hs-CRP)**: Evaluates vascular arterial inflammation.\n• **Serum Electrolytes (Sodium, Potassium, Chloride)**: Checks electrolyte balance.\n\n⚠️ **Important Fasting Note:** Lipid Profile requires **10 to 12 hours strict fasting** (water is allowed).\n\n[RECOMMEND: Lipid Profile Extended][RECOMMEND: Cardiac Risk Assessment Panel][ACTION: BOOK: Lipid Profile Extended]`;
+        return `For cardiovascular risk evaluation and lipid metabolic assessment:\n\n• **Lipid Profile Extended:** Quantifies Total Cholesterol, HDL (Protective), LDL (Atherogenic), VLDL, and Triglycerides.\n• **High-Sensitivity CRP (hs-CRP):** Evaluates vascular arterial inflammation.\n• **Serum Electrolytes (Na+, K+, Cl-):** Monitors myocardial conduction balance.\n\n**Important Fasting Note:** Complete Lipid Profile strictly requires **10 to 12 hours overnight fasting** (plain water is permitted).\n\n[RECOMMEND: Lipid Profile Extended][RECOMMEND: Cardiac Risk Assessment Panel][ACTION: BOOK: Lipid Profile Extended]`;
     }
 
     // 5. LIVER & JAUNDICE
     if (q.includes('liver') || q.includes('jaundice') || q.includes('yellow') || q.includes('bilirubin') || q.includes('sgot') || q.includes('sgpt') || q.includes('gastric') || q.includes('nausea')) {
-        return `For liver health, jaundice symptoms, and digestive enzyme evaluation, the key diagnostic tests include:\n\n• **Liver Function Test (LFT)**: Bilirubin (Total & Direct), SGOT/AST, SGPT/ALT, Alkaline Phosphatase, and Albumin.\n• **Viral Hepatitis Panel (HBsAg & HCV)**: Screens for viral liver infections.\n\n💡 **Preparation:** 8 hours fasting recommended. Avoid alcohol for at least 48 hours prior to testing.\n\n[RECOMMEND: Liver Function Test (LFT)][ACTION: BOOK: Liver Function Test (LFT)]`;
+        return `For hepatic function evaluation and enzyme screening:\n\n• **Liver Function Test (LFT):** Total & Direct Bilirubin, SGOT/AST, SGPT/ALT, Alkaline Phosphatase, and Serum Albumin.\n• **Viral Hepatitis Panel (HBsAg & HCV):** Identifies infectious viral hepatitis markers.\n\n**Preparation:** 8 hours fasting recommended. Avoid alcohol for at least 48 hours prior to testing.\n\n[RECOMMEND: Liver Function Test (LFT)][ACTION: BOOK: Liver Function Test (LFT)]`;
     }
 
     // 6. KIDNEY & URINARY TRACT
     if (q.includes('kidney') || q.includes('urine') || q.includes('burning') || q.includes('creatinine') || q.includes('bun') || q.includes('uric acid') || q.includes('rft') || q.includes('kft')) {
-        return `For renal function evaluation, kidney health, and urinary tract infection screening:\n\n• **Renal Function Test (RFT / KFT)**: Serum Creatinine, Blood Urea Nitrogen (BUN), and Uric Acid.\n• **Urine Routine & Microscopic Examination**: Detects pus cells, proteins, and infection.\n\n💡 **Sample Collection:** Collect mid-stream clean catch morning urine sample.\n\n[RECOMMEND: Renal Function Test (RFT)][RECOMMEND: Urine Routine Examination][ACTION: BOOK: Renal Function Test (RFT)]`;
+        return `For renal function assessment and urinary tract evaluation:\n\n• **Renal Function Test (RFT / KFT):** Serum Creatinine, Blood Urea Nitrogen (BUN), and Uric Acid.\n• **Urine Routine & Microscopic Examination:** Identifies proteinuria, hematuria, and pus cell counts.\n• **Serum Electrolytes:** Monitors electrolyte filtration balance.\n\n**Sample Collection:** Collect mid-stream clean-catch morning urine sample.\n\n[RECOMMEND: Renal Function Test (RFT)][RECOMMEND: Urine Routine Examination][ACTION: BOOK: Renal Function Test (RFT)]`;
     }
 
     // 7. FULL BODY / HEALTH CHECKUP
     if (q.includes('full body') || q.includes('checkup') || q.includes('package') || q.includes('annual') || q.includes('master') || q.includes('routine')) {
-        return `The **DiagnoLabs Comprehensive Full Body Health Package** includes 75+ vital parameters:\n\n1. Complete Blood Count (CBC - 24 parameters)\n2. Diabetes Screen (HbA1c & Fasting Glucose)\n3. Complete Lipid Profile (Cholesterol & Triglycerides)\n4. Liver Function Test (LFT - 11 parameters)\n5. Kidney Function Test (KFT - Serum Creatinine, Uric Acid)\n6. Thyroid Profile (T3, T4, TSH)\n7. Vitamin D3 & Vitamin B12 Levels\n8. Urine Routine & Microscopy\n\n💡 **Fasting Required:** 10–12 hours overnight fasting.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+        return `The **DiagnoLabs Comprehensive Full Body Health Package** comprises 75+ vital parameters:\n\n1. Complete Blood Count (CBC - 24 parameters)\n2. Diabetes Screening (HbA1c & Fasting Glucose)\n3. Complete Lipid Profile (Cholesterol Fractions)\n4. Liver Function Test (LFT - 11 parameters)\n5. Kidney Function Test (KFT - Serum Creatinine & Uric Acid)\n6. Thyroid Profile (T3, T4, TSH)\n7. Vitamin D3 & Vitamin B12 Levels\n8. Urine Routine & Microscopy\n\n**Fasting Required:** 10 to 12 hours overnight fasting.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
     }
 
     // 8. PRE-TEST FASTING GUIDELINES
     if (q.includes('fasting') || q.includes('empty stomach') || q.includes('prepare') || q.includes('diet') || q.includes('rules')) {
-        return `📋 **Official Pre-Test Preparation & Fasting Guidelines**:\n\n• **Lipid Profile & Glucose (FBS)**: 10 to 12 hours strict fasting. Only plain water is permitted.\n• **Thyroid Profile (TSH)**: 8 hours fasting preferred. Take thyroid tablets after blood draw.\n• **Full Body Health Checkup**: 10 to 12 hours overnight fasting.\n• **CBC, Vitamin D, Vitamin B12**: No strict fasting required, but a light meal is advised.\n\n[ACTION: CHECKOUT]`;
+        return `**Official Pre-Test Preparation & Fasting Guidelines:**\n\n• **Lipid Profile & Fasting Blood Sugar:** 10 to 12 hours strict fasting. Only plain water is permitted.\n• **Thyroid Profile (TSH):** 8 hours fasting preferred. Take thyroid tablets after sample draw.\n• **Full Body Health Packages:** 10 to 12 hours overnight fasting.\n• **CBC, Vitamin D, Vitamin B12:** No strict fasting required; a light meal is permitted.\n\n[ACTION: CHECKOUT]`;
     }
 
     // 9. LAB REPORTS & RESULTS
     if (q.includes('report') || q.includes('result') || q.includes('download') || q.includes('pdf') || q.includes('view report') || q.includes('status')) {
-        return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are uploaded immediately upon Pathologist sign-off.\n• Each report contains a tamper-proof QR code for instant authentication.\n\n[ACTION: REPORT_ANALYZED]`;
+        return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are available immediately upon Pathologist clinical verification.\n• Each report contains a tamper-proof cryptographic QR code for instant authenticity verification.\n\n[ACTION: REPORT_ANALYZED]`;
     }
 
     // 10. PRICING & BOOKING
     if (q.includes('price') || q.includes('cost') || q.includes('rate') || q.includes('offer') || q.includes('discount') || q.includes('coupon') || q.includes('book')) {
-        return `DiagnoLabs offers transparent pricing with up to 40% discount on NABL diagnostic packages plus **Free Home Sample Collection**:\n\n• Complete Blood Count (CBC): ₹299\n• HbA1c Diabetes Screen: ₹450\n• Thyroid Profile (T3/T4/TSH): ₹499\n• Lipid Profile: ₹550\n• Full Body Health Checkup: ₹1,499 (75+ Parameters)\n\n[ACTION: CHECKOUT]`;
+        return `DiagnoLabs offers transparent pricing with up to 40% discount on NABL diagnostic packages including **Complimentary Home Sample Collection**:\n\n• Complete Blood Count (CBC): ₹299\n• HbA1c Diabetes Screen: ₹450\n• Thyroid Profile (T3/T4/TSH): ₹499\n• Lipid Profile: ₹550\n• Comprehensive Full Body Package: ₹1,499 (75+ Parameters)\n\n[ACTION: CHECKOUT]`;
     }
 
     // Default Fallback
-    return `Hello! I am your **DiagnoLabs AI Health & Diagnostic Assistant**.\n\nI can assist you with:\n• 🤒 **Symptom Triage**: Suggesting tests for fever, fatigue, sugar, thyroid, or heart health.\n• 📅 **Direct Booking**: Instant scheduling with nearest NABL certified labs.\n• 📋 **Fasting & Prep**: Accurate pre-test preparation instructions.\n• 📄 **Report Analysis**: Interpreting biomarker results and normal reference ranges.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+    return `Hello. I am your **DiagnoLabs Clinical Diagnostic Assistant**.\n\nI can assist you with:\n• **Symptom Triage:** Evidence-based diagnostic test recommendations.\n• **Direct Scheduling:** Instant home collection booking with NABL-verified labs.\n• **Preparation Protocols:** Pre-test fasting and dietary guidance.\n• **Report Interpretation:** Diagnostic biomarker values and reference intervals.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -377,7 +377,7 @@ const ChatBot = () => {
         rec.onstart = () => {
             setIsListening(true);
             setSpeechTranscript('');
-            setVoiceFeedbackText('🎙️ Listening...');
+            setVoiceFeedbackText('Listening...');
         };
 
         rec.onresult = (e) => {
@@ -428,7 +428,7 @@ const ChatBot = () => {
             try {
                 recognitionRef.current.start();
             } catch (err) {
-                console.warn("Speech recognition notice:", err.message);
+                console.warn("Speech recognition restart:", err.message);
             }
         }
     };
@@ -467,13 +467,13 @@ const ChatBot = () => {
     };
 
     // ─────────────────────────────────────────────────────────
-    // Send Handler (100% Resilient Multi-Tier AI)
+    // Send Handler (Multi-Tier AI Engine)
     // ─────────────────────────────────────────────────────────
     const handleSend = async (overrideText) => {
         const text = (overrideText || inputValue).trim();
         if (!text && !attachedFile) return;
 
-        const displayText = attachedFile ? `📎 ${attachedFile.name}${text ? ` — ${text}` : ''}` : text;
+        const displayText = attachedFile ? `Document: ${attachedFile.name}${text ? ` — ${text}` : ''}` : text;
 
         setMessages(prev => [...prev, { id: getUniqueId(), text: displayText, sender: 'user' }]);
         setInputValue('');
@@ -591,7 +591,7 @@ const ChatBot = () => {
         stopSpeaking();
         setMessages([{
             id: Date.now(),
-            text: `Conversation reset. How can I assist you as **${roleConfig.title}** today? 😊`,
+            text: `Conversation reset. How can I assist you as **${roleConfig.title}** today?`,
             sender: 'bot',
             recommendations: [],
             action: null
@@ -631,7 +631,7 @@ const ChatBot = () => {
                             <ChevronDown size={26} className="text-sky-200" />
                         </motion.div>
                     ) : (
-                        <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
+                        <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
                             <MessageSquare size={26} className="text-white" />
                         </motion.div>
                     )}
@@ -653,7 +653,7 @@ const ChatBot = () => {
                             maxHeight: isMobile ? '640px' : '720px'
                         }}
                     >
-                        {/* Ultra-Modern Header */}
+                        {/* Header */}
                         <div 
                             className="px-5 py-4 text-white relative overflow-hidden flex-shrink-0"
                             style={{
@@ -714,7 +714,7 @@ const ChatBot = () => {
                                     <div className="flex items-center gap-2">
                                         {isListening && <Radio size={13} className="text-rose-400 animate-pulse" />}
                                         {isSpeaking && <Volume2 size={13} className="text-sky-300 animate-bounce" />}
-                                        <span className="font-semibold">{voiceFeedbackText || (isListening ? 'Listening to voice...' : 'Speaking reply...')}</span>
+                                        <span className="font-semibold">{voiceFeedbackText || (isListening ? 'Listening to speech...' : 'Playing voice response...')}</span>
                                     </div>
                                     {isSpeaking && (
                                         <button 
@@ -822,12 +822,12 @@ const ChatBot = () => {
                                 <div className="p-2.5 bg-sky-50/80 border border-dashed border-sky-200 rounded-2xl flex items-center gap-2 text-[0.72rem] text-sky-800 shadow-sm">
                                     <Sparkle size={14} className="text-sky-500 flex-shrink-0" />
                                     <span className="leading-snug">
-                                        <strong>Voice Tip:</strong> Tap the mic & say <em className="text-sky-900 font-semibold">"Book CBC Test"</em> or <em className="text-sky-900 font-semibold">"Show My Reports"</em>
+                                        <strong>Voice Command:</strong> Tap mic & speak <em className="text-sky-900 font-semibold">"Book CBC Test"</em> or <em className="text-sky-900 font-semibold">"Show My Reports"</em>
                                     </span>
                                 </div>
                             )}
 
-                            {/* Quick Action Prompt Pills */}
+                            {/* Quick Action Prompt Pills with Professional Lucide Icons */}
                             <AnimatePresence>
                                 {showQuickPrompts && !isLoading && roleConfig.prompts?.length > 0 && (
                                     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex flex-wrap gap-1.5 mt-1">
@@ -837,7 +837,8 @@ const ChatBot = () => {
                                                 onClick={() => handleSend(q.text)}
                                                 className="px-3 py-1.5 bg-white hover:bg-sky-50 hover:border-sky-300 border border-slate-200/90 rounded-full text-[0.74rem] font-bold text-slate-700 shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
                                             >
-                                                {q.label}
+                                                {q.icon}
+                                                <span>{q.label}</span>
                                             </button>
                                         ))}
                                     </motion.div>
@@ -869,7 +870,7 @@ const ChatBot = () => {
 
                                 <input
                                     type="text"
-                                    placeholder={isListening ? '🎙️ Listening... (Say your command)' : `Ask or speak to ${roleConfig.title}...`}
+                                    placeholder={isListening ? 'Listening to voice command...' : `Ask or speak to ${roleConfig.title}...`}
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
