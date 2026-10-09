@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Zap,
   ShieldCheck,
@@ -16,10 +17,12 @@ import {
   Volume2,
   VolumeX,
   Play,
+  Pause,
   Square,
   CheckCircle2,
   Mic,
   ChevronRight,
+  ChevronLeft,
   Lock,
   QrCode,
   Thermometer,
@@ -33,6 +36,9 @@ const Demo = () => {
   const [hoverMenu, setHoverMenu] = useState(null);
   const [activeTourIndex, setActiveTourIndex] = useState(0);
   const [isNarrating, setIsNarrating] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [slideProgress, setSlideProgress] = useState(0);
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
   const navigate = useNavigate();
 
@@ -99,6 +105,31 @@ const Demo = () => {
       speech: 'Step five: DiagnoLabs unites 14 dedicated healthcare workspaces, connecting patients, doctors, and lab managers in one seamless cloud. Ready to begin? Click Get Started or say "Take me to login"!'
     }
   ];
+
+  // 5-Second Automatic Carousel Shift Engine
+  useEffect(() => {
+    if (isNarrating) return; // When AI audio narration is active, it coordinates the pace
+
+    const DURATION = 5000; // 5.0 seconds per slide
+    const INTERVAL = 50; // Smooth 50ms ticks for progress bar
+    let elapsed = 0;
+    setSlideProgress(0);
+
+    const timer = setInterval(() => {
+      if (isHovered || !isAutoPlaying) return;
+
+      elapsed += INTERVAL;
+      setSlideProgress(Math.min((elapsed / DURATION) * 100, 100));
+
+      if (elapsed >= DURATION) {
+        elapsed = 0;
+        setSlideProgress(0);
+        setActiveTourIndex((prev) => (prev + 1) % marketingTourSteps.length);
+      }
+    }, INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [isNarrating, isHovered, isAutoPlaying, activeTourIndex, marketingTourSteps.length]);
 
   // Stop Speech when navigating away
   useEffect(() => {
@@ -531,85 +562,150 @@ const Demo = () => {
             </button>
           </div>
 
-          {/* AI Marketing Voice Product Tour Presenter */}
-          <div style={{
-            gridColumn: 'span 12',
-            width: '100%',
-            maxWidth: '1000px',
-            margin: '2rem auto 2.5rem',
-            boxSizing: 'border-box',
-            background: 'linear-gradient(135deg, #0a1e46 0%, #0f2d6b 100%)',
-            borderRadius: '28px',
-            padding: '2rem 2.5rem',
-            color: 'white',
-            boxShadow: '0 20px 50px rgba(10, 30, 70, 0.25)',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            {/* Background Glow Ring */}
+          {/* AI Marketing Voice Product Tour Presenter - 5s Auto-Rotation & Ultra-Luxurious UI */}
+          <div
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+              gridColumn: 'span 12',
+              width: '100%',
+              maxWidth: '1040px',
+              margin: '2rem auto 2.5rem',
+              boxSizing: 'border-box',
+              background: 'radial-gradient(ellipse at 80% 0%, rgba(30, 70, 150, 0.4) 0%, transparent 60%), linear-gradient(145deg, #06122d 0%, #0a1e46 55%, #071738 100%)',
+              borderRadius: '32px',
+              padding: '2.25rem 2.75rem',
+              color: 'white',
+              boxShadow: '0 25px 60px -12px rgba(6, 18, 45, 0.45), 0 0 0 1px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'blur(20px)'
+            }}
+          >
+            {/* Background Ambient Aura Orbs */}
             <div style={{
               position: 'absolute',
-              top: '-50%',
-              right: '-20%',
-              width: '400px',
-              height: '400px',
+              top: '-30%',
+              right: '-15%',
+              width: '420px',
+              height: '420px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%)',
-              pointerEvents: 'none'
+              background: 'radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 70%)',
+              pointerEvents: 'none',
+              filter: 'blur(30px)'
+            }} />
+            <div style={{
+              position: 'absolute',
+              bottom: '-40%',
+              left: '-10%',
+              width: '380px',
+              height: '380px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)',
+              pointerEvents: 'none',
+              filter: 'blur(35px)'
             }} />
 
-            {/* Header Control Row */}
+            {/* Header Control & Branding Row */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '1rem',
-              paddingBottom: '1.25rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.12)'
+              gap: '1.25rem',
+              paddingBottom: '1.5rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
                 <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '14px',
-                  background: 'rgba(255, 255, 255, 0.12)',
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(10, 30, 70, 0.6) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#d4af37',
-                  border: '1px solid rgba(212, 175, 55, 0.4)'
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  boxShadow: '0 4px 16px rgba(212, 175, 55, 0.2)'
                 }}>
-                  <Sparkles size={22} className="animate-pulse" />
+                  <Sparkles size={24} className="animate-pulse" />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.3px' }}>
-                    Interactive AI Product Tour
-                  </h3>
-                  <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>
-                    Listen to our marketing pitch or explore breakthrough capabilities
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.22rem', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.3px' }}>
+                      Interactive AI Product Tour
+                    </h3>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.2rem 0.65rem',
+                      borderRadius: '100px',
+                      background: isAutoPlaying && !isHovered ? 'rgba(16, 185, 129, 0.18)' : 'rgba(234, 179, 8, 0.18)',
+                      border: isAutoPlaying && !isHovered ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(234, 179, 8, 0.4)',
+                      color: isAutoPlaying && !isHovered ? '#6ee7b7' : '#fde047',
+                      fontSize: '0.68rem',
+                      fontWeight: '800',
+                      letterSpacing: '0.4px',
+                      textTransform: 'uppercase'
+                    }}>
+                      <span style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: isAutoPlaying && !isHovered ? '#10b981' : '#eab308',
+                        animation: isAutoPlaying && !isHovered ? 'pulse 1.5s infinite' : 'none'
+                      }} />
+                      {isNarrating ? 'AI Narrating' : isHovered ? 'Paused on Hover' : isAutoPlaying ? 'Auto-Advancing (5s)' : 'Paused'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#cbd5e1', margin: '0.2rem 0 0', fontWeight: '500' }}>
+                    Slides transition automatically every 5 seconds. Listen to speech or explore clinical breakthroughs.
                   </p>
                 </div>
               </div>
 
-              {/* Play / Stop Voice Tour CTA */}
+              {/* Play / Stop Voice Tour & Auto-Play Controls */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <button
+                  onClick={() => setIsAutoPlaying(prev => !prev)}
+                  title={isAutoPlaying ? "Pause 5s Auto-Rotation" : "Resume 5s Auto-Rotation"}
+                  style={{
+                    padding: '0.6rem 0.9rem',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    borderRadius: '100px',
+                    color: '#cbd5e1',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {isAutoPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  <span>{isAutoPlaying ? 'Auto (5s)' : 'Play (5s)'}</span>
+                </button>
+
                 {isNarrating ? (
                   <button
                     onClick={handleStopVoiceTour}
                     style={{
-                      padding: '0.6rem 1.25rem',
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      padding: '0.6rem 1.3rem',
+                      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.35) 100%)',
+                      border: '1px solid rgba(239, 68, 68, 0.5)',
                       borderRadius: '100px',
                       color: '#fca5a5',
-                      fontWeight: '700',
-                      fontSize: '0.82rem',
+                      fontWeight: '800',
+                      fontSize: '0.84rem',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
                       cursor: 'pointer',
+                      boxShadow: '0 4px 16px rgba(239, 68, 68, 0.25)',
                       transition: 'all 0.2s'
                     }}
                   >
@@ -619,7 +715,7 @@ const Demo = () => {
                   <button
                     onClick={() => handlePlayVoiceTour(activeTourIndex)}
                     style={{
-                      padding: '0.6rem 1.4rem',
+                      padding: '0.6rem 1.45rem',
                       background: 'linear-gradient(135deg, #d4af37 0%, #b89628 100%)',
                       border: 'none',
                       borderRadius: '100px',
@@ -630,208 +726,307 @@ const Demo = () => {
                       alignItems: 'center',
                       gap: '0.5rem',
                       cursor: 'pointer',
-                      boxShadow: '0 6px 20px rgba(212, 175, 55, 0.3)',
+                      boxShadow: '0 6px 22px rgba(212, 175, 55, 0.35)',
                       transition: 'transform 0.2s'
                     }}
                   >
-                    <Play size={15} className="fill-current" /> Play Voice Tour (AI Audio)
+                    <Volume2 size={16} /> Play Voice Tour (AI Audio)
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Tour Slide Navigation Chips */}
+            {/* Tour Slide Navigation Chips with Integrated 5s Progress Bars */}
             <div style={{
-              display: 'flex',
-              gap: '0.5rem',
-              overflowX: 'auto',
-              padding: '1.25rem 0',
-              scrollbarWidth: 'none'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '0.65rem',
+              padding: '1.4rem 0 1rem',
             }}>
-              {marketingTourSteps.map((step, idx) => (
-                <button
-                  key={step.id}
-                  onClick={() => {
-                    setActiveTourIndex(idx);
-                    if (isNarrating) {
-                      speakMarketingText(step.speech);
-                    }
-                  }}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '14px',
-                    border: activeTourIndex === idx ? '1px solid #d4af37' : '1px solid rgba(255, 255, 255, 0.1)',
-                    background: activeTourIndex === idx ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                    color: activeTourIndex === idx ? '#fef08a' : '#cbd5e1',
-                    fontSize: '0.78rem',
-                    fontWeight: activeTourIndex === idx ? '800' : '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <span style={{ opacity: 0.6, fontSize: '0.7rem' }}>0{idx + 1}</span>
-                  <span>{step.title.split(' ')[0]} {step.title.split(' ')[1]}</span>
-                </button>
-              ))}
+              {marketingTourSteps.map((step, idx) => {
+                const isActive = activeTourIndex === idx;
+                return (
+                  <div
+                    key={step.id}
+                    onClick={() => {
+                      setActiveTourIndex(idx);
+                      setSlideProgress(0);
+                      if (isNarrating) speakMarketingText(step.speech);
+                    }}
+                    style={{
+                      position: 'relative',
+                      overflow: 'hidden',
+                      padding: '0.75rem 0.9rem',
+                      borderRadius: '16px',
+                      border: isActive ? '1px solid #d4af37' : '1px solid rgba(255, 255, 255, 0.1)',
+                      background: isActive ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(10, 30, 70, 0.7) 100%)' : 'rgba(255, 255, 255, 0.04)',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease',
+                      boxShadow: isActive ? '0 4px 18px rgba(212, 175, 55, 0.2)' : 'none'
+                    }}
+                  >
+                    {/* Active 5-Second Linear Fill Progress Bar */}
+                    {isActive && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          height: '3px',
+                          width: `${isNarrating ? 100 : slideProgress}%`,
+                          background: 'linear-gradient(90deg, #38bdf8, #d4af37)',
+                          transition: isHovered ? 'none' : 'width 50ms linear',
+                          boxShadow: '0 0 8px rgba(212, 175, 55, 0.8)'
+                        }}
+                      />
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', position: 'relative', zIndex: 2 }}>
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: '800',
+                        color: isActive ? '#fef08a' : '#64748b',
+                        background: isActive ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                        padding: '0.15rem 0.45rem',
+                        borderRadius: '6px'
+                      }}>
+                        0{idx + 1}
+                      </span>
+                      <span style={{
+                        fontSize: '0.8rem',
+                        fontWeight: isActive ? '800' : '600',
+                        color: isActive ? '#ffffff' : '#cbd5e1',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1,
+                        marginLeft: '0.3rem'
+                      }}>
+                        {step.title.split(' ')[0]} {step.title.split(' ')[1]}
+                      </span>
+                      {isActive && <Sparkles size={12} className="text-[#d4af37] shrink-0 animate-pulse" />}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Active Tour Card Body */}
-            {marketingTourSteps[activeTourIndex] && (
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '20px',
-                padding: '1.75rem',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1.5rem',
-                alignItems: 'center'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '10px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      {marketingTourSteps[activeTourIndex].icon}
-                    </div>
-                    <div>
-                      <span style={{
-                        fontSize: '0.68rem',
-                        fontWeight: '800',
-                        color: '#d4af37',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.6px',
-                        display: 'block'
-                      }}>
-                        {marketingTourSteps[activeTourIndex].subtitle}
-                      </span>
-                      <h4 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', margin: 0 }}>
-                        {marketingTourSteps[activeTourIndex].title}
-                      </h4>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '0.88rem', lineHeight: '1.6', color: '#e2e8f0', margin: '0 0 1rem 0' }}>
-                    {marketingTourSteps[activeTourIndex].description}
-                  </p>
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    padding: '0.3rem 0.75rem',
-                    background: 'rgba(212, 175, 55, 0.15)',
-                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                    borderRadius: '100px',
-                    fontSize: '0.72rem',
-                    color: '#fef08a',
-                    fontWeight: '700'
-                  }}>
-                    <CheckCircle2 size={12} className="text-amber-400" />
-                    {marketingTourSteps[activeTourIndex].badge}
-                  </div>
-                </div>
-
-                <div style={{
-                  background: 'rgba(10, 30, 70, 0.6)',
-                  borderRadius: '16px',
-                  padding: '1.5rem',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%'
-                }}>
-                  <div style={{ marginBottom: '1.25rem' }}>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>
-                      Key Metric
-                    </span>
-                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#38bdf8', letterSpacing: '-0.5px', marginTop: '0.2rem' }}>
-                      {marketingTourSteps[activeTourIndex].stat}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '500' }}>
-                      {marketingTourSteps[activeTourIndex].statLabel}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => handleExitDemo('/userlogin')}
-                      style={{
-                        flex: 1,
-                        padding: '0.65rem 1rem',
-                        background: '#38bdf8',
-                        color: '#0a1e46',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontWeight: '800',
-                        fontSize: '0.82rem',
+            {/* Active Tour Card Body with Framer-Motion Animated Transition */}
+            <AnimatePresence mode="wait">
+              {marketingTourSteps[activeTourIndex] && (
+                <motion.div
+                  key={marketingTourSteps[activeTourIndex].id}
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+                    backdropFilter: 'blur(16px)',
+                    borderRadius: '24px',
+                    padding: '2rem',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.2)',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+                    gap: '2rem',
+                    alignItems: 'center'
+                  }}
+                >
+                  {/* Left Column: Feature Narrative & Badge */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
+                      <div style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(10, 30, 70, 0.8) 100%)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.4rem',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 14px rgba(56, 189, 248, 0.3)'
-                      }}
-                    >
-                      Login & Experience <ArrowRight size={14} />
-                    </button>
-                    {activeTourIndex < marketingTourSteps.length - 1 && (
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                      }}>
+                        {marketingTourSteps[activeTourIndex].icon}
+                      </div>
+                      <div>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: '800',
+                          color: '#d4af37',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.8px',
+                          display: 'block'
+                        }}>
+                          {marketingTourSteps[activeTourIndex].subtitle}
+                        </span>
+                        <h4 style={{ fontSize: '1.38rem', fontWeight: '800', color: 'white', margin: '0.1rem 0 0', letterSpacing: '-0.3px' }}>
+                          {marketingTourSteps[activeTourIndex].title}
+                        </h4>
+                      </div>
+                    </div>
+
+                    <p style={{ fontSize: '0.94rem', lineHeight: '1.68', color: '#e2e8f0', margin: '0 0 1.25rem 0', fontWeight: '400' }}>
+                      {marketingTourSteps[activeTourIndex].description}
+                    </p>
+
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.4rem 0.95rem',
+                      background: 'rgba(212, 175, 55, 0.16)',
+                      border: '1px solid rgba(212, 175, 55, 0.38)',
+                      borderRadius: '100px',
+                      fontSize: '0.76rem',
+                      color: '#fef08a',
+                      fontWeight: '800',
+                      letterSpacing: '0.2px'
+                    }}>
+                      <CheckCircle2 size={14} className="text-amber-400" />
+                      {marketingTourSteps[activeTourIndex].badge}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Key Metric & High-Converting CTAs */}
+                  <div style={{
+                    background: 'linear-gradient(145deg, rgba(10, 30, 70, 0.85) 0%, rgba(6, 18, 45, 0.95) 100%)',
+                    borderRadius: '20px',
+                    padding: '1.75rem',
+                    border: '1px solid rgba(212, 175, 55, 0.25)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '180px',
+                    boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)'
+                  }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                          Key Performance Metric
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#d4af37', fontWeight: '700' }}>
+                          Step {activeTourIndex + 1} of 5
+                        </span>
+                      </div>
+                      <div style={{
+                        fontSize: '2.25rem',
+                        fontWeight: '900',
+                        color: '#38bdf8',
+                        letterSpacing: '-0.8px',
+                        marginTop: '0.35rem',
+                        textShadow: '0 0 20px rgba(56, 189, 248, 0.4)'
+                      }}>
+                        {marketingTourSteps[activeTourIndex].stat}
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#cbd5e1', fontWeight: '500', marginTop: '0.15rem' }}>
+                        {marketingTourSteps[activeTourIndex].statLabel}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <button
-                        onClick={() => {
-                          const next = activeTourIndex + 1;
-                          setActiveTourIndex(next);
-                          if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
-                        }}
+                        onClick={() => handleExitDemo('/userlogin')}
                         style={{
-                          padding: '0.65rem 1rem',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          color: 'white',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          borderRadius: '12px',
-                          fontWeight: '700',
-                          fontSize: '0.82rem',
+                          flex: 1.3,
+                          padding: '0.75rem 1.15rem',
+                          background: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+                          color: '#071738',
+                          border: 'none',
+                          borderRadius: '14px',
+                          fontWeight: '800',
+                          fontSize: '0.86rem',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '0.3rem',
-                          cursor: 'pointer'
+                          justifyContent: 'center',
+                          gap: '0.45rem',
+                          cursor: 'pointer',
+                          boxShadow: '0 6px 20px rgba(56, 189, 248, 0.35)',
+                          transition: 'transform 0.2s'
                         }}
                       >
-                        Next Feature <ChevronRight size={14} />
+                        Login & Experience <ArrowRight size={15} />
                       </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Voice Command Conversion Strip */}
+                      <div style={{ display: 'flex', gap: '0.35rem' }}>
+                        <button
+                          onClick={() => {
+                            const prev = (activeTourIndex - 1 + marketingTourSteps.length) % marketingTourSteps.length;
+                            setActiveTourIndex(prev);
+                            setSlideProgress(0);
+                            if (isNarrating) speakMarketingText(marketingTourSteps[prev].speech);
+                          }}
+                          title="Previous Feature"
+                          style={{
+                            padding: '0.75rem',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.18)',
+                            borderRadius: '14px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const next = (activeTourIndex + 1) % marketingTourSteps.length;
+                            setActiveTourIndex(next);
+                            setSlideProgress(0);
+                            if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
+                          }}
+                          title="Next Feature"
+                          style={{
+                            padding: '0.75rem 1rem',
+                            background: 'rgba(255, 255, 255, 0.12)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.22)',
+                            borderRadius: '14px',
+                            fontWeight: '700',
+                            fontSize: '0.82rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3rem'
+                          }}
+                        >
+                          <span>Next</span> <ChevronRight size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Bottom Conversion & Voice Tips Bar */}
             <div style={{
-              marginTop: '1.25rem',
+              marginTop: '1.5rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '0.75rem',
-              fontSize: '0.76rem',
-              color: '#94a3b8'
+              fontSize: '0.78rem',
+              color: '#94a3b8',
+              paddingTop: '1rem',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Mic size={14} className="text-teal-400 animate-pulse" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Mic size={15} className="text-teal-400 animate-pulse" />
                 <span>Voice Command: Say <strong>"Take me to login"</strong> or <strong>"Explain demo"</strong></span>
               </div>
-              <span style={{ color: '#d4af37', fontWeight: '700' }}>
-                Slide {activeTourIndex + 1} of {marketingTourSteps.length}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span style={{ color: '#cbd5e1' }}>
+                  Hover card to pause 5s timer
+                </span>
+                <span style={{ color: '#d4af37', fontWeight: '800' }}>
+                  Slide {activeTourIndex + 1} of {marketingTourSteps.length}
+                </span>
+              </div>
             </div>
           </div>
           <div className="demo-hero-stats">
