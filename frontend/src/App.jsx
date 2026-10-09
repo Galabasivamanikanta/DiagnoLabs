@@ -61,12 +61,8 @@ const MainLayout = () => {
   return (
     <>
       {showNavbar && <Navbar />}
-      {!isDemoRoute && (
-        <>
-          <ChatBot />
-          <GlobalVoiceAssistant />
-        </>
-      )}
+      <ChatBot />
+      <GlobalVoiceAssistant />
       <Routes>
         <Route path="/demo" element={<Demo />} />
         {/* Public Routes */}

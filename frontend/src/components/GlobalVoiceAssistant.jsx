@@ -262,6 +262,44 @@ export const GlobalVoiceAssistant = () => {
         }
 
         // ─────────────────────────────────────────────────────────────
+        // 0.5. PRODUCT MARKETING PITCH & DEMO EXPLAINER (PERSUASIVE ENGINE)
+        // ─────────────────────────────────────────────────────────────
+        if (
+            cmd.includes('explain demo') || cmd.includes('explain this page') || cmd.includes('demo explain') ||
+            cmd.includes('tell me about diagnolabs') || cmd.includes('why diagnolabs') || cmd.includes('pitch') ||
+            cmd.includes('what is diagnolabs') || cmd.includes('what makes diagnolabs special') ||
+            cmd.includes('diagnolabs gurinchi cheppu') || cmd.includes('features explain cheyi') ||
+            cmd.includes('kya hai diagnolabs') || cmd.includes('start tour') || cmd.includes('product tour')
+        ) {
+            setLastActionText('Presenting DiagnoLabs Pitch');
+            speak('Welcome to DiagnoLabs — India’s premier clinical diagnostic platform! We bring together over 500 NABL-accredited partner labs, real-time GPS distance calculation, OTP-verified cold-chain sample collection, tamper-proof QR pathology reports, and complete hands-free voice automation. Whether you need home sample collection or routine health checkups, DiagnoLabs delivers clinical precision to your doorstep. Say "Take me to login" or "Register" to get started now!');
+            setIsProcessing(false);
+            return;
+        }
+
+        if (
+            cmd === 'take me to login' || cmd === 'go to login' || cmd === 'open login' || cmd === 'login page' ||
+            cmd === 'login' || cmd === 'sign in' || cmd === 'get started' || cmd === 'register' || cmd === 'sign up' ||
+            cmd.includes('login ki teesukoni vellu') || cmd.includes('login open cheyi') || cmd.includes('register cheyi') ||
+            cmd.includes('login karo') || cmd.includes('start karo') || cmd.includes('join now')
+        ) {
+            localStorage.setItem('hasViewedDemo', 'true');
+            navigate('/userlogin');
+            setLastActionText('Navigating to Secure Portal Login');
+            speak('Taking you to the secure portal login page. Welcome to DiagnoLabs!');
+            setIsProcessing(false);
+            return;
+        }
+
+        if (cmd === 'open demo' || cmd === 'demo page' || cmd.includes('demo chupinchu') || cmd.includes('demo dikhao')) {
+            navigate('/demo');
+            setLastActionText('Navigating to Interactive Demo');
+            speak('Opening the DiagnoLabs interactive product presentation.');
+            setIsProcessing(false);
+            return;
+        }
+
+        // ─────────────────────────────────────────────────────────────
         // 1. IN-PAGE DOM INTERACTIVE ACTIONS
         // ─────────────────────────────────────────────────────────────
         if (cmd.includes('click download') || cmd.includes('download pdf') || cmd.includes('download report') || cmd.includes('report download cheyi')) {

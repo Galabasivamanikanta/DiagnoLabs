@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Zap,
@@ -12,7 +12,18 @@ import {
   BadgeCheck,
   FlaskConical,
   Globe,
-  Sparkles
+  Sparkles,
+  Volume2,
+  VolumeX,
+  Play,
+  Square,
+  CheckCircle2,
+  Mic,
+  ChevronRight,
+  Lock,
+  QrCode,
+  Thermometer,
+  Layers
 } from 'lucide-react';
 import './Demo.css';
 import BrandLogo from '../components/BrandLogo';
@@ -20,11 +31,137 @@ import BrandLogo from '../components/BrandLogo';
 const Demo = () => {
   const [_mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoverMenu, setHoverMenu] = useState(null);
+  const [activeTourIndex, setActiveTourIndex] = useState(0);
+  const [isNarrating, setIsNarrating] = useState(false);
+  const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
   const navigate = useNavigate();
 
   const handleExitDemo = (targetPath, options = {}) => {
+    if (synthRef.current) synthRef.current.cancel();
     localStorage.setItem('hasViewedDemo', 'true');
     navigate(targetPath, options);
+  };
+
+  const marketingTourSteps = [
+    {
+      id: 'nabl',
+      icon: <Building2 size={26} className="text-amber-500" />,
+      title: '500+ NABL Accredited Labs',
+      subtitle: 'Real-Time Geospatial Discovery',
+      badge: 'ISO 15189:2022 Certified',
+      description: 'Find top-tier diagnostic centers within seconds. Our intelligent Haversine algorithm sorts certified laboratories by live GPS distance, transparent package pricing, and verified turnaround times.',
+      stat: '500+ Certified Labs',
+      statLabel: 'Across Major Indian Cities',
+      speech: 'Welcome to DiagnoLabs! Step one: We bring together over 500 NABL accredited partner labs across India, giving you transparent pricing and instant GPS distance calculation to verified clinical centers.'
+    },
+    {
+      id: 'voice',
+      icon: <Mic size={26} className="text-teal-400" />,
+      title: 'Universal Voice Automation',
+      subtitle: '100% Hands-Free Operation',
+      badge: 'English • Telugu • Hindi',
+      description: 'Simply speak your symptoms like "I have fever and show labs near me". DiagnoLabs analyzes clinical etiology, maps the required tests, turns on GPS, and guides you through booking without typing a single word.',
+      stat: '0 Typing Required',
+      statLabel: 'Full Voice Control',
+      speech: 'Step two: Experience hands-free voice automation. Just speak your symptoms in English, Telugu, or Hindi, and our AI analyzes the clinical tests you need and navigates the platform automatically.'
+    },
+    {
+      id: 'coldchain',
+      icon: <Thermometer size={26} className="text-sky-400" />,
+      title: 'Cold-Chain Phlebotomy & OTP',
+      subtitle: 'Digital Chain-of-Custody',
+      badge: 'Zero Sample Degradation',
+      description: 'Certified phlebotomists arrive at your doorstep equipped with temperature-regulated cold boxes. 4-digit OTP authentication guarantees your specimen is never tampered with or degraded in transit.',
+      stat: '100% Verified',
+      statLabel: 'Tamper-Proof Home Collection',
+      speech: 'Step three: Our cold-chain home sample collection uses digital OTP verification and strict temperature monitoring, ensuring zero specimen degradation from your home directly to the lab.'
+    },
+    {
+      id: 'qr',
+      icon: <QrCode size={26} className="text-emerald-400" />,
+      title: 'Tamper-Proof QR Lab Reports',
+      subtitle: 'Cryptographic Authenticity',
+      badge: 'Instant Verification',
+      description: 'Every diagnostic report is digitally signed by accredited pathologists with a cryptographic QR code. Doctors can scan to verify authentic clinical results anytime, anywhere on mobile devices.',
+      stat: '< 6 Hours',
+      statLabel: 'Average Digital Delivery',
+      speech: 'Step four: All reports feature a cryptographic QR code digitally signed by NABL pathologists, guaranteeing 100% tamper-proof medical authenticity accessible on any mobile phone.'
+    },
+    {
+      id: 'roles',
+      icon: <Layers size={26} className="text-indigo-400" />,
+      title: '14-Tier Healthcare Ecosystem',
+      subtitle: 'Unified Multi-Tenant Platform',
+      badge: 'Doctors • Nurses • Labs',
+      description: 'Seamlessly connects Patients, Pathologists, Radiologists, Phlebotomists, Quality Auditors, and Clinic Managers in one cohesive, secure healthcare cloud.',
+      stat: '14 Dedicated Portals',
+      statLabel: 'Role-Based Clinical Access',
+      speech: 'Step five: DiagnoLabs unites 14 dedicated healthcare workspaces, connecting patients, doctors, and lab managers in one seamless cloud. Ready to begin? Click Get Started or say "Take me to login"!'
+    }
+  ];
+
+  // Stop Speech when navigating away
+  useEffect(() => {
+    return () => {
+      if (synthRef.current) synthRef.current.cancel();
+    };
+  }, []);
+
+  const speakMarketingText = useCallback((text, onComplete) => {
+    if (!synthRef.current || typeof window === 'undefined') return;
+    synthRef.current.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-IN';
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+
+    const voices = synthRef.current.getVoices ? synthRef.current.getVoices() : [];
+    const preferredVoice =
+      voices.find(v => v.name.includes('Google UK English Female')) ||
+      voices.find(v => v.name.includes('Google US English Female')) ||
+      voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
+      voices.find(v => v.name.toLowerCase().includes('zira')) ||
+      voices.find(v => v.name.toLowerCase().includes('samantha')) ||
+      voices.find(v => v.lang === 'en-IN') ||
+      voices.find(v => v.lang.startsWith('en'));
+
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    utterance.onend = () => {
+      if (onComplete) onComplete();
+    };
+    utterance.onerror = () => {
+      setIsNarrating(false);
+    };
+
+    synthRef.current.speak(utterance);
+  }, []);
+
+  const handlePlayVoiceTour = (startIndex = 0) => {
+    setIsNarrating(true);
+    let curr = startIndex;
+    setActiveTourIndex(curr);
+
+    const playNext = (index) => {
+      if (index >= marketingTourSteps.length) {
+        setIsNarrating(false);
+        return;
+      }
+      setActiveTourIndex(index);
+      speakMarketingText(marketingTourSteps[index].speech, () => {
+        setTimeout(() => {
+          playNext(index + 1);
+        }, 1200);
+      });
+    };
+
+    playNext(curr);
+  };
+
+  const handleStopVoiceTour = () => {
+    if (synthRef.current) synthRef.current.cancel();
+    setIsNarrating(false);
   };
 
   const features = [
@@ -392,6 +529,307 @@ const Demo = () => {
             <button className="demo-btn demo-btn-secondary demo-btn-large" onClick={() => handleExitDemo('/')}>
               Explore as Guest <ArrowRight size={20} />
             </button>
+          </div>
+
+          {/* AI Marketing Voice Product Tour Presenter */}
+          <div style={{
+            maxWidth: '1000px',
+            margin: '2.5rem auto 3rem',
+            background: 'linear-gradient(135deg, #0a1e46 0%, #0f2d6b 100%)',
+            borderRadius: '28px',
+            padding: '2rem 2.5rem',
+            color: 'white',
+            boxShadow: '0 20px 50px rgba(10, 30, 70, 0.25)',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Background Glow Ring */}
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              right: '-20%',
+              width: '400px',
+              height: '400px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+
+            {/* Header Control Row */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              paddingBottom: '1.25rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.12)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '14px',
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#d4af37',
+                  border: '1px solid rgba(212, 175, 55, 0.4)'
+                }}>
+                  <Sparkles size={22} className="animate-pulse" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.3px' }}>
+                    Interactive AI Product Tour
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: 0, fontWeight: '500' }}>
+                    Listen to our marketing pitch or explore breakthrough capabilities
+                  </p>
+                </div>
+              </div>
+
+              {/* Play / Stop Voice Tour CTA */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {isNarrating ? (
+                  <button
+                    onClick={handleStopVoiceTour}
+                    style={{
+                      padding: '0.6rem 1.25rem',
+                      background: 'rgba(239, 68, 68, 0.2)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      borderRadius: '100px',
+                      color: '#fca5a5',
+                      fontWeight: '700',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Square size={14} className="fill-current" /> Stop Audio Tour
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handlePlayVoiceTour(activeTourIndex)}
+                    style={{
+                      padding: '0.6rem 1.4rem',
+                      background: 'linear-gradient(135deg, #d4af37 0%, #b89628 100%)',
+                      border: 'none',
+                      borderRadius: '100px',
+                      color: '#0a1e46',
+                      fontWeight: '800',
+                      fontSize: '0.84rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 20px rgba(212, 175, 55, 0.3)',
+                      transition: 'transform 0.2s'
+                    }}
+                  >
+                    <Play size={15} className="fill-current" /> Play Voice Tour (AI Audio)
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tour Slide Navigation Chips */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              overflowX: 'auto',
+              padding: '1.25rem 0',
+              scrollbarWidth: 'none'
+            }}>
+              {marketingTourSteps.map((step, idx) => (
+                <button
+                  key={step.id}
+                  onClick={() => {
+                    setActiveTourIndex(idx);
+                    if (isNarrating) {
+                      speakMarketingText(step.speech);
+                    }
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '14px',
+                    border: activeTourIndex === idx ? '1px solid #d4af37' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: activeTourIndex === idx ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    color: activeTourIndex === idx ? '#fef08a' : '#cbd5e1',
+                    fontSize: '0.78rem',
+                    fontWeight: activeTourIndex === idx ? '800' : '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <span style={{ opacity: 0.6, fontSize: '0.7rem' }}>0{idx + 1}</span>
+                  <span>{step.title.split(' ')[0]} {step.title.split(' ')[1]}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Active Tour Card Body */}
+            {marketingTourSteps[activeTourIndex] && (
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '1.75rem',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '1.5rem',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {marketingTourSteps[activeTourIndex].icon}
+                    </div>
+                    <div>
+                      <span style={{
+                        fontSize: '0.68rem',
+                        fontWeight: '800',
+                        color: '#d4af37',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.6px',
+                        display: 'block'
+                      }}>
+                        {marketingTourSteps[activeTourIndex].subtitle}
+                      </span>
+                      <h4 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'white', margin: 0 }}>
+                        {marketingTourSteps[activeTourIndex].title}
+                      </h4>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.88rem', lineHeight: '1.6', color: '#e2e8f0', margin: '0 0 1rem 0' }}>
+                    {marketingTourSteps[activeTourIndex].description}
+                  </p>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.3rem 0.75rem',
+                    background: 'rgba(212, 175, 55, 0.15)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    borderRadius: '100px',
+                    fontSize: '0.72rem',
+                    color: '#fef08a',
+                    fontWeight: '700'
+                  }}>
+                    <CheckCircle2 size={12} className="text-amber-400" />
+                    {marketingTourSteps[activeTourIndex].badge}
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'rgba(10, 30, 70, 0.6)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%'
+                }}>
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>
+                      Key Metric
+                    </span>
+                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#38bdf8', letterSpacing: '-0.5px', marginTop: '0.2rem' }}>
+                      {marketingTourSteps[activeTourIndex].stat}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '500' }}>
+                      {marketingTourSteps[activeTourIndex].statLabel}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => handleExitDemo('/userlogin')}
+                      style={{
+                        flex: 1,
+                        padding: '0.65rem 1rem',
+                        background: '#38bdf8',
+                        color: '#0a1e46',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        fontSize: '0.82rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.4rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(56, 189, 248, 0.3)'
+                      }}
+                    >
+                      Login & Experience <ArrowRight size={14} />
+                    </button>
+                    {activeTourIndex < marketingTourSteps.length - 1 && (
+                      <button
+                        onClick={() => {
+                          const next = activeTourIndex + 1;
+                          setActiveTourIndex(next);
+                          if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
+                        }}
+                        style={{
+                          padding: '0.65rem 1rem',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          color: 'white',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '12px',
+                          fontWeight: '700',
+                          fontSize: '0.82rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Next Feature <ChevronRight size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Voice Command Conversion Strip */}
+            <div style={{
+              marginTop: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              fontSize: '0.76rem',
+              color: '#94a3b8'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Mic size={14} className="text-teal-400 animate-pulse" />
+                <span>Voice Command: Say <strong>"Take me to login"</strong> or <strong>"Explain demo"</strong></span>
+              </div>
+              <span style={{ color: '#d4af37', fontWeight: '700' }}>
+                Slide {activeTourIndex + 1} of {marketingTourSteps.length}
+              </span>
+            </div>
           </div>
           <div className="demo-hero-stats">
             <div className="demo-stat">
