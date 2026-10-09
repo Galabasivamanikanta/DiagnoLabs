@@ -839,29 +839,32 @@ const Demo = () => {
                         </div>
                       </div>
 
-                      {/* Action Buttons Row */}
-                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
+                      {/* Action Buttons Row - Compact & Sleek Single-Line */}
+                      <div style={{ display: 'flex', gap: '0.55rem', marginTop: '1.25rem', alignItems: 'center' }}>
                         <button
                           onClick={() => handleExitDemo('/userlogin')}
                           style={{
-                            flex: 1.2,
-                            padding: '0.72rem 1.3rem',
+                            flex: '1 1 auto',
+                            padding: '0.55rem 0.95rem',
                             background: '#0284c7',
                             color: '#ffffff',
                             border: 'none',
                             borderRadius: '100px',
-                            fontWeight: '800',
-                            fontSize: '0.86rem',
-                            display: 'flex',
+                            fontWeight: '700',
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '0.45rem',
+                            gap: '0.35rem',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 16px rgba(2, 132, 199, 0.4)',
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
                             transition: 'all 0.2s'
                           }}
                         >
-                          <Users size={15} /> Login & Experience <ArrowRight size={15} />
+                          <Users size={13} className="shrink-0" />
+                          <span>Login & Experience</span>
+                          <ArrowRight size={13} className="shrink-0" />
                         </button>
 
                         <button
@@ -872,21 +875,23 @@ const Demo = () => {
                             if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
                           }}
                           style={{
-                            padding: '0.72rem 1.25rem',
+                            padding: '0.55rem 0.85rem',
                             background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 255, 255, 0.22)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
                             color: '#ffffff',
                             borderRadius: '100px',
-                            fontWeight: '700',
-                            fontSize: '0.84rem',
-                            display: 'flex',
+                            fontWeight: '600',
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '0.35rem',
+                            gap: '0.3rem',
                             cursor: 'pointer',
+                            whiteSpace: 'nowrap',
                             transition: 'all 0.2s'
                           }}
                         >
-                          <span>Next Feature</span> <ArrowRight size={14} />
+                          <span>Next</span>
+                          <ArrowRight size={12} className="shrink-0" />
                         </button>
                       </div>
                     </div>
