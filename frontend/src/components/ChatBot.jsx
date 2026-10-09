@@ -550,17 +550,34 @@ const ChatBot = () => {
     };
 
     const handleActionCardClick = (actionType) => {
+        if (!user) {
+            const promptText = actionType === 'report'
+                ? 'To view and download your digitally verified diagnostic lab reports, please login to your portal account:'
+                : actionType === 'book'
+                ? 'To schedule an appointment or home sample collection with verified NABL labs, please login to proceed:'
+                : actionType === 'explore'
+                ? 'To explore diagnostic packages and view member-discounted lab rates, please login below:'
+                : 'Please login to your account to get personalized medical triage and health assistance:';
+
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: getUniqueId(),
+                    text: promptText,
+                    sender: 'bot',
+                    showLoginOptions: true
+                }
+            ]);
+            speak('Hello User. Please login to your account using Google or your Email, Phone Number, or User ID and Password to proceed.');
+            return;
+        }
+
         if (actionType === 'explore') {
             handleSend('Show me the popular diagnostic tests and health packages available.');
         } else if (actionType === 'book') {
             handleSend('How do I book an appointment for a home blood sample collection?');
         } else if (actionType === 'report') {
-            if (!user) {
-                setShowManualLogin(true);
-                speak('Please sign in to check your diagnostic report status.');
-            } else {
-                handleSend('Show my recent test bookings and check report status.');
-            }
+            handleSend('Show my recent test bookings and check report status.');
         } else if (actionType === 'ask') {
             inputRef.current?.focus();
         }
@@ -571,6 +588,89 @@ const ChatBot = () => {
         setMessages([]);
         setVoiceFeedbackText('');
     };
+
+    const renderLoginWidget = () => (
+        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm my-1">
+            <div className="text-[0.76rem] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                    <Lock size={13} className="text-[#0a1e46]" /> Secure Portal Login:
+                </span>
+                <span className="text-[0.68rem] text-amber-700 font-semibold lowercase">patient access</span>
+            </div>
+
+            {/* 1. Google One-Click Login */}
+            <div className="w-full flex justify-center py-1">
+                <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setLoginError("Google Sign-In Failed")}
+                    useOneTap={false}
+                    shape="pill"
+                    size="medium"
+                    text="signin_with"
+                    width="100%"
+                />
+            </div>
+
+            <div className="flex items-center gap-2 my-0.5">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-[0.68rem] text-slate-400 font-bold uppercase">or sign in with credentials</span>
+                <div className="flex-1 h-px bg-slate-200" />
+            </div>
+
+            {/* 2. Manual Login Form: Email / Phone / Customer ID + Password */}
+            <form onSubmit={handleManualLogin} className="flex flex-col gap-2">
+                {loginError && (
+                    <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{loginError}</span>
+                    </div>
+                )}
+                
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
+                    <User size={14} className="text-slate-400 shrink-0" />
+                    <input 
+                        type="text" 
+                        placeholder="Email, Phone, or User ID" 
+                        value={loginEmail}
+                        onChange={e => setLoginEmail(e.target.value)}
+                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
+                        required
+                    />
+                </div>
+
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
+                    <Lock size={14} className="text-slate-400 shrink-0" />
+                    <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Password" 
+                        value={loginPassword}
+                        onChange={e => setLoginPassword(e.target.value)}
+                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
+                        required
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 p-0.5">
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full py-2.5 bg-[#0a1e46] hover:bg-[#0f2d6b] text-white rounded-xl text-[0.8rem] font-bold shadow-md shadow-navy-950/10 flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer"
+                >
+                    {loginLoading ? (
+                        <>
+                            <Loader2 size={13} className="animate-spin" /> Verifying...
+                        </>
+                    ) : (
+                        <>
+                            <ArrowRight size={14} /> Sign In to DiagnoLabs
+                        </>
+                    )}
+                </button>
+            </form>
+        </div>
+    );
 
     const renderText = (text) => {
         const noEmojiText = (text || '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
@@ -686,85 +786,7 @@ const ChatBot = () => {
                                     </div>
 
                                     {/* If User is NOT Logged In: Display Google Sign-In & Manual Login in ChatBot */}
-                                    {!user && (
-                                        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm">
-                                            <div className="text-[0.76rem] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                                                <Lock size={13} className="text-[#0a1e46]" /> Choose Login Method:
-                                            </div>
-
-                                            {/* 1. Google One-Click Login */}
-                                            <div className="w-full flex justify-center py-1">
-                                                <GoogleLogin
-                                                    onSuccess={handleGoogleSuccess}
-                                                    onError={() => setLoginError("Google Sign-In Failed")}
-                                                    useOneTap={false}
-                                                    shape="pill"
-                                                    size="medium"
-                                                    text="signin_with"
-                                                    width="100%"
-                                                />
-                                            </div>
-
-                                            {/* 2. Manual Login Toggle */}
-                                            {!showManualLogin ? (
-                                                <button
-                                                    onClick={() => setShowManualLogin(true)}
-                                                    className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-[0.8rem] font-bold text-[#0a1e46] flex items-center justify-center gap-2 transition cursor-pointer"
-                                                >
-                                                    <Mail size={14} /> Manual Email & Password Login
-                                                </button>
-                                            ) : (
-                                                <form onSubmit={handleManualLogin} className="flex flex-col gap-2 pt-1 border-t border-slate-200">
-                                                    {loginError && (
-                                                        <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-1.5 rounded-lg border border-red-200">
-                                                            {loginError}
-                                                        </div>
-                                                    )}
-                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl">
-                                                        <Mail size={14} className="text-slate-400" />
-                                                        <input 
-                                                            type="email" 
-                                                            placeholder="Email or Phone" 
-                                                            value={loginEmail}
-                                                            onChange={e => setLoginEmail(e.target.value)}
-                                                            className="flex-1 text-[0.8rem] border-none outline-none"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl">
-                                                        <Lock size={14} className="text-slate-400" />
-                                                        <input 
-                                                            type={showPassword ? "text" : "password"} 
-                                                            placeholder="Password" 
-                                                            value={loginPassword}
-                                                            onChange={e => setLoginPassword(e.target.value)}
-                                                            className="flex-1 text-[0.8rem] border-none outline-none"
-                                                            required
-                                                        />
-                                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400">
-                                                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                                                        </button>
-                                                    </div>
-                                                    <div className="flex gap-2 mt-1">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowManualLogin(false)}
-                                                            className="flex-1 py-1.5 border border-slate-300 bg-white rounded-lg text-[0.75rem] font-bold text-slate-600"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                        <button
-                                                            type="submit"
-                                                            disabled={loginLoading}
-                                                            className="flex-1 py-1.5 bg-[#0a1e46] text-white rounded-lg text-[0.75rem] font-bold disabled:opacity-50"
-                                                        >
-                                                            {loginLoading ? 'Signing In...' : 'Sign In'}
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            )}
-                                        </div>
-                                    )}
+                                    {!user && renderLoginWidget()}
 
                                     {/* 4 Action Cards with Border and Right Arrow */}
                                     <div className="flex flex-col gap-2.5">
@@ -851,6 +873,13 @@ const ChatBot = () => {
                                             >
                                                 {renderText(msg.text)}
                                             </div>
+
+                                            {/* In-Chat Login Widget Prompt */}
+                                            {msg.showLoginOptions && !user && (
+                                                <div className="w-full mt-2">
+                                                    {renderLoginWidget()}
+                                                </div>
+                                            )}
 
                                             {/* Test Recommendations */}
                                             {msg.recommendations?.length > 0 && (

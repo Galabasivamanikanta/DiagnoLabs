@@ -82,10 +82,13 @@ router.post('/register', authLimiter, async (req, res) => {
 // LOGIN (Patient & Admin via MongoDB)
 router.post('/login', authLimiter, async (req, res) => {
     try {
+        const identifier = (req.body.email || '').trim();
         const user = await User.findOne({
             $or: [
-                { email: req.body.email },
-                { phone: req.body.email }
+                { email: identifier },
+                { phone: identifier },
+                { customerId: identifier },
+                { employeeId: identifier }
             ]
         });
         if (!user) return res.status(401).json("Wrong credentials!");
