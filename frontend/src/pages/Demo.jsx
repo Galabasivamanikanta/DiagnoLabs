@@ -802,18 +802,18 @@ const Demo = () => {
                           backgroundImage: `url(${marketingTourSteps[activeTourIndex].bgImage})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          opacity: 0.28,
-                          mixBlendMode: 'luminosity',
+                          opacity: 0.55,
                           pointerEvents: 'none',
-                          transition: 'all 0.5s ease'
+                          transition: 'all 0.5s ease',
+                          filter: 'contrast(1.1) brightness(0.9)'
                         }} />
                       )}
 
-                      {/* Ambient Gradient Glow Overlay */}
+                      {/* Directional Gradient Scrim for High-Contrast Text Readability */}
                       <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.3) 0%, transparent 60%), linear-gradient(145deg, rgba(7, 23, 57, 0.82) 0%, rgba(10, 37, 88, 0.88) 100%)',
+                        background: 'linear-gradient(to right, rgba(7, 23, 57, 0.92) 0%, rgba(7, 23, 57, 0.72) 50%, rgba(10, 37, 88, 0.55) 100%)',
                         pointerEvents: 'none'
                       }} />
 
