@@ -562,7 +562,7 @@ const Demo = () => {
             </button>
           </div>
 
-          {/* AI Marketing Voice Product Tour Presenter - 5s Auto-Rotation & Ultra-Luxurious UI */}
+          {/* AI Marketing Voice Product Tour Presenter - Exact Pixel-Perfect UI from User Mockup */}
           <div
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -572,140 +572,64 @@ const Demo = () => {
               maxWidth: '1040px',
               margin: '2rem auto 2.5rem',
               boxSizing: 'border-box',
-              background: 'radial-gradient(ellipse at 80% 0%, rgba(30, 70, 150, 0.4) 0%, transparent 60%), linear-gradient(145deg, #06122d 0%, #0a1e46 55%, #071738 100%)',
-              borderRadius: '32px',
-              padding: '2.25rem 2.75rem',
-              color: 'white',
-              boxShadow: '0 25px 60px -12px rgba(6, 18, 45, 0.45), 0 0 0 1px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+              background: '#ffffff',
+              borderRadius: '28px',
+              padding: '1.75rem 2.25rem',
+              boxShadow: '0 20px 50px rgba(10, 30, 70, 0.08), 0 2px 6px rgba(10, 30, 70, 0.04)',
+              border: '1px solid #e2e8f0',
               position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(20px)'
+              overflow: 'hidden'
             }}
           >
-            {/* Background Ambient Aura Orbs */}
-            <div style={{
-              position: 'absolute',
-              top: '-30%',
-              right: '-15%',
-              width: '420px',
-              height: '420px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 70%)',
-              pointerEvents: 'none',
-              filter: 'blur(30px)'
-            }} />
-            <div style={{
-              position: 'absolute',
-              bottom: '-40%',
-              left: '-10%',
-              width: '380px',
-              height: '380px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)',
-              pointerEvents: 'none',
-              filter: 'blur(35px)'
-            }} />
-
-            {/* Header Control & Branding Row */}
+            {/* 1. Header Control & Branding Row */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '1.25rem',
-              paddingBottom: '1.5rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              gap: '1rem',
+              paddingBottom: '1.25rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(10, 30, 70, 0.6) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#d4af37',
-                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                  boxShadow: '0 4px 16px rgba(212, 175, 55, 0.2)'
-                }}>
-                  <Sparkles size={24} className="animate-pulse" />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.22rem', fontWeight: '800', margin: 0, color: 'white', letterSpacing: '-0.3px' }}>
-                      Interactive AI Product Tour
-                    </h3>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      padding: '0.2rem 0.65rem',
-                      borderRadius: '100px',
-                      background: isAutoPlaying && !isHovered ? 'rgba(16, 185, 129, 0.18)' : 'rgba(234, 179, 8, 0.18)',
-                      border: isAutoPlaying && !isHovered ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(234, 179, 8, 0.4)',
-                      color: isAutoPlaying && !isHovered ? '#6ee7b7' : '#fde047',
-                      fontSize: '0.68rem',
-                      fontWeight: '800',
-                      letterSpacing: '0.4px',
-                      textTransform: 'uppercase'
-                    }}>
-                      <span style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        background: isAutoPlaying && !isHovered ? '#10b981' : '#eab308',
-                        animation: isAutoPlaying && !isHovered ? 'pulse 1.5s infinite' : 'none'
-                      }} />
-                      {isNarrating ? 'AI Narrating' : isHovered ? 'Paused on Hover' : isAutoPlaying ? 'Auto-Advancing (5s)' : 'Paused'}
-                    </span>
+              {/* Left Brand + Tour Title */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                <div onClick={() => handleExitDemo('/')} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer' }}>
+                  <BrandLogo size={36} />
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                    <span style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0a1e46', letterSpacing: '-0.3px' }}>DiagnoLabs</span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: '800', color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Clinical Discovery</span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#cbd5e1', margin: '0.2rem 0 0', fontWeight: '500' }}>
-                    Slides transition automatically every 5 seconds. Listen to speech or explore clinical breakthroughs.
+                </div>
+
+                {/* Vertical Divider */}
+                <div style={{ width: '1px', height: '28px', background: '#e2e8f0' }} className="hidden sm:block" />
+
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: 0, color: '#0a1e46', letterSpacing: '-0.2px' }}>
+                    Interactive AI Product Tour
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.15rem 0 0', fontWeight: '500' }}>
+                    Listen to our marketing pitch or explore breakthrough capabilities
                   </p>
                 </div>
               </div>
 
-              {/* Play / Stop Voice Tour & Auto-Play Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <button
-                  onClick={() => setIsAutoPlaying(prev => !prev)}
-                  title={isAutoPlaying ? "Pause 5s Auto-Rotation" : "Resume 5s Auto-Rotation"}
-                  style={{
-                    padding: '0.6rem 0.9rem',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    borderRadius: '100px',
-                    color: '#cbd5e1',
-                    fontSize: '0.78rem',
-                    fontWeight: '700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {isAutoPlaying ? <Pause size={14} /> : <Play size={14} />}
-                  <span>{isAutoPlaying ? 'Auto (5s)' : 'Play (5s)'}</span>
-                </button>
-
+              {/* Right: Play Voice Tour Button */}
+              <div>
                 {isNarrating ? (
                   <button
                     onClick={handleStopVoiceTour}
                     style={{
                       padding: '0.6rem 1.3rem',
-                      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.35) 100%)',
-                      border: '1px solid rgba(239, 68, 68, 0.5)',
+                      background: '#fee2e2',
+                      border: '1px solid #fecaca',
                       borderRadius: '100px',
-                      color: '#fca5a5',
-                      fontWeight: '800',
+                      color: '#dc2626',
+                      fontWeight: '700',
                       fontSize: '0.84rem',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 16px rgba(239, 68, 68, 0.25)',
                       transition: 'all 0.2s'
                     }}
                   >
@@ -715,38 +639,38 @@ const Demo = () => {
                   <button
                     onClick={() => handlePlayVoiceTour(activeTourIndex)}
                     style={{
-                      padding: '0.6rem 1.45rem',
-                      background: 'linear-gradient(135deg, #d4af37 0%, #b89628 100%)',
+                      padding: '0.65rem 1.45rem',
+                      background: '#e0f2fe',
                       border: 'none',
                       borderRadius: '100px',
-                      color: '#0a1e46',
+                      color: '#0369a1',
                       fontWeight: '800',
                       fontSize: '0.84rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem',
+                      gap: '0.55rem',
                       cursor: 'pointer',
-                      boxShadow: '0 6px 22px rgba(212, 175, 55, 0.35)',
-                      transition: 'transform 0.2s'
+                      transition: 'all 0.2s'
                     }}
                   >
-                    <Volume2 size={16} /> Play Voice Tour (AI Audio)
+                    <Play size={15} className="fill-current text-[#0284c7]" /> Play Voice Tour (AI Audio)
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Tour Slide Navigation Chips with Integrated 5s Progress Bars */}
+            {/* 2. Tour Slide Navigation Chips Bar */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              display: 'flex',
               gap: '0.65rem',
-              padding: '1.4rem 0 1rem',
+              overflowX: 'auto',
+              padding: '0.5rem 0 1.25rem',
+              scrollbarWidth: 'none'
             }}>
               {marketingTourSteps.map((step, idx) => {
                 const isActive = activeTourIndex === idx;
                 return (
-                  <div
+                  <button
                     key={step.id}
                     onClick={() => {
                       setActiveTourIndex(idx);
@@ -756,16 +680,23 @@ const Demo = () => {
                     style={{
                       position: 'relative',
                       overflow: 'hidden',
-                      padding: '0.75rem 0.9rem',
-                      borderRadius: '16px',
-                      border: isActive ? '1px solid #d4af37' : '1px solid rgba(255, 255, 255, 0.1)',
-                      background: isActive ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(10, 30, 70, 0.7) 100%)' : 'rgba(255, 255, 255, 0.04)',
+                      padding: '0.65rem 1.35rem',
+                      borderRadius: '100px',
+                      border: isActive ? '1px solid #bae6fd' : '1px solid #f1f5f9',
+                      background: isActive ? '#e0f2fe' : '#f8fafc',
+                      color: isActive ? '#0a1e46' : '#64748b',
+                      fontSize: '0.82rem',
+                      fontWeight: isActive ? '800' : '600',
                       cursor: 'pointer',
-                      transition: 'all 0.25s ease',
-                      boxShadow: isActive ? '0 4px 18px rgba(212, 175, 55, 0.2)' : 'none'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
                     }}
                   >
-                    {/* Active 5-Second Linear Fill Progress Bar */}
+                    {/* Active 5-Second Linear Fill Underline */}
                     {isActive && (
                       <div
                         style={{
@@ -774,203 +705,229 @@ const Demo = () => {
                           left: 0,
                           height: '3px',
                           width: `${isNarrating ? 100 : slideProgress}%`,
-                          background: 'linear-gradient(90deg, #38bdf8, #d4af37)',
-                          transition: isHovered ? 'none' : 'width 50ms linear',
-                          boxShadow: '0 0 8px rgba(212, 175, 55, 0.8)'
+                          background: '#0284c7',
+                          transition: isHovered ? 'none' : 'width 50ms linear'
                         }}
                       />
                     )}
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', position: 'relative', zIndex: 2 }}>
-                      <span style={{
-                        fontSize: '0.7rem',
-                        fontWeight: '800',
-                        color: isActive ? '#fef08a' : '#64748b',
-                        background: isActive ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-                        padding: '0.15rem 0.45rem',
-                        borderRadius: '6px'
-                      }}>
-                        0{idx + 1}
-                      </span>
-                      <span style={{
-                        fontSize: '0.8rem',
-                        fontWeight: isActive ? '800' : '600',
-                        color: isActive ? '#ffffff' : '#cbd5e1',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        flex: 1,
-                        marginLeft: '0.3rem'
-                      }}>
-                        {step.title.split(' ')[0]} {step.title.split(' ')[1]}
-                      </span>
-                      {isActive && <Sparkles size={12} className="text-[#d4af37] shrink-0 animate-pulse" />}
-                    </div>
-                  </div>
+                    <span style={{
+                      color: isActive ? '#0284c7' : '#94a3b8',
+                      fontWeight: '800',
+                      fontSize: '0.78rem'
+                    }}>
+                      0{idx + 1}
+                    </span>
+                    <span>{step.title.split(' ')[0]} {step.title.split(' ')[1]}</span>
+                  </button>
                 );
               })}
             </div>
 
-            {/* Active Tour Card Body with Framer-Motion Animated Transition */}
-            <AnimatePresence mode="wait">
-              {marketingTourSteps[activeTourIndex] && (
-                <motion.div
-                  key={marketingTourSteps[activeTourIndex].id}
-                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -12, scale: 0.98 }}
-                  transition={{ duration: 0.35, ease: 'easeOut' }}
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
-                    backdropFilter: 'blur(16px)',
-                    borderRadius: '24px',
-                    padding: '2rem',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.2)',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-                    gap: '2rem',
-                    alignItems: 'center'
-                  }}
-                >
-                  {/* Left Column: Feature Narrative & Badge */}
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
+            {/* 3. Main Slide Content Area (2-Column Layout) */}
+            <div style={{
+              background: '#f8fafc',
+              borderRadius: '24px',
+              border: '1px solid #e2e8f0',
+              padding: '1.75rem 2rem',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <AnimatePresence mode="wait">
+                {marketingTourSteps[activeTourIndex] && (
+                  <motion.div
+                    key={marketingTourSteps[activeTourIndex].id}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                      gap: '2rem',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {/* Left Column: Title, Description, ISO Badge & Watermark */}
+                    <div style={{ position: 'relative', zIndex: 2 }}>
+                      {/* Icon */}
                       <div style={{
-                        width: '44px',
-                        height: '44px',
+                        width: '48px',
+                        height: '48px',
                         borderRadius: '14px',
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(10, 30, 70, 0.8) 100%)',
+                        background: '#e0f2fe',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                        color: '#0284c7',
+                        marginBottom: '1rem'
                       }}>
                         {marketingTourSteps[activeTourIndex].icon}
                       </div>
-                      <div>
-                        <span style={{
-                          fontSize: '0.72rem',
-                          fontWeight: '800',
-                          color: '#d4af37',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.8px',
-                          display: 'block'
-                        }}>
-                          {marketingTourSteps[activeTourIndex].subtitle}
-                        </span>
-                        <h4 style={{ fontSize: '1.38rem', fontWeight: '800', color: 'white', margin: '0.1rem 0 0', letterSpacing: '-0.3px' }}>
-                          {marketingTourSteps[activeTourIndex].title}
-                        </h4>
-                      </div>
-                    </div>
 
-                    <p style={{ fontSize: '0.94rem', lineHeight: '1.68', color: '#e2e8f0', margin: '0 0 1.25rem 0', fontWeight: '400' }}>
-                      {marketingTourSteps[activeTourIndex].description}
-                    </p>
-
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.45rem',
-                      padding: '0.4rem 0.95rem',
-                      background: 'rgba(212, 175, 55, 0.16)',
-                      border: '1px solid rgba(212, 175, 55, 0.38)',
-                      borderRadius: '100px',
-                      fontSize: '0.76rem',
-                      color: '#fef08a',
-                      fontWeight: '800',
-                      letterSpacing: '0.2px'
-                    }}>
-                      <CheckCircle2 size={14} className="text-amber-400" />
-                      {marketingTourSteps[activeTourIndex].badge}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Key Metric & High-Converting CTAs */}
-                  <div style={{
-                    background: 'linear-gradient(145deg, rgba(10, 30, 70, 0.85) 0%, rgba(6, 18, 45, 0.95) 100%)',
-                    borderRadius: '20px',
-                    padding: '1.75rem',
-                    border: '1px solid rgba(212, 175, 55, 0.25)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '180px',
-                    boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)'
-                  }}>
-                    <div style={{ marginBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                          Key Performance Metric
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#d4af37', fontWeight: '700' }}>
-                          Step {activeTourIndex + 1} of 5
-                        </span>
-                      </div>
-                      <div style={{
-                        fontSize: '2.25rem',
-                        fontWeight: '900',
-                        color: '#38bdf8',
-                        letterSpacing: '-0.8px',
-                        marginTop: '0.35rem',
-                        textShadow: '0 0 20px rgba(56, 189, 248, 0.4)'
+                      <span style={{
+                        fontSize: '0.74rem',
+                        fontWeight: '800',
+                        color: '#0284c7',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.8px',
+                        display: 'block',
+                        marginBottom: '0.35rem'
                       }}>
-                        {marketingTourSteps[activeTourIndex].stat}
+                        {marketingTourSteps[activeTourIndex].subtitle}
+                      </span>
+
+                      <h4 style={{
+                        fontSize: '1.55rem',
+                        fontWeight: '900',
+                        color: '#0a1e46',
+                        margin: '0 0 0.85rem',
+                        letterSpacing: '-0.3px',
+                        lineHeight: '1.2'
+                      }}>
+                        {marketingTourSteps[activeTourIndex].title}
+                      </h4>
+
+                      <p style={{
+                        fontSize: '0.9rem',
+                        lineHeight: '1.65',
+                        color: '#475569',
+                        margin: '0 0 1.25rem',
+                        fontWeight: '400'
+                      }}>
+                        {marketingTourSteps[activeTourIndex].description}
+                      </p>
+
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        padding: '0.4rem 0.9rem',
+                        background: '#dcfce7',
+                        border: '1px solid #bbf7d0',
+                        borderRadius: '100px',
+                        fontSize: '0.76rem',
+                        color: '#15803d',
+                        fontWeight: '700'
+                      }}>
+                        <CheckCircle2 size={14} className="text-emerald-600 fill-emerald-100" />
+                        {marketingTourSteps[activeTourIndex].badge}
                       </div>
-                      <div style={{ fontSize: '0.84rem', color: '#cbd5e1', fontWeight: '500', marginTop: '0.15rem' }}>
-                        {marketingTourSteps[activeTourIndex].statLabel}
+
+                      {/* Soft Light-Blue Medical Cross Decor */}
+                      <div style={{
+                        position: 'absolute',
+                        right: '-20px',
+                        bottom: '-10px',
+                        color: '#e0f2fe',
+                        opacity: 0.6,
+                        pointerEvents: 'none',
+                        zIndex: -1
+                      }}>
+                        <svg width="90" height="90" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 10.5h-5.5V5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v5.5H5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h5.5V19c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-5.5H19c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5z"/>
+                        </svg>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => handleExitDemo('/userlogin')}
-                        style={{
-                          flex: 1.3,
-                          padding: '0.75rem 1.15rem',
-                          background: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
-                          color: '#071738',
-                          border: 'none',
-                          borderRadius: '14px',
-                          fontWeight: '800',
-                          fontSize: '0.86rem',
+                    {/* Right Column: Deep Royal Navy Featured Metric Card */}
+                    <div style={{
+                      background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.22) 0%, transparent 60%), linear-gradient(135deg, #071739 0%, #0a2558 100%)',
+                      borderRadius: '24px',
+                      padding: '2rem 2.25rem',
+                      color: 'white',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 14px 34px rgba(10, 37, 88, 0.25)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '230px'
+                    }}>
+                      {/* Top Right Map Pin Decor */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '1.5rem',
+                        right: '1.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        pointerEvents: 'none'
+                      }}>
+                        <div style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '50%',
+                          background: 'rgba(56, 189, 248, 0.2)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.45rem',
-                          cursor: 'pointer',
-                          boxShadow: '0 6px 20px rgba(56, 189, 248, 0.35)',
-                          transition: 'transform 0.2s'
-                        }}
-                      >
-                        Login & Experience <ArrowRight size={15} />
-                      </button>
+                          border: '1px solid rgba(56, 189, 248, 0.4)',
+                          boxShadow: '0 0 16px rgba(56, 189, 248, 0.4)'
+                        }}>
+                          <MapPin size={22} className="text-[#38bdf8] fill-[#0284c7]" />
+                        </div>
+                      </div>
 
-                      <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      {/* Metric Content */}
+                      <div>
+                        <span style={{
+                          fontSize: '0.72rem',
+                          color: '#94a3b8',
+                          fontWeight: '800',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.8px'
+                        }}>
+                          KEY METRIC
+                        </span>
+                        <div style={{
+                          fontSize: '2.4rem',
+                          fontWeight: '900',
+                          color: '#38bdf8',
+                          letterSpacing: '-0.8px',
+                          marginTop: '0.2rem',
+                          lineHeight: '1.1'
+                        }}>
+                          {marketingTourSteps[activeTourIndex].stat}
+                        </div>
+                        <div style={{
+                          fontSize: '0.88rem',
+                          color: '#e2e8f0',
+                          fontWeight: '500',
+                          marginTop: '0.45rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}>
+                          <MapPin size={15} className="text-[#38bdf8]" />
+                          <span>{marketingTourSteps[activeTourIndex].statLabel}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons Row */}
+                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
                         <button
-                          onClick={() => {
-                            const prev = (activeTourIndex - 1 + marketingTourSteps.length) % marketingTourSteps.length;
-                            setActiveTourIndex(prev);
-                            setSlideProgress(0);
-                            if (isNarrating) speakMarketingText(marketingTourSteps[prev].speech);
-                          }}
-                          title="Previous Feature"
+                          onClick={() => handleExitDemo('/userlogin')}
                           style={{
-                            padding: '0.75rem',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            color: 'white',
-                            border: '1px solid rgba(255, 255, 255, 0.18)',
-                            borderRadius: '14px',
-                            cursor: 'pointer',
+                            flex: 1.2,
+                            padding: '0.72rem 1.3rem',
+                            background: '#0284c7',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '100px',
+                            fontWeight: '800',
+                            fontSize: '0.86rem',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            gap: '0.45rem',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 16px rgba(2, 132, 199, 0.4)',
+                            transition: 'all 0.2s'
                           }}
                         >
-                          <ChevronLeft size={16} />
+                          <Users size={15} /> Login & Experience <ArrowRight size={15} />
                         </button>
+
                         <button
                           onClick={() => {
                             const next = (activeTourIndex + 1) % marketingTourSteps.length;
@@ -978,54 +935,106 @@ const Demo = () => {
                             setSlideProgress(0);
                             if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
                           }}
-                          title="Next Feature"
                           style={{
-                            padding: '0.75rem 1rem',
-                            background: 'rgba(255, 255, 255, 0.12)',
-                            color: 'white',
+                            padding: '0.72rem 1.25rem',
+                            background: 'rgba(255, 255, 255, 0.08)',
                             border: '1px solid rgba(255, 255, 255, 0.22)',
-                            borderRadius: '14px',
+                            color: '#ffffff',
+                            borderRadius: '100px',
                             fontWeight: '700',
-                            fontSize: '0.82rem',
-                            cursor: 'pointer',
+                            fontSize: '0.84rem',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.3rem'
+                            gap: '0.35rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                           }}
                         >
-                          <span>Next</span> <ChevronRight size={15} />
+                          <span>Next Feature</span> <ArrowRight size={14} />
                         </button>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-            {/* Bottom Conversion & Voice Tips Bar */}
+            {/* 4. Bottom Conversion Bar */}
             <div style={{
-              marginTop: '1.5rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '0.75rem',
-              fontSize: '0.78rem',
-              color: '#94a3b8',
-              paddingTop: '1rem',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+              gap: '1rem',
+              paddingTop: '1.25rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Mic size={15} className="text-teal-400 animate-pulse" />
-                <span>Voice Command: Say <strong>"Take me to login"</strong> or <strong>"Explain demo"</strong></span>
+              {/* Voice Command Hint */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: '#0284c7',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                }}>
+                  <Mic size={16} />
+                </div>
+                <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                  Voice Command: Say <strong style={{ color: '#0284c7' }}>"Take me to login"</strong> or <strong style={{ color: '#0284c7' }}>"Explain demo"</strong>
+                </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ color: '#cbd5e1' }}>
-                  Hover card to pause 5s timer
+
+              {/* Navigation Arrows & Slide Counter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <button
+                  onClick={() => {
+                    const prev = (activeTourIndex - 1 + marketingTourSteps.length) % marketingTourSteps.length;
+                    setActiveTourIndex(prev);
+                    setSlideProgress(0);
+                    if (isNarrating) speakMarketingText(marketingTourSteps[prev].speech);
+                  }}
+                  title="Previous Slide"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '0.2rem',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '700' }}>
+                  {activeTourIndex + 1} of {marketingTourSteps.length}
                 </span>
-                <span style={{ color: '#d4af37', fontWeight: '800' }}>
-                  Slide {activeTourIndex + 1} of {marketingTourSteps.length}
-                </span>
+
+                <button
+                  onClick={() => {
+                    const next = (activeTourIndex + 1) % marketingTourSteps.length;
+                    setActiveTourIndex(next);
+                    setSlideProgress(0);
+                    if (isNarrating) speakMarketingText(marketingTourSteps[next].speech);
+                  }}
+                  title="Next Slide"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '0.2rem',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             </div>
           </div>
