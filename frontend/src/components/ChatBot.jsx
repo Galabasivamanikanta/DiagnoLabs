@@ -113,21 +113,15 @@ const generateClinicalFallback = (text, userName) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Reusable In-Chat Login Card Component with Voice Auto-Login
+// Reusable In-Chat Login Card Component
 // ─────────────────────────────────────────────────────────────
-const InChatLoginCard = ({ onLoginSuccess, speak }) => {
+const InChatLoginCard = ({ onLoginSuccess }) => {
     const { login, googleLogin } = useContext(AuthContext);
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Voice Auto-Login States
-    const [isVoiceLoggingIn, setIsVoiceLoggingIn] = useState(false);
-    const [isAiSpeakingPrompt, setIsAiSpeakingPrompt] = useState(false);
-    const [voiceStatusText, setVoiceStatusText] = useState('');
-    const recognitionRef = useRef(null);
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
@@ -146,11 +140,12 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         }
     };
 
-    const executeLogin = useCallback(async (idToUse, pwdToUse) => {
-        const id = (idToUse || identifier).trim();
-        const pwd = (pwdToUse || password).trim();
+    const handleManualSubmit = async (e) => {
+        e.preventDefault();
+        const id = identifier.trim();
+        const pwd = password.trim();
         if (!id || !pwd) {
-            setError("Please provide both email/phone/User ID and password.");
+            setError("Please enter both email/phone/User ID and password.");
             return;
         }
         try {
@@ -161,209 +156,11 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 onLoginSuccess(res.user);
             } else {
                 setError(res.message || "Invalid credentials.");
-                if (speak) speak("Login failed. Please check your credentials.");
             }
         } catch {
             setError("Login failed. Please check your credentials.");
-            if (speak) speak("Login failed. Please check your credentials.");
         } finally {
             setLoading(false);
-            setIsVoiceLoggingIn(false);
-            setIsAiSpeakingPrompt(false);
-            setVoiceStatusText('');
-        }
-    }, [identifier, password, login, speak, onLoginSuccess]);
-
-    const handleManualSubmit = async (e) => {
-        e.preventDefault();
-        executeLogin(identifier, password);
-    };
-
-    // Forward declaration of listenWithMic to use inside callbacks
-    const listenWithMicRef = useRef(null);
-
-    // Voice Auto-Login Parser
-    const handleVoiceLoginInput = useCallback((rawSpeech) => {
-        const raw = (rawSpeech || '').trim();
-        if (!raw) return;
-
-        // Clean common spoken phrases e.g. " at " -> "@", " dot " -> "."
-        let text = raw
-            .replace(/\s+(at|@)\s+/gi, '@')
-            .replace(/\s+(dot|\.)\s+/gi, '.')
-            .replace(/\s+underscore\s+/gi, '_')
-            .replace(/\s+dash\s+/gi, '-')
-            .trim();
-
-        setVoiceStatusText(`Heard: "${raw}"`);
-
-        // 1. Check if 'password' or 'pass' or 'pin' exists in spoken text
-        const passMatch = text.match(/(.*?)\s+(?:password|pass|pin)\s+(?:is\s+)?(.+)/i);
-        if (passMatch) {
-            let id = passMatch[1]
-                .replace(/(?:login\s+with|my\s+email\s+is|email\s+is|phone\s+is|user\s+id\s+is|user\s+name\s+is|email|phone|user(?:\s+id)?|id|is)\s*/gi, '')
-                .replace(/\s+/g, '')
-                .trim();
-            let pwd = passMatch[2].replace(/\s+/g, '').trim();
-
-            if (id && pwd) {
-                setIdentifier(id);
-                setPassword(pwd);
-                setVoiceStatusText(`Auto-filling: ${id} & Password...`);
-                if (speak) speak(`Credentials recognized for ${id}. Logging you in automatically now.`);
-
-                setTimeout(() => {
-                    executeLogin(id, pwd);
-                }, 800);
-                return;
-            }
-        }
-
-        // 2. If 2 words spoken separated by space e.g. "sivam@gmail.com 123456"
-        const twoWordsMatch = text.match(/^([^\s@]+@[^\s@]+|[0-9]{10}|DL-[^\s]+)\s+(.+)$/i);
-        if (twoWordsMatch) {
-            let id = twoWordsMatch[1].trim();
-            let pwd = twoWordsMatch[2].replace(/\s+/g, '').trim();
-            if (id && pwd) {
-                setIdentifier(id);
-                setPassword(pwd);
-                setVoiceStatusText(`Auto-filling: ${id} & Password...`);
-                if (speak) speak(`Credentials recognized for ${id}. Logging you in automatically now.`);
-
-                setTimeout(() => {
-                    executeLogin(id, pwd);
-                }, 800);
-                return;
-            }
-        }
-
-        // 3. If only identifier was spoken first
-        const emailOrPhoneMatch = text.match(/([^\s@]+@[^\s@]+|[0-9]{10}|DL-[a-zA-Z0-9!@#$%^&*()-]+)/i);
-        if (emailOrPhoneMatch) {
-            const cleanId = emailOrPhoneMatch[1].trim();
-            setIdentifier(cleanId);
-            setVoiceStatusText(`Email recognized as ${cleanId}. Assistant speaking...`);
-            setIsAiSpeakingPrompt(true);
-            if (speak) {
-                speak(`Email recognized as ${cleanId}. Now please speak your password.`, () => {
-                    setIsAiSpeakingPrompt(false);
-                    if (listenWithMicRef.current) listenWithMicRef.current();
-                });
-            } else {
-                setIsAiSpeakingPrompt(false);
-                if (listenWithMicRef.current) listenWithMicRef.current();
-            }
-            return;
-        }
-
-        // 4. If identifier is already filled and user is now speaking password
-        if (identifier && !password) {
-            const cleanPwd = text.replace(/^(?:my\s+)?(?:password|pass|pin)\s+(?:is\s+)?/i, '').replace(/\s+/g, '').trim();
-            if (cleanPwd) {
-                setPassword(cleanPwd);
-                setVoiceStatusText(`Password set. Logging in...`);
-                if (speak) speak(`Password captured. Logging in now.`);
-                setTimeout(() => {
-                    executeLogin(identifier, cleanPwd);
-                }, 800);
-            }
-        }
-    }, [identifier, password, executeLogin, speak]);
-
-    // Dedicated function to activate microphone only when AI is NOT speaking
-    const listenWithMic = useCallback(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
-
-        try {
-            recognitionRef.current?.stop();
-        } catch {
-            // Ignore
-        }
-
-        const rec = new SpeechRecognition();
-        rec.continuous = false;
-        rec.interimResults = true;
-        rec.lang = 'en-IN';
-
-        let capturedTranscript = '';
-
-        rec.onstart = () => {
-            setIsVoiceLoggingIn(true);
-            setIsAiSpeakingPrompt(false);
-            setVoiceStatusText('Mic Active! Speak: "your-email password your-password"');
-        };
-
-        rec.onresult = (e) => {
-            let transcript = '';
-            for (let i = 0; i < e.results.length; ++i) {
-                transcript += e.results[i][0].transcript;
-            }
-            capturedTranscript = transcript;
-            if (transcript.trim()) {
-                setVoiceStatusText(`Heard: "${transcript}"`);
-            }
-        };
-
-        rec.onerror = (err) => {
-            console.warn("Voice login recognition error:", err);
-            setIsVoiceLoggingIn(false);
-            setIsAiSpeakingPrompt(false);
-            setVoiceStatusText('');
-        };
-
-        rec.onend = () => {
-            setIsVoiceLoggingIn(false);
-            setIsAiSpeakingPrompt(false);
-            if (capturedTranscript.trim()) {
-                handleVoiceLoginInput(capturedTranscript.trim());
-            }
-        };
-
-        recognitionRef.current = rec;
-        try {
-            rec.start();
-        } catch (err) {
-            console.warn("Speech recognition start failed:", err);
-            setIsVoiceLoggingIn(false);
-            setIsAiSpeakingPrompt(false);
-        }
-    }, [handleVoiceLoginInput]);
-
-    listenWithMicRef.current = listenWithMic;
-
-    const startVoiceLogin = () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Voice recognition is supported in Google Chrome and Microsoft Edge.");
-            return;
-        }
-
-        if (isVoiceLoggingIn || isAiSpeakingPrompt) {
-            try {
-                recognitionRef.current?.stop();
-            } catch {
-                // Ignore
-            }
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            setIsVoiceLoggingIn(false);
-            setIsAiSpeakingPrompt(false);
-            setVoiceStatusText('');
-            return;
-        }
-
-        setIsVoiceLoggingIn(true);
-        setIsAiSpeakingPrompt(true);
-        setVoiceStatusText('Assistant is speaking instruction... Please wait for mic.');
-
-        // AI speaks first! The microphone is ONLY activated after AI finishes speaking!
-        if (speak) {
-            speak('Please speak your email or User ID, followed by your password.', () => {
-                // Callback fires when AI voice finishes speaking!
-                listenWithMic();
-            });
-        } else {
-            listenWithMic();
         }
     };
 
@@ -376,53 +173,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 <span className="text-[0.68rem] text-amber-700 font-semibold lowercase">patient access</span>
             </div>
 
-            {/* 1. Voice Auto-Fill & Auto-Login Button */}
-            <button
-                type="button"
-                onClick={startVoiceLogin}
-                className={`w-full py-2 px-3 rounded-xl border font-bold text-[0.78rem] flex items-center justify-center gap-2 transition-all ${
-                    isAiSpeakingPrompt
-                        ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20'
-                        : isVoiceLoggingIn
-                        ? 'bg-red-500 text-white border-red-600 animate-pulse shadow-md shadow-red-500/20'
-                        : 'bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-500 shadow-sm hover:from-teal-500 hover:to-teal-600 cursor-pointer'
-                }`}
-            >
-                {isAiSpeakingPrompt ? (
-                    <>
-                        <Volume2 size={14} className="animate-bounce" />
-                        <span>Assistant Speaking... (Please Wait)</span>
-                    </>
-                ) : isVoiceLoggingIn ? (
-                    <>
-                        <Mic size={14} className="animate-pulse" />
-                        <span>Listening... Speak Your Details</span>
-                    </>
-                ) : (
-                    <>
-                        <Mic size={14} />
-                        <span>Voice Auto-Login (Speak Details)</span>
-                    </>
-                )}
-            </button>
-
-            {/* Voice Status Toast */}
-            {voiceStatusText && (
-                <div className={`text-[0.72rem] p-2 rounded-xl flex items-center gap-1.5 animate-fadeIn font-medium border ${
-                    isAiSpeakingPrompt
-                        ? 'text-amber-900 bg-amber-50 border-amber-200'
-                        : 'text-teal-800 bg-teal-50 border-teal-200'
-                }`}>
-                    {isAiSpeakingPrompt ? (
-                        <Volume2 size={12} className="text-amber-600 shrink-0 animate-bounce" />
-                    ) : (
-                        <Radio size={12} className="text-teal-600 animate-pulse shrink-0" />
-                    )}
-                    <span className="truncate">{voiceStatusText}</span>
-                </div>
-            )}
-
-            {/* 2. Google One-Click Login */}
+            {/* 1. Google One-Click Login */}
             <div className="w-full flex justify-center py-0.5">
                 <GoogleLogin
                     onSuccess={handleGoogleSuccess}
@@ -441,7 +192,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 <div className="flex-1 h-px bg-slate-200" />
             </div>
 
-            {/* 3. Manual / Auto-Filled Login Form */}
+            {/* 2. Manual Login Form */}
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-2">
                 {error && (
                     <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
@@ -1251,7 +1002,7 @@ const ChatBot = () => {
                                     </div>
 
                                     {/* If User is NOT Logged In: Display Google Sign-In & Manual Login in ChatBot */}
-                                    {!user && <InChatLoginCard onLoginSuccess={handleLoginSuccess} speak={speak} />}
+                                    {!user && <InChatLoginCard onLoginSuccess={handleLoginSuccess} />}
 
                                     {/* 4 Action Cards with Border and Right Arrow */}
                                     <div className="flex flex-col gap-2.5">
@@ -1342,7 +1093,7 @@ const ChatBot = () => {
                                             {/* In-Chat Login Widget Prompt */}
                                             {msg.showLoginOptions && !user && (
                                                 <div className="w-full mt-2">
-                                                    <InChatLoginCard onLoginSuccess={handleLoginSuccess} speak={speak} />
+                                                    <InChatLoginCard onLoginSuccess={handleLoginSuccess} />
                                                 </div>
                                             )}
 
