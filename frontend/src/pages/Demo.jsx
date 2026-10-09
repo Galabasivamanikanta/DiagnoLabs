@@ -533,8 +533,11 @@ const Demo = () => {
 
           {/* AI Marketing Voice Product Tour Presenter */}
           <div style={{
+            gridColumn: 'span 12',
+            width: '100%',
             maxWidth: '1000px',
-            margin: '2.5rem auto 3rem',
+            margin: '2rem auto 2.5rem',
+            boxSizing: 'border-box',
             background: 'linear-gradient(135deg, #0a1e46 0%, #0f2d6b 100%)',
             borderRadius: '28px',
             padding: '2rem 2.5rem',
