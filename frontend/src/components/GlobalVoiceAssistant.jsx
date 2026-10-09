@@ -20,7 +20,7 @@ const cleanSpeechText = (text) =>
 export const GlobalVoiceAssistant = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useContext(AuthContext);
+    const { user, login, logout } = useContext(AuthContext);
 
     // Assistant Enabled / Permission States
     const [isEnabled, setIsEnabled] = useState(() => {
@@ -253,7 +253,37 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 5. Logout Command
+        // 5. Login Credentials Command (e.g. "login with email X and password Y" or "email X password Y")
+        const normalizedCmd = cmd
+            .replace(/\s+(at|@)\s+/gi, '@')
+            .replace(/\s+(dot|\.)\s+/gi, '.')
+            .replace(/\s+underscore\s+/gi, '_')
+            .replace(/\s+dash\s+/gi, '-')
+            .trim();
+        const passMatch = normalizedCmd.match(/(?:login\s+with\s+)?(?:email|phone|user(?:\s+id)?)?\s*([^\s@]+@[^\s@]+|[0-9]{10}|DL-[^\s]+)\s+(?:password|pass|pin)\s+(?:is\s+)?(.+)/i);
+        if (passMatch) {
+            const id = passMatch[1].trim();
+            const pwd = passMatch[2].replace(/\s+/g, '').trim();
+            setLastActionText(`Logging in: ${id}...`);
+            speak(`Credentials recognized for ${id}. Logging you in now.`);
+            if (login) {
+                login(id, pwd).then(res => {
+                    if (res.success) {
+                        speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
+                        setLastActionText(`Logged in as ${res.user.name || 'User'}`);
+                    } else {
+                        speak("Login failed. Please check your credentials.");
+                        setLastActionText("Login failed: Invalid credentials");
+                    }
+                }).catch(() => {
+                    speak("Login failed. Please check your credentials.");
+                });
+            }
+            setIsProcessing(false);
+            return;
+        }
+
+        // 6. Logout Command
         if (cmd === 'logout' || cmd === 'sign out' || cmd === 'log out') {
             if (logout) logout();
             navigate('/userlogin');

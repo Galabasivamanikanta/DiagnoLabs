@@ -185,64 +185,75 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         if (!raw) return;
 
         // Clean common spoken phrases e.g. " at " -> "@", " dot " -> "."
-        const normalized = raw
-            .replace(/\s+at\s+/gi, '@')
-            .replace(/\s+dot\s+/gi, '.')
+        let text = raw
+            .replace(/\s+(at|@)\s+/gi, '@')
+            .replace(/\s+(dot|\.)\s+/gi, '.')
             .replace(/\s+underscore\s+/gi, '_')
-            .replace(/\s+dash\s+/gi, '-');
+            .replace(/\s+dash\s+/gi, '-')
+            .trim();
 
         setVoiceStatusText(`Heard: "${raw}"`);
 
-        // Check if both identifier & password were spoken
-        const passIndex = normalized.toLowerCase().indexOf('password');
-        const passKeyIndex = normalized.toLowerCase().indexOf('pass');
-
-        const splitIndex = passIndex !== -1 ? passIndex : (passKeyIndex !== -1 ? passKeyIndex : -1);
-
-        if (splitIndex !== -1) {
-            let idPart = normalized.substring(0, splitIndex)
-                .replace(/(?:login\s+with|my\s+email\s+is|email\s+is|phone\s+is|user\s+id\s+is|email|phone|user(?:\s+id)?|id|is)\s*/gi, '')
+        // 1. Check if 'password' or 'pass' or 'pin' exists in spoken text
+        const passMatch = text.match(/(.*?)\s+(?:password|pass|pin)\s+(?:is\s+)?(.+)/i);
+        if (passMatch) {
+            let id = passMatch[1]
+                .replace(/(?:login\s+with|my\s+email\s+is|email\s+is|phone\s+is|user\s+id\s+is|user\s+name\s+is|email|phone|user(?:\s+id)?|id|is)\s*/gi, '')
                 .replace(/\s+/g, '')
                 .trim();
+            let pwd = passMatch[2].replace(/\s+/g, '').trim();
 
-            let pwdPart = normalized.substring(splitIndex + (passIndex !== -1 ? 8 : 4))
-                .replace(/^(?:is|\s|:)+/i, '')
-                .trim();
+            if (id && pwd) {
+                setIdentifier(id);
+                setPassword(pwd);
+                setVoiceStatusText(`Auto-filling: ${id} & Password...`);
+                if (speak) speak(`Credentials recognized for ${id}. Logging you in automatically now.`);
 
-            if (idPart && pwdPart) {
-                // Auto-fill fields in front of user's eyes
-                setIdentifier(idPart);
-                setPassword(pwdPart);
-                setVoiceStatusText(`Auto-filling: ${idPart} & Password...`);
-                if (speak) speak(`Credentials recognized for ${idPart}. Logging you in automatically now.`);
-
-                // Automatically trigger login after short animation delay
                 setTimeout(() => {
-                    executeLogin(idPart, pwdPart);
-                }, 1000);
+                    executeLogin(id, pwd);
+                }, 800);
                 return;
             }
         }
 
-        // If only identifier was spoken first
-        if (normalized.includes('@') || /^[0-9]{10}$/.test(normalized.replace(/\s+/g, ''))) {
-            const cleanId = normalized.replace(/(?:email\s+is|my\s+email\s+is|phone\s+is|user\s+id\s+is|email|phone|is)\s*/gi, '').replace(/\s+/g, '').trim();
+        // 2. If 2 words spoken separated by space e.g. "sivam@gmail.com 123456"
+        const twoWordsMatch = text.match(/^([^\s@]+@[^\s@]+|[0-9]{10}|DL-[^\s]+)\s+(.+)$/i);
+        if (twoWordsMatch) {
+            let id = twoWordsMatch[1].trim();
+            let pwd = twoWordsMatch[2].replace(/\s+/g, '').trim();
+            if (id && pwd) {
+                setIdentifier(id);
+                setPassword(pwd);
+                setVoiceStatusText(`Auto-filling: ${id} & Password...`);
+                if (speak) speak(`Credentials recognized for ${id}. Logging you in automatically now.`);
+
+                setTimeout(() => {
+                    executeLogin(id, pwd);
+                }, 800);
+                return;
+            }
+        }
+
+        // 3. If only identifier was spoken first
+        const emailOrPhoneMatch = text.match(/([^\s@]+@[^\s@]+|[0-9]{10}|DL-[a-zA-Z0-9!@#$%^&*()-]+)/i);
+        if (emailOrPhoneMatch) {
+            const cleanId = emailOrPhoneMatch[1].trim();
             setIdentifier(cleanId);
             setVoiceStatusText(`Email/ID set to ${cleanId}. Now please speak your password.`);
-            if (speak) speak(`Email set to ${cleanId}. Now please speak your password.`);
+            if (speak) speak(`Email recognized as ${cleanId}. Now please speak your password.`);
             return;
         }
 
-        // If identifier is already filled and user is now speaking password
+        // 4. If identifier is already filled and user is now speaking password
         if (identifier && !password) {
-            const cleanPwd = normalized.replace(/^(?:my\s+)?(?:password|pass|pin)\s+(?:is\s+)?/i, '').trim();
+            const cleanPwd = text.replace(/^(?:my\s+)?(?:password|pass|pin)\s+(?:is\s+)?/i, '').replace(/\s+/g, '').trim();
             if (cleanPwd) {
                 setPassword(cleanPwd);
                 setVoiceStatusText(`Password set. Logging in...`);
                 if (speak) speak(`Password captured. Logging in now.`);
                 setTimeout(() => {
                     executeLogin(identifier, cleanPwd);
-                }, 1000);
+                }, 800);
             }
         }
     }, [identifier, password, executeLogin, speak]);
@@ -274,13 +285,17 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         rec.interimResults = true;
         rec.lang = 'en-IN';
 
+        let capturedTranscript = '';
+
         rec.onresult = (e) => {
-            let final = '';
-            for (let i = e.resultIndex; i < e.results.length; ++i) {
-                if (e.results[i].isFinal) final += e.results[i][0].transcript;
+            let transcript = '';
+            for (let i = 0; i < e.results.length; ++i) {
+                transcript += e.results[i][0].transcript;
             }
-            if (final) {
-                handleVoiceLoginInput(final);
+            capturedTranscript = transcript;
+            if (transcript.trim()) {
+                setVoiceStatusText(`Heard: "${transcript}"`);
+                handleVoiceLoginInput(transcript.trim());
             }
         };
 
@@ -291,6 +306,9 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
 
         rec.onend = () => {
             setIsVoiceLoggingIn(false);
+            if (capturedTranscript.trim()) {
+                handleVoiceLoginInput(capturedTranscript.trim());
+            }
         };
 
         recognitionRef.current = rec;
@@ -417,7 +435,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
 const ChatBot = () => {
     const navigate = useNavigate();
     const { isMobile } = useDevice();
-    const { user, logout } = useContext(AuthContext);
+    const { user, login, logout } = useContext(AuthContext);
 
     const [messages, setMessages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -435,6 +453,7 @@ const ChatBot = () => {
     const inputRef = useRef(null);
     const recognitionRef = useRef(null);
     const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
+    const speechBufferRef = useRef('');
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -495,13 +514,14 @@ const ChatBot = () => {
         rec.onstart = () => {
             setIsListening(true);
             setSpeechTranscript('');
+            speechBufferRef.current = '';
             setVoiceFeedbackText('Listening...');
         };
 
         rec.onresult = (e) => {
             let interim = '';
             let final = '';
-            for (let i = e.resultIndex; i < e.results.length; ++i) {
+            for (let i = 0; i < e.results.length; ++i) {
                 if (e.results[i].isFinal) {
                     final += e.results[i][0].transcript;
                 } else {
@@ -509,13 +529,16 @@ const ChatBot = () => {
                 }
             }
             const currentTranscript = final || interim;
+            speechBufferRef.current = currentTranscript;
             setSpeechTranscript(currentTranscript);
             setInputValue(currentTranscript);
 
             if (final) {
                 setIsListening(false);
                 setVoiceFeedbackText('');
-                handleSend(final);
+                const textToSend = final.trim();
+                speechBufferRef.current = '';
+                handleSend(textToSend);
             }
         };
 
@@ -527,6 +550,11 @@ const ChatBot = () => {
         rec.onend = () => {
             setIsListening(false);
             setVoiceFeedbackText('');
+            if (speechBufferRef.current && speechBufferRef.current.trim()) {
+                const textToSend = speechBufferRef.current.trim();
+                speechBufferRef.current = '';
+                handleSend(textToSend);
+            }
         };
 
         recognitionRef.current = rec;
@@ -738,6 +766,52 @@ const ChatBot = () => {
         if (!attachedFile && processVoiceCommand(text)) {
             setIsLoading(false);
             return;
+        }
+
+        // Voice / Text Auto-Login Credentials Interceptor
+        if (!user && !attachedFile) {
+            const normalized = text
+                .replace(/\s+(at|@)\s+/gi, '@')
+                .replace(/\s+(dot|\.)\s+/gi, '.')
+                .replace(/\s+underscore\s+/gi, '_')
+                .replace(/\s+dash\s+/gi, '-')
+                .trim();
+            const passMatch = normalized.match(/(?:login\s+with\s+)?(?:email|phone|user(?:\s+id)?)?\s*([^\s@]+@[^\s@]+|[0-9]{10}|DL-[^\s]+)\s+(?:password|pass|pin)\s+(?:is\s+)?(.+)/i);
+            if (passMatch) {
+                const id = passMatch[1].trim();
+                const pwd = passMatch[2].replace(/\s+/g, '').trim();
+                speak(`Credentials recognized for ${id}. Logging you in now.`);
+                try {
+                    const res = await login(id, pwd);
+                    if (res.success) {
+                        speak(`Login verified! Welcome back, ${res.user.name || 'User'}!`);
+                        setMessages(prev => [
+                            ...prev,
+                            {
+                                id: getUniqueId(),
+                                text: `Authentication verified! Welcome back, **${res.user.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
+                                sender: 'bot'
+                            }
+                        ]);
+                    } else {
+                        speak("Login failed. Invalid credentials.");
+                        setMessages(prev => [
+                            ...prev,
+                            {
+                                id: getUniqueId(),
+                                text: `Login failed: ${res.message || 'Invalid credentials'}. Please try again using the login card below:`,
+                                sender: 'bot',
+                                showLoginOptions: true
+                            }
+                        ]);
+                    }
+                } catch {
+                    speak("Login failed. Please check your credentials.");
+                } finally {
+                    setIsLoading(false);
+                }
+                return;
+            }
         }
 
         let reply = '';
