@@ -54,7 +54,7 @@ const Demo = () => {
       icon: <Building2 size={26} className="text-amber-500" />,
       badgeIcon: <MapPin size={22} className="text-[#38bdf8] fill-[#0284c7]" />,
       statIcon: <MapPin size={15} className="text-[#38bdf8]" />,
-      bgImage: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/images/demo/nabl_lab.jpg',
       title: '500+ NABL Accredited Labs',
       subtitle: 'Real-Time Geospatial Discovery',
       badge: 'ISO 15189:2022 Certified',
@@ -68,7 +68,7 @@ const Demo = () => {
       icon: <Mic size={26} className="text-teal-400" />,
       badgeIcon: <Mic size={22} className="text-[#38bdf8]" />,
       statIcon: <Mic size={15} className="text-[#38bdf8]" />,
-      bgImage: 'https://images.unsplash.com/photo-1589254065878-42c9da997008?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/images/demo/voice_automation.jpg',
       title: 'Universal Voice Automation',
       subtitle: '100% Hands-Free Operation',
       badge: 'English • Telugu • Hindi',
@@ -82,7 +82,7 @@ const Demo = () => {
       icon: <Thermometer size={26} className="text-sky-400" />,
       badgeIcon: <Thermometer size={22} className="text-[#38bdf8]" />,
       statIcon: <ShieldCheck size={15} className="text-[#38bdf8]" />,
-      bgImage: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/images/demo/coldchain_box.jpg',
       title: 'Cold-Chain Phlebotomy & OTP',
       subtitle: 'Digital Chain-of-Custody',
       badge: 'Zero Sample Degradation',
@@ -96,7 +96,7 @@ const Demo = () => {
       icon: <QrCode size={26} className="text-emerald-400" />,
       badgeIcon: <QrCode size={22} className="text-[#38bdf8]" />,
       statIcon: <QrCode size={15} className="text-[#38bdf8]" />,
-      bgImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/images/demo/qr_report.jpg',
       title: 'Tamper-Proof QR Lab Reports',
       subtitle: 'Cryptographic Authenticity',
       badge: 'Instant Verification',
@@ -110,7 +110,7 @@ const Demo = () => {
       icon: <Layers size={26} className="text-indigo-400" />,
       badgeIcon: <Layers size={22} className="text-[#38bdf8]" />,
       statIcon: <Layers size={15} className="text-[#38bdf8]" />,
-      bgImage: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/images/demo/ecosystem.jpg',
       title: '14-Tier Healthcare Ecosystem',
       subtitle: 'Unified Multi-Tenant Platform',
       badge: 'Doctors • Nurses • Labs',
@@ -802,7 +802,7 @@ const Demo = () => {
                           backgroundImage: `url(${marketingTourSteps[activeTourIndex].bgImage})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          opacity: 0.18,
+                          opacity: 0.28,
                           mixBlendMode: 'luminosity',
                           pointerEvents: 'none',
                           transition: 'all 0.5s ease'
@@ -813,7 +813,7 @@ const Demo = () => {
                       <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(145deg, rgba(7, 23, 57, 0.9) 0%, rgba(10, 37, 88, 0.92) 100%)',
+                        background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.3) 0%, transparent 60%), linear-gradient(145deg, rgba(7, 23, 57, 0.82) 0%, rgba(10, 37, 88, 0.88) 100%)',
                         pointerEvents: 'none'
                       }} />
 
