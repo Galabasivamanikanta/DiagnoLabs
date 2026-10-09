@@ -4,12 +4,14 @@ import {
     Droplets, Thermometer, Zap, HeartPulse, ShieldCheck, ArrowRight,
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     Calendar, FileText, HelpCircle, Paperclip, Mic, MicOff, Radio,
-    Sparkles, RefreshCw, ChevronDown
+    Sparkles, RefreshCw, ChevronDown, Lock, Mail, User, LogOut,
+    Eye, EyeOff, MapPin, Check, Phone
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { API_BASE_URL } from '../config';
 import { AuthContext } from '../context/AuthContext';
 import useDevice from '../hooks/useDevice';
@@ -64,7 +66,7 @@ const testIcon = (name = '') => {
 // ─────────────────────────────────────────────────────────────
 // Clinical Fallback Engine
 // ─────────────────────────────────────────────────────────────
-const generateClinicalFallback = (text) => {
+const generateClinicalFallback = (text, userName) => {
     const q = (text || '').toLowerCase().trim();
 
     if (q.includes('fever') || q.includes('temperature') || q.includes('chills') || q.includes('dengue') || q.includes('malaria') || q.includes('typhoid') || q.includes('jwaram') || q.includes('cold') || q.includes('flu')) {
@@ -107,7 +109,7 @@ const generateClinicalFallback = (text) => {
         return `You can schedule home sample collection across all verified NABL labs in your area with zero collection fee.\n\nPopular Diagnostic Packages:\n• Complete Blood Count (CBC) — ₹299\n• HbA1c Diabetes Screen — ₹450\n• Comprehensive Full Body Package — ₹1,499\n\n[ACTION: CHECKOUT]`;
     }
 
-    return `Hello. I am the DiagnoLabs clinical assistant.\n\nHow can I help you today?\n• Explore diagnostic tests & packages\n• Book an appointment for home sample collection\n• Check your verified digital lab report status\n• Ask any medical preparation or health question\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+    return `Hello ${userName || ''}. I am the DiagnoLabs clinical assistant.\n\nHow can I help you today?\n• Explore diagnostic tests & packages\n• Book an appointment for home sample collection\n• Check your verified digital lab report status\n• Ask any medical preparation or health question\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -116,7 +118,7 @@ const generateClinicalFallback = (text) => {
 const ChatBot = () => {
     const navigate = useNavigate();
     const { isMobile } = useDevice();
-    const { user } = useContext(AuthContext);
+    const { user, login, googleLogin, logout } = useContext(AuthContext);
 
     const [messages, setMessages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -128,6 +130,14 @@ const ChatBot = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [attachedFile, setAttachedFile] = useState(null);
     const [voiceFeedbackText, setVoiceFeedbackText] = useState('');
+
+    // Inline Manual Login States inside ChatBot
+    const [showManualLogin, setShowManualLogin] = useState(false);
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError] = useState('');
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -250,6 +260,58 @@ const ChatBot = () => {
         }
     };
 
+    // Google Sign-In Handler inside ChatBot
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setLoginLoading(true);
+            setLoginError('');
+            const res = await googleLogin(credentialResponse.credential);
+            if (res.success) {
+                speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
+                setMessages(prev => [...prev, {
+                    id: getUniqueId(),
+                    text: `Authentication verified! Welcome back, **${res.user.name || 'User'}**. You now have full access to your clinical dashboard, past reports, and bookings.`,
+                    sender: 'bot'
+                }]);
+            } else {
+                setLoginError(res.message || "Google Authentication failed");
+            }
+        } catch (err) {
+            setLoginError("Failed to sign in with Google.");
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    // Manual Login Handler inside ChatBot
+    const handleManualLogin = async (e) => {
+        e.preventDefault();
+        if (!loginEmail || !loginPassword) {
+            setLoginError("Please enter both email and password.");
+            return;
+        }
+        try {
+            setLoginLoading(true);
+            setLoginError('');
+            const res = await login(loginEmail, loginPassword);
+            if (res.success) {
+                setShowManualLogin(false);
+                speak(`Login successful. Welcome, ${res.user.name || 'User'}!`);
+                setMessages(prev => [...prev, {
+                    id: getUniqueId(),
+                    text: `Login verified! Welcome, **${res.user.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
+                    sender: 'bot'
+                }]);
+            } else {
+                setLoginError(res.message || "Invalid credentials.");
+            }
+        } catch (err) {
+            setLoginError("Login failed. Please check your credentials.");
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -278,7 +340,7 @@ const ChatBot = () => {
         else if (action === 'MED_INFO') navigate('/search');
     };
 
-    // Voice Command Processor
+    // Voice Command Processor & Conversational Workflow Engine
     const processVoiceCommand = useCallback((rawText) => {
         const text = rawText.toLowerCase().trim();
 
@@ -296,11 +358,42 @@ const ChatBot = () => {
             return true;
         }
 
-        if (text.includes('explore test') || text.includes('search test') || text.includes('all tests')) {
+        if (text.includes('explore test') || text.includes('search test') || text.includes('all tests') || text.includes('find test')) {
             setVoiceFeedbackText('Exploring diagnostic tests...');
             speak('Opening diagnostic tests directory.');
             setTimeout(() => navigate('/search'), 1000);
             return true;
+        }
+
+        if (text.includes('find lab') || text.includes('search lab') || text.includes('nearest lab') || text.includes('nearby lab')) {
+            setVoiceFeedbackText('Searching nearest accredited labs...');
+            speak('Opening lab discovery locator.');
+            setTimeout(() => navigate('/search'), 1000);
+            return true;
+        }
+
+        if (text.includes('checkout') || text.includes('go to cart') || text.includes('make payment')) {
+            setVoiceFeedbackText('Opening Checkout...');
+            speak('Taking you to the checkout screen.');
+            setTimeout(() => navigate('/checkout'), 1000);
+            return true;
+        }
+
+        if (text.includes('login') || text.includes('sign in')) {
+            if (!user) {
+                setShowManualLogin(true);
+                speak('Please enter your credentials or use Google sign-in.');
+                return true;
+            }
+        }
+
+        if (text.includes('logout') || text.includes('sign out')) {
+            if (user) {
+                logout();
+                speak('You have been logged out successfully.');
+                setMessages(prev => [...prev, { id: getUniqueId(), text: 'You have been logged out of the portal.', sender: 'bot' }]);
+                return true;
+            }
         }
 
         if (text.startsWith('book ') || text.startsWith('schedule ')) {
@@ -313,7 +406,7 @@ const ChatBot = () => {
         }
 
         return false;
-    }, [navigate, speak]);
+    }, [navigate, speak, user, logout]);
 
     const handleSend = async (overrideText) => {
         const text = (overrideText || inputValue).trim();
@@ -340,7 +433,7 @@ const ChatBot = () => {
             try {
                 const apiRes = await axios.post(`${API_BASE_URL}/api/chat`, {
                     prompt: text,
-                    context: `Patient: ${user?.name || 'User'}. Current Page: ${window.location.pathname}`,
+                    context: `Patient: ${user?.name || 'User'}. LoggedIn: ${!!user}. Current Page: ${window.location.pathname}`,
                     userRole: 'patient',
                     fileData: attachedFile?.data,
                     fileType: attachedFile?.mimeType
@@ -385,7 +478,7 @@ const ChatBot = () => {
 
             // Tier 3: Guaranteed Fallback
             if (!reply) {
-                reply = generateClinicalFallback(text);
+                reply = generateClinicalFallback(text, user?.name);
             }
 
             const recommendations = parseRecommendations(reply);
@@ -414,7 +507,7 @@ const ChatBot = () => {
 
         } catch (err) {
             console.error("AI Error:", err);
-            const fallbackReply = generateClinicalFallback(text);
+            const fallbackReply = generateClinicalFallback(text, user?.name);
             const cleanedText = fallbackReply.replace(/\[RECOMMEND:[^\]]+\]/gi, '').replace(/\[ACTION:[^\]]+\]/gi, '').trim();
             
             const errBotMsg = {
@@ -438,7 +531,12 @@ const ChatBot = () => {
         } else if (actionType === 'book') {
             handleSend('How do I book an appointment for a home blood sample collection?');
         } else if (actionType === 'report') {
-            handleSend('How can I check and download my lab report status?');
+            if (!user) {
+                setShowManualLogin(true);
+                speak('Please sign in to check your diagnostic report status.');
+            } else {
+                handleSend('Show my recent test bookings and check report status.');
+            }
         } else if (actionType === 'ask') {
             inputRef.current?.focus();
         }
@@ -478,14 +576,14 @@ const ChatBot = () => {
                             <ChevronDown size={24} className="text-white" />
                         </motion.div>
                     ) : (
-                        <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+                        <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
                             <MessageSquare size={24} className="text-white" />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </motion.button>
 
-            {/* Chat Panel - Exact Replica of User Mockup */}
+            {/* Chat Panel */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
@@ -496,14 +594,14 @@ const ChatBot = () => {
                         className="fixed bottom-24 right-6 z-[1500] flex flex-col bg-white rounded-[24px] border border-slate-200/90 shadow-[0_20px_60px_rgba(10,30,70,0.12)] overflow-hidden"
                         style={{
                             width: isMobile ? 'calc(100vw - 2rem)' : '390px',
-                            height: isMobile ? '80vh' : '540px',
-                            maxHeight: isMobile ? '600px' : '580px'
+                            height: isMobile ? '82vh' : '560px',
+                            maxHeight: isMobile ? '620px' : '600px'
                         }}
                     >
                         {/* Header: Logo, Title, Subtitle, Online Status, Close */}
                         <div className="px-5 py-3.5 bg-white border-b border-slate-100 flex items-center justify-between flex-shrink-0">
                             <div className="flex items-center gap-3">
-                                {/* Hexagon ECG Logo Icon */}
+                                {/* Hexagon ECG Logo */}
                                 <div className="w-9 h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" stroke="#0a1e46" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -534,7 +632,7 @@ const ChatBot = () => {
                             </div>
                         </div>
 
-                        {/* Voice Feedback Strip if speaking/listening */}
+                        {/* Voice Feedback Strip */}
                         {(isListening || isSpeaking || voiceFeedbackText) && (
                             <div className="px-4 py-1.5 bg-sky-50 text-[0.72rem] text-sky-800 border-b border-sky-100 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -550,18 +648,99 @@ const ChatBot = () => {
 
                         {/* Content Area */}
                         <div className="flex-1 overflow-y-auto p-5 bg-white flex flex-col gap-4 scroll-smooth">
-                            {/* If no chat messages, show the exact 4 Action Cards UI */}
+                            {/* If no chat messages, show the dynamic greeting and 4 Action Cards UI */}
                             {messages.length === 0 ? (
-                                <div className="flex flex-col gap-4">
-                                    {/* Greeting Text */}
+                                <div className="flex flex-col gap-3.5">
+                                    {/* Greeting Text - Role and Auth Aware */}
                                     <div className="pt-1">
                                         <h3 className="text-[1.12rem] font-bold text-[#0f2444] tracking-tight mb-1">
-                                            Hello! I'm the DiagnoLabs assistant.
+                                            {user ? `Hello, ${user.name}!` : "Hello User, please login to portal."}
                                         </h3>
                                         <p className="text-[0.86rem] text-slate-500 font-medium">
-                                            How can I help you today?
+                                            {user ? "How can I help you today?" : "Sign in below for reports & personalized care."}
                                         </p>
                                     </div>
+
+                                    {/* If User is NOT Logged In: Display Google Sign-In & Manual Login in ChatBot */}
+                                    {!user && (
+                                        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm">
+                                            <div className="text-[0.76rem] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                                                <Lock size={13} className="text-[#0a1e46]" /> Choose Login Method:
+                                            </div>
+
+                                            {/* 1. Google One-Click Login */}
+                                            <div className="w-full flex justify-center py-1">
+                                                <GoogleLogin
+                                                    onSuccess={handleGoogleSuccess}
+                                                    onError={() => setLoginError("Google Sign-In Failed")}
+                                                    useOneTap={false}
+                                                    shape="pill"
+                                                    size="medium"
+                                                    text="signin_with"
+                                                    width="100%"
+                                                />
+                                            </div>
+
+                                            {/* 2. Manual Login Toggle */}
+                                            {!showManualLogin ? (
+                                                <button
+                                                    onClick={() => setShowManualLogin(true)}
+                                                    className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl text-[0.8rem] font-bold text-[#0a1e46] flex items-center justify-center gap-2 transition cursor-pointer"
+                                                >
+                                                    <Mail size={14} /> Manual Email & Password Login
+                                                </button>
+                                            ) : (
+                                                <form onSubmit={handleManualLogin} className="flex flex-col gap-2 pt-1 border-t border-slate-200">
+                                                    {loginError && (
+                                                        <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-1.5 rounded-lg border border-red-200">
+                                                            {loginError}
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl">
+                                                        <Mail size={14} className="text-slate-400" />
+                                                        <input 
+                                                            type="email" 
+                                                            placeholder="Email or Phone" 
+                                                            value={loginEmail}
+                                                            onChange={e => setLoginEmail(e.target.value)}
+                                                            className="flex-1 text-[0.8rem] border-none outline-none"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl">
+                                                        <Lock size={14} className="text-slate-400" />
+                                                        <input 
+                                                            type={showPassword ? "text" : "password"} 
+                                                            placeholder="Password" 
+                                                            value={loginPassword}
+                                                            onChange={e => setLoginPassword(e.target.value)}
+                                                            className="flex-1 text-[0.8rem] border-none outline-none"
+                                                            required
+                                                        />
+                                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400">
+                                                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex gap-2 mt-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowManualLogin(false)}
+                                                            className="flex-1 py-1.5 border border-slate-300 bg-white rounded-lg text-[0.75rem] font-bold text-slate-600"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            disabled={loginLoading}
+                                                            className="flex-1 py-1.5 bg-[#0a1e46] text-white rounded-lg text-[0.75rem] font-bold disabled:opacity-50"
+                                                        >
+                                                            {loginLoading ? 'Signing In...' : 'Sign In'}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* 4 Action Cards with Border and Right Arrow */}
                                     <div className="flex flex-col gap-2.5">
@@ -623,10 +802,12 @@ const ChatBot = () => {
                                     </div>
                                 </div>
                             ) : (
-                                /* Active Chat Messages */
+                                /* Active Chat Messages Stream */
                                 <div className="flex flex-col gap-3">
                                     <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                                        <span className="text-[0.74rem] font-bold text-slate-400 uppercase tracking-wider">Conversation</span>
+                                        <span className="text-[0.74rem] font-bold text-slate-400 uppercase tracking-wider">
+                                            {user ? `Patient: ${user.name}` : 'Guest Session'}
+                                        </span>
                                         <button onClick={handleReset} className="text-[0.72rem] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer">
                                             <RefreshCw size={12} /> Reset
                                         </button>
