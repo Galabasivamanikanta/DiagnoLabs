@@ -52,6 +52,9 @@ const Demo = () => {
     {
       id: 'nabl',
       icon: <Building2 size={26} className="text-amber-500" />,
+      badgeIcon: <MapPin size={22} className="text-[#38bdf8] fill-[#0284c7]" />,
+      statIcon: <MapPin size={15} className="text-[#38bdf8]" />,
+      bgImage: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
       title: '500+ NABL Accredited Labs',
       subtitle: 'Real-Time Geospatial Discovery',
       badge: 'ISO 15189:2022 Certified',
@@ -63,6 +66,9 @@ const Demo = () => {
     {
       id: 'voice',
       icon: <Mic size={26} className="text-teal-400" />,
+      badgeIcon: <Mic size={22} className="text-[#38bdf8]" />,
+      statIcon: <Mic size={15} className="text-[#38bdf8]" />,
+      bgImage: 'https://images.unsplash.com/photo-1589254065878-42c9da997008?auto=format&fit=crop&w=800&q=80',
       title: 'Universal Voice Automation',
       subtitle: '100% Hands-Free Operation',
       badge: 'English • Telugu • Hindi',
@@ -74,6 +80,9 @@ const Demo = () => {
     {
       id: 'coldchain',
       icon: <Thermometer size={26} className="text-sky-400" />,
+      badgeIcon: <Thermometer size={22} className="text-[#38bdf8]" />,
+      statIcon: <ShieldCheck size={15} className="text-[#38bdf8]" />,
+      bgImage: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
       title: 'Cold-Chain Phlebotomy & OTP',
       subtitle: 'Digital Chain-of-Custody',
       badge: 'Zero Sample Degradation',
@@ -85,6 +94,9 @@ const Demo = () => {
     {
       id: 'qr',
       icon: <QrCode size={26} className="text-emerald-400" />,
+      badgeIcon: <QrCode size={22} className="text-[#38bdf8]" />,
+      statIcon: <QrCode size={15} className="text-[#38bdf8]" />,
+      bgImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
       title: 'Tamper-Proof QR Lab Reports',
       subtitle: 'Cryptographic Authenticity',
       badge: 'Instant Verification',
@@ -96,6 +108,9 @@ const Demo = () => {
     {
       id: 'roles',
       icon: <Layers size={26} className="text-indigo-400" />,
+      badgeIcon: <Layers size={22} className="text-[#38bdf8]" />,
+      statIcon: <Layers size={15} className="text-[#38bdf8]" />,
+      bgImage: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80',
       title: '14-Tier Healthcare Ecosystem',
       subtitle: 'Unified Multi-Tenant Platform',
       badge: 'Doctors • Nurses • Labs',
@@ -765,9 +780,9 @@ const Demo = () => {
                       </div>
                     </div>
 
-                    {/* Right Column: Deep Royal Navy Featured Metric Card */}
+                    {/* Right Column: Deep Royal Navy Featured Metric Card with AI Background Image */}
                     <div style={{
-                      background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.22) 0%, transparent 60%), linear-gradient(135deg, #071739 0%, #0a2558 100%)',
+                      background: 'linear-gradient(145deg, #071739 0%, #0a2558 100%)',
                       borderRadius: '24px',
                       padding: '2rem 2.25rem',
                       color: 'white',
@@ -779,7 +794,30 @@ const Demo = () => {
                       justifyContent: 'space-between',
                       minHeight: '230px'
                     }}>
-                      {/* Top Right Map Pin Decor */}
+                      {/* Relevant AI Background Image Overlay */}
+                      {marketingTourSteps[activeTourIndex].bgImage && (
+                        <div style={{
+                          position: 'absolute',
+                          inset: 0,
+                          backgroundImage: `url(${marketingTourSteps[activeTourIndex].bgImage})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          opacity: 0.18,
+                          mixBlendMode: 'luminosity',
+                          pointerEvents: 'none',
+                          transition: 'all 0.5s ease'
+                        }} />
+                      )}
+
+                      {/* Ambient Gradient Glow Overlay */}
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'radial-gradient(circle at 90% 15%, rgba(56, 189, 248, 0.25) 0%, transparent 60%), linear-gradient(145deg, rgba(7, 23, 57, 0.9) 0%, rgba(10, 37, 88, 0.92) 100%)',
+                        pointerEvents: 'none'
+                      }} />
+
+                      {/* Top Right Floating Badge Decor */}
                       <div style={{
                         position: 'absolute',
                         top: '1.5rem',
@@ -787,7 +825,8 @@ const Demo = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        pointerEvents: 'none'
+                        pointerEvents: 'none',
+                        zIndex: 2
                       }}>
                         <div style={{
                           width: '42px',
@@ -800,12 +839,12 @@ const Demo = () => {
                           border: '1px solid rgba(56, 189, 248, 0.4)',
                           boxShadow: '0 0 16px rgba(56, 189, 248, 0.4)'
                         }}>
-                          <MapPin size={22} className="text-[#38bdf8] fill-[#0284c7]" />
+                          {marketingTourSteps[activeTourIndex].badgeIcon}
                         </div>
                       </div>
 
                       {/* Metric Content */}
-                      <div>
+                      <div style={{ position: 'relative', zIndex: 2 }}>
                         <span style={{
                           fontSize: '0.72rem',
                           color: '#94a3b8',
@@ -834,13 +873,13 @@ const Demo = () => {
                           alignItems: 'center',
                           gap: '0.4rem'
                         }}>
-                          <MapPin size={15} className="text-[#38bdf8]" />
+                          {marketingTourSteps[activeTourIndex].statIcon}
                           <span>{marketingTourSteps[activeTourIndex].statLabel}</span>
                         </div>
                       </div>
 
                       {/* Action Buttons Row - Compact & Sleek Single-Line */}
-                      <div style={{ display: 'flex', gap: '0.55rem', marginTop: '1.25rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.55rem', marginTop: '1.25rem', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                         <button
                           onClick={() => handleExitDemo('/userlogin')}
                           style={{
