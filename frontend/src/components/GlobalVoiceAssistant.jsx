@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Mic, MicOff, Volume2, VolumeX, Sparkles, ShieldCheck, CheckCircle2,
     Compass, FileText, Calendar, Search, HelpCircle, X, ArrowRight,
-    Activity, ChevronRight, Zap, RefreshCw, Power, AlertCircle, Play
+    Activity, ChevronRight, Zap, RefreshCw, Power, AlertCircle, Play,
+    MapPin, LocateFixed
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
@@ -91,6 +92,8 @@ export const GlobalVoiceAssistant = () => {
     });
     const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [showLocationPromptModal, setShowLocationPromptModal] = useState(false);
+    const [detectedSymptomInfo, setDetectedSymptomInfo] = useState(null);
     const [helpTab, setHelpTab] = useState('english'); // 'english', 'telugu', 'hindi'
     const [isMuted, setIsMuted] = useState(() => {
         return localStorage.getItem('diagnolabs_voice_assistant_muted') === 'true';
@@ -172,6 +175,47 @@ export const GlobalVoiceAssistant = () => {
         synthRef.current.speak(utterance);
     }, [isMuted]);
 
+    // Turn ON Location Handler (Voice & Click)
+    const turnOnLocation = useCallback(() => {
+        if (!navigator.geolocation) {
+            speak("Geolocation is not supported in this browser.");
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                localStorage.setItem('diagnolabs_location_enabled', 'true');
+                localStorage.setItem('diagnolabs_user_lat', lat.toString());
+                localStorage.setItem('diagnolabs_user_lng', lng.toString());
+                window.dispatchEvent(new CustomEvent('diagnolabs:location-updated', {
+                    detail: { enabled: true, lat, lng }
+                }));
+                setShowLocationPromptModal(false);
+                setLastActionText('📍 GPS Location: Active');
+                speak('Location turned on. Locating nearest certified diagnostic labs for your coordinates.');
+            },
+            (err) => {
+                console.warn("Location error:", err);
+                speak("Location access was denied in browser permissions. Showing all accredited labs.");
+                setShowLocationPromptModal(false);
+            }
+        );
+    }, [speak]);
+
+    // Turn OFF Location Handler (Voice & Click)
+    const turnOffLocation = useCallback(() => {
+        localStorage.setItem('diagnolabs_location_enabled', 'false');
+        localStorage.removeItem('diagnolabs_user_lat');
+        localStorage.removeItem('diagnolabs_user_lng');
+        window.dispatchEvent(new CustomEvent('diagnolabs:location-updated', {
+            detail: { enabled: false }
+        }));
+        setShowLocationPromptModal(false);
+        setLastActionText('Location Turned OFF');
+        speak('Location turned off. Displaying all diagnostic labs.');
+    }, [speak]);
+
     // Advanced Multilingual Command Dispatcher & Processor
     const processVoiceCommand = useCallback((rawTranscript) => {
         const text = (rawTranscript || '').toLowerCase().trim();
@@ -185,6 +229,37 @@ export const GlobalVoiceAssistant = () => {
         const cmd = text
             .replace(/^(hey\s+|hi\s+|namaste\s+)?(diagnolabs|diagno|assistant|bot)\s*/i, '')
             .trim();
+
+        // ─────────────────────────────────────────────────────────────
+        // 0. LOCATION ON / OFF VOICE CONTROLS
+        // ─────────────────────────────────────────────────────────────
+        if (
+            cmd === 'turn on location' || cmd === 'on location' || cmd === 'location on' ||
+            cmd === 'enable location' || cmd.includes('location on cheyi') || cmd.includes('location chalu karo') ||
+            cmd.includes('location open cheyi') || cmd.includes('turn location on') ||
+            (showLocationPromptModal && (
+                cmd === 'yes' || cmd === 'haan' || cmd === 'ha' || cmd === 'sare' || cmd === 'yeah' ||
+                cmd === 'okay' || cmd.includes('on cheyi') || cmd.includes('yes please') || cmd.includes('enable')
+            ))
+        ) {
+            turnOnLocation();
+            setIsProcessing(false);
+            return;
+        }
+
+        if (
+            cmd === 'turn off location' || cmd === 'off location' || cmd === 'location off' ||
+            cmd === 'disable location' || cmd.includes('location off cheyi') || cmd.includes('location band karo') ||
+            cmd.includes('location aapeyi') || cmd.includes('turn location off') ||
+            (showLocationPromptModal && (
+                cmd === 'no' || cmd === 'nah' || cmd === 'cancel' || cmd === 'vaddhu' || cmd === 'nahi' ||
+                cmd.includes('off cheyi') || cmd === 'no thanks' || cmd.includes('disable')
+            ))
+        ) {
+            turnOffLocation();
+            setIsProcessing(false);
+            return;
+        }
 
         // ─────────────────────────────────────────────────────────────
         // 1. IN-PAGE DOM INTERACTIVE ACTIONS
@@ -504,14 +579,78 @@ export const GlobalVoiceAssistant = () => {
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 11. CLINICAL SYMPTOMS FALLBACK -> ROUTE TO CHATBOT
+        // 11. CLINICAL SYMPTOMS & NEARBY LABS INTELLIGENCE ENGINE
         // ─────────────────────────────────────────────────────────────
-        const medicalSymptoms = ['fever', 'chills', 'cough', 'dengue', 'malaria', 'typhoid', 'fasting', 'empty stomach', 'pain', 'jaundice', 'vomiting', 'weakness', 'fatigue', 'hba1c', 'cholesterol', 'jwaram', 'neerasam'];
-        const hasSymptom = medicalSymptoms.some(s => cmd.includes(s));
-        if (hasSymptom) {
-            window.dispatchEvent(new CustomEvent('diagnolabs:open-chat', { detail: { query: rawTranscript } }));
-            setLastActionText(`Clinical Query: ${rawTranscript}`);
-            speak('Opening clinical triage assistant for your medical inquiry.');
+        const CLINICAL_SYMPTOM_MAP = [
+            {
+                symptoms: ['fever', 'jwaram', 'bukhar', 'temperature', 'chills', 'dengue', 'malaria', 'typhoid', 'viral', 'flu', 'cold', 'cough', 'throat pain', 'sore throat', 'headache', 'shivering'],
+                primaryTest: 'Complete Blood Count (CBC)',
+                symptomKey: 'fever & viral infection'
+            },
+            {
+                symptoms: ['diabetes', 'sugar', 'glucose', 'hba1c', 'madhumeham', 'high sugar', 'excessive thirst', 'frequent urination'],
+                primaryTest: 'HbA1c (Glycated Hemoglobin)',
+                symptomKey: 'diabetes & blood glucose'
+            },
+            {
+                symptoms: ['thyroid', 't3', 't4', 'tsh', 'weight gain', 'weight loss', 'hair fall', 'fatigue', 'neerasam', 'kamzori', 'tiredness', 'exhaustion'],
+                primaryTest: 'Thyroid Profile Total (T3, T4, TSH)',
+                symptomKey: 'thyroid & metabolic fatigue'
+            },
+            {
+                symptoms: ['heart', 'chest pain', 'bp', 'blood pressure', 'cholesterol', 'lipid', 'palpitation', 'breathlessness'],
+                primaryTest: 'Lipid Profile Extended',
+                symptomKey: 'cardiovascular & lipid risk'
+            },
+            {
+                symptoms: ['liver', 'jaundice', 'yellow eyes', 'bilirubin', 'sgot', 'sgpt', 'pasirikalu', 'hepatic'],
+                primaryTest: 'Liver Function Test (LFT)',
+                symptomKey: 'liver & hepatic wellness'
+            },
+            {
+                symptoms: ['kidney', 'creatinine', 'urine infection', 'burning urine', 'bun', 'uric acid', 'rft', 'kft', 'swelling legs'],
+                primaryTest: 'Renal Function Test (RFT)',
+                symptomKey: 'kidney & urinary health'
+            },
+            {
+                symptoms: ['full body', 'body pain', 'body aches', 'weakness', 'annual checkup', 'master checkup', 'general health'],
+                primaryTest: 'Comprehensive Full Body Health Package',
+                symptomKey: 'systemic full body checkup'
+            },
+            {
+                symptoms: ['vitamin', 'vitamin d', 'vitamin b12', 'bone pain', 'joint pain'],
+                primaryTest: 'Vitamin D3 & B12 Combo',
+                symptomKey: 'vitamin & bone wellness'
+            }
+        ];
+
+        let matchedSymptomObj = null;
+        for (const item of CLINICAL_SYMPTOM_MAP) {
+            if (item.symptoms.some(sym => cmd.includes(sym))) {
+                matchedSymptomObj = item;
+                break;
+            }
+        }
+
+        if (matchedSymptomObj) {
+            const isLocEnabled = localStorage.getItem('diagnolabs_location_enabled') === 'true';
+            const targetUrl = `/nearby-search?q=${encodeURIComponent(matchedSymptomObj.primaryTest)}&symptom=${encodeURIComponent(matchedSymptomObj.symptomKey)}`;
+            
+            navigate(targetUrl);
+            setDetectedSymptomInfo({
+                symptom: matchedSymptomObj.symptomKey,
+                test: matchedSymptomObj.primaryTest
+            });
+
+            if (!isLocEnabled) {
+                setShowLocationPromptModal(true);
+                setLastActionText(`Analyzed: ${matchedSymptomObj.primaryTest} (Location Off)`);
+                speak(`I analyzed your symptoms: recommended ${matchedSymptomObj.primaryTest}. Your location is currently turned off. Would you like to turn on your location to find verified labs near you? You can say "Yes" or "Turn on location".`);
+            } else {
+                setLastActionText(`Analyzed: ${matchedSymptomObj.primaryTest} (Location Active)`);
+                speak(`I analyzed your symptoms: recommended ${matchedSymptomObj.primaryTest}. Searching verified diagnostic labs near your location.`);
+            }
+
             setIsProcessing(false);
             return;
         }
@@ -519,7 +658,7 @@ export const GlobalVoiceAssistant = () => {
         // If unrecognized command, give subtle feedback
         setLastActionText(`Command heard: "${rawTranscript}"`);
         setIsProcessing(false);
-    }, [navigate, speak, logout, login]);
+    }, [navigate, speak, logout, login, turnOnLocation, turnOffLocation, showLocationPromptModal]);
 
     // Continuous Speech Recognition Engine Setup
     useEffect(() => {
@@ -994,12 +1133,24 @@ export const GlobalVoiceAssistant = () => {
                                             </div>
                                         </div>
 
-                                        {/* Category 3: Assistant & Scrolling */}
+                                        {/* Category 3: Assistant & Location Controls */}
                                         <div>
                                             <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <Activity size={14} /> Page Scrolling & Chat
+                                                <Activity size={14} /> Location & Assistant Controls
                                             </h4>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Turn on location" / "Yes"</span>
+                                                    <span className="text-slate-500">Enables live GPS coordinates</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Turn off location" / "No"</span>
+                                                    <span className="text-slate-500">Disables GPS / shows all labs</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"I have fever near me"</span>
+                                                    <span className="text-slate-500">Auto-analyzes symptoms & searches labs</span>
+                                                </div>
                                                 <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                                                     <span className="font-semibold text-slate-900 block">"Open chatbot" / "Close chat"</span>
                                                     <span className="text-slate-500">Toggles AI clinical assistant</span>
@@ -1012,10 +1163,6 @@ export const GlobalVoiceAssistant = () => {
                                                     <span className="font-semibold text-slate-900 block">"Logout"</span>
                                                     <span className="text-slate-500">Signs out securely</span>
                                                 </div>
-                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                    <span className="font-semibold text-slate-900 block">"Stop listening"</span>
-                                                    <span className="text-slate-500">Pauses voice recognition</span>
-                                                </div>
                                             </div>
                                         </div>
                                     </>
@@ -1027,6 +1174,18 @@ export const GlobalVoiceAssistant = () => {
                                             <Sparkles size={14} /> తెలుగు వాయిస్ కమాండ్స్
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Location on cheyi" / "Ha"</span>
+                                                <span className="text-slate-500">GPS లొకేషన్ ఆన్ చేస్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Location off cheyi" / "Vaddhu"</span>
+                                                <span className="text-slate-500">GPS లొకేషన్ ఆఫ్ చేస్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Jwaram vachindi daggarlo lab"</span>
+                                                <span className="text-slate-500">లక్షణాలను విశ్లేషించి CBC ల్యాబ్స్ వెతుకుతుంది</span>
+                                            </div>
                                             <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                                                 <span className="font-semibold text-slate-900 block">"Report lu chupinchu"</span>
                                                 <span className="text-slate-500">ల్యాబ్ రిపోర్టులు ఓపెన్ చేస్తుంది</span>
@@ -1047,10 +1206,6 @@ export const GlobalVoiceAssistant = () => {
                                                 <span className="font-semibold text-slate-900 block">"Kindaki scroll cheyi"</span>
                                                 <span className="text-slate-500">పేజీని క్రిందికి స్క్రోల్ చేస్తుంది</span>
                                             </div>
-                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                <span className="font-semibold text-slate-900 block">"Chat bot open cheyi"</span>
-                                                <span className="text-slate-500">AI క్లినికల్ చాట్‌బాట్ ఓపెన్ చేస్తుంది</span>
-                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -1062,6 +1217,18 @@ export const GlobalVoiceAssistant = () => {
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                             <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Location on karo" / "Haan"</span>
+                                                <span className="text-slate-500">GPS लोकेशन ऑन करता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Location band karo" / "Nahi"</span>
+                                                <span className="text-slate-500">GPS लोकेशन बंद करता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Bukhar hai paas ke lab"</span>
+                                                <span className="text-slate-500">लक्षण जांच कर लैब खोजता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                                                 <span className="font-semibold text-slate-900 block">"Mera report dikhao"</span>
                                                 <span className="text-slate-500">रिपोर्ट्स पेज खोलता है</span>
                                             </div>
@@ -1072,18 +1239,6 @@ export const GlobalVoiceAssistant = () => {
                                             <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                                                 <span className="font-semibold text-slate-900 block">"Blood test book karo"</span>
                                                 <span className="text-slate-500">टेस्ट बुकिंग शुरू करता है</span>
-                                            </div>
-                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                <span className="font-semibold text-slate-900 block">"Ghar jao" / "Home page"</span>
-                                                <span className="text-slate-500">होम पेज पर ले जाता है</span>
-                                            </div>
-                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                <span className="font-semibold text-slate-900 block">"Neeche scroll karo"</span>
-                                                <span className="text-slate-500">पेज नीचे स्क्रॉल करता है</span>
-                                            </div>
-                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                                <span className="font-semibold text-slate-900 block">"Chatbot kholo"</span>
-                                                <span className="text-slate-500">AI असिस्टेंट चैट खोलता है</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1098,6 +1253,89 @@ export const GlobalVoiceAssistant = () => {
                                 >
                                     Got It
                                 </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* 4. LOCATION ACCESS PROMPT DIALOG (VOICE DRIVEN "YES" / "NO") */}
+            <AnimatePresence>
+                {showLocationPromptModal && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0a1e46]/70 backdrop-blur-md">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden flex flex-col"
+                        >
+                            {/* Modal Header */}
+                            <div className="bg-[#0a1e46] p-6 text-white text-center relative">
+                                <button
+                                    onClick={() => setShowLocationPromptModal(false)}
+                                    className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors cursor-pointer"
+                                >
+                                    <X size={20} />
+                                </button>
+                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner ring-4 ring-teal-400/30">
+                                    <MapPin size={32} className="text-teal-300 animate-bounce" />
+                                </div>
+                                <h3 className="text-xl font-bold tracking-tight">Turn On Location?</h3>
+                                <p className="text-xs text-teal-200 mt-1">
+                                    Find Accredited Diagnostic Labs Nearest to You
+                                </p>
+                            </div>
+
+                            {/* Body Content */}
+                            <div className="p-6 space-y-4">
+                                {detectedSymptomInfo && (
+                                    <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl">
+                                        <div className="text-[0.72rem] font-bold text-teal-800 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                                            <Sparkles size={13} className="text-teal-600" /> AI Symptom Analysis
+                                        </div>
+                                        <div className="text-xs text-slate-700">
+                                            Symptom: <strong className="text-teal-900 capitalize">"{detectedSymptomInfo.symptom}"</strong>
+                                        </div>
+                                        <div className="text-xs text-slate-700 mt-0.5">
+                                            Recommended: <strong className="text-[#0a1e46]">{detectedSymptomInfo.test}</strong>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Your high-precision GPS location is currently <strong>turned off</strong>. Enable location to calculate accurate travel distances and explore certified NABL diagnostic centers in your area.
+                                </p>
+
+                                {/* Voice Command Hint Box */}
+                                <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl space-y-1.5">
+                                    <div className="text-[0.72rem] font-bold text-amber-900 flex items-center gap-1.5">
+                                        <Mic size={13} className="text-amber-700 animate-pulse" /> Voice Automation Active:
+                                    </div>
+                                    <div className="text-xs text-amber-800 flex items-center gap-1.5">
+                                        <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
+                                        <span>Say <strong>"Yes"</strong> or <strong>"Turn on location"</strong> to enable GPS</span>
+                                    </div>
+                                    <div className="text-xs text-amber-800 flex items-center gap-1.5">
+                                        <X size={12} className="text-rose-600 shrink-0" />
+                                        <span>Say <strong>"No"</strong> or <strong>"Turn off location"</strong> to browse all labs</span>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-3 pt-1">
+                                    <button
+                                        onClick={turnOffLocation}
+                                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <Power size={14} className="text-slate-500" /> Off Location / All Labs
+                                    </button>
+                                    <button
+                                        onClick={turnOnLocation}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-[#0a1e46] hover:bg-[#071530] text-white font-semibold text-xs shadow-lg shadow-navy-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                    >
+                                        <LocateFixed size={14} className="text-teal-300" /> Turn On Location
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>

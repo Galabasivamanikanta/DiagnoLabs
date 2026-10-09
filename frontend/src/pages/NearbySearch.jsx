@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     MapPin,
     Search,
@@ -12,70 +12,168 @@ import {
     ChevronLeft,
     ShieldCheck,
     LocateFixed,
-    Sparkles
+    Sparkles,
+    CheckCircle2,
+    XCircle,
+    Power,
+    SlidersHorizontal,
+    Volume2
 } from 'lucide-react';
 import NetworkMap from '../components/NetworkMap';
 
 
 const NearbySearch = () => {
-    const [testQuery, setTestQuery] = useState("");
+    const [searchParams] = useSearchParams();
+    const urlQuery = searchParams.get('q') || searchParams.get('test') || '';
+    const urlSymptom = searchParams.get('symptom') || '';
+
+    const [testQuery, setTestQuery] = useState(urlQuery || urlSymptom || "");
+    const [analyzedSymptom, setAnalyzedSymptom] = useState(urlSymptom || "");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [statusMsg, setStatusMsg] = useState("");
-    const [userLocation, setUserLocation] = useState(null);
+    const [userLocation, setUserLocation] = useState(() => {
+        const savedLat = localStorage.getItem('diagnolabs_user_lat');
+        const savedLng = localStorage.getItem('diagnolabs_user_lng');
+        const isLocEnabled = localStorage.getItem('diagnolabs_location_enabled') === 'true';
+        if (isLocEnabled && savedLat && savedLng) {
+            return { lat: parseFloat(savedLat), lng: parseFloat(savedLng) };
+        }
+        return null;
+    });
+    const [locationEnabled, setLocationEnabled] = useState(() => {
+        return localStorage.getItem('diagnolabs_location_enabled') === 'true';
+    });
     const [activeFilter, setActiveFilter] = useState('All');
     const [visibleCount, setVisibleCount] = useState(10);
     const navigate = useNavigate();
 
-    const handleSearch = () => {
+    // Perform live location search
+    const executeLocationSearch = useCallback(async (lat, lng) => {
+        setStatusMsg("Detecting high-precision location & querying accredited labs...");
+        setLoading(true);
+
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/api/labs/search-live?lat=${lat}&lng=${lng}&radius=50000`
+            );
+            
+            const tieredLabs = (res.data || []).map(lab => {
+                const r = lab.rating || 4.2;
+                if (r >= 4.5) lab.category = "Premium";
+                else if (r >= 4.2) lab.category = "Scalable";
+                else lab.category = "Standard";
+                return lab;
+            });
+
+            setResults(tieredLabs); 
+            setVisibleCount(10);
+            setActiveFilter('All');
+            setLoading(false);
+            setStatusMsg("");
+        } catch (err) {
+            console.error(err);
+            setStatusMsg("Could not fetch location-based labs. Showing accredited partner labs.");
+            fetchFallbackLabs();
+        }
+    }, []);
+
+    // Fallback search when location is off or denied
+    const fetchFallbackLabs = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/labs`);
+            const labs = (res.data || []).map(lab => {
+                const r = lab.rating || 4.2;
+                if (r >= 4.5) lab.category = "Premium";
+                else if (r >= 4.2) lab.category = "Scalable";
+                else lab.category = "Standard";
+                return lab;
+            });
+            setResults(labs);
+            setLoading(false);
+            setStatusMsg("");
+        } catch (e) {
+            console.error(e);
+            setLoading(false);
+        }
+    };
+
+    const handleTurnOnLocation = () => {
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
             return;
         }
 
-        setStatusMsg("Detecting your high-precision location...");
+        setStatusMsg("Requesting browser GPS location...");
         setLoading(true);
 
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
+            (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 setUserLocation({ lat, lng });
+                setLocationEnabled(true);
+                localStorage.setItem('diagnolabs_location_enabled', 'true');
+                localStorage.setItem('diagnolabs_user_lat', lat.toString());
+                localStorage.setItem('diagnolabs_user_lng', lng.toString());
 
-                setStatusMsg("Current Location Found! Searching Accredited Labs...");
-
-                try {
-                    const res = await axios.get(
-                        `${API_BASE_URL}/api/labs/search-live?lat=${lat}&lng=${lng}&radius=50000`
-                    );
-                    
-                    // FRONTEND FAIL-SAFE: Re-evaluating tiers locally for consistent counting
-                    const tieredLabs = (res.data || []).map(lab => {
-                        const r = lab.rating || 4.2;
-                        if (r >= 4.5) lab.category = "Premium";
-                        else if (r >= 4.2) lab.category = "Scalable";
-                        else lab.category = "Standard";
-                        return lab;
-                    });
-
-                    setResults(tieredLabs); 
-                    setVisibleCount(10);
-                    setActiveFilter('All');
-                    setLoading(false);
-                    setStatusMsg("");
-                } catch (err) {
-                    console.error(err);
-                    setStatusMsg("Service temporarily unavailable. Please verify your connection.");
-                    setLoading(false);
-                }
+                executeLocationSearch(lat, lng);
             },
             (error) => {
                 console.error(error);
-                setStatusMsg("Access denied. Please enable location permissions in your browser.");
-                setLoading(false);
+                setStatusMsg("Location access denied. Displaying general diagnostic network.");
+                setLocationEnabled(false);
+                localStorage.setItem('diagnolabs_location_enabled', 'false');
+                fetchFallbackLabs();
             }
         );
     };
+
+    const handleTurnOffLocation = () => {
+        setLocationEnabled(false);
+        setUserLocation(null);
+        localStorage.setItem('diagnolabs_location_enabled', 'false');
+        localStorage.removeItem('diagnolabs_user_lat');
+        localStorage.removeItem('diagnolabs_user_lng');
+        setStatusMsg("Location turned off. Displaying all diagnostic labs.");
+        fetchFallbackLabs();
+    };
+
+    // Auto-search or trigger on mount / search params change
+    useEffect(() => {
+        if (urlQuery) {
+            setTestQuery(urlQuery);
+        }
+        if (urlSymptom) {
+            setAnalyzedSymptom(urlSymptom);
+        }
+
+        if (locationEnabled && userLocation) {
+            executeLocationSearch(userLocation.lat, userLocation.lng);
+        } else if (locationEnabled && navigator.geolocation) {
+            handleTurnOnLocation();
+        } else {
+            fetchFallbackLabs();
+        }
+    }, [urlQuery, urlSymptom]);
+
+    // Listen to global voice assistant location events
+    useEffect(() => {
+        const handleGlobalLocationUpdate = (e) => {
+            const { enabled, lat, lng } = e.detail || {};
+            if (enabled && lat && lng) {
+                setLocationEnabled(true);
+                setUserLocation({ lat, lng });
+                executeLocationSearch(lat, lng);
+            } else if (!enabled) {
+                handleTurnOffLocation();
+            }
+        };
+
+        window.addEventListener('diagnolabs:location-updated', handleGlobalLocationUpdate);
+        return () => window.removeEventListener('diagnolabs:location-updated', handleGlobalLocationUpdate);
+    }, [executeLocationSearch]);
 
     // Apply filtering logic for both Map and List
     const processedResults = results.map(lab => {
@@ -131,6 +229,99 @@ const NearbySearch = () => {
                             </span>
                         </div>
                     </div>
+                    {/* AI Analyzed Symptom Banner */}
+                    {analyzedSymptom && (
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '0.6rem 1.25rem',
+                            background: '#f0fdfa',
+                            border: '1px solid #99f6e4',
+                            borderRadius: '16px',
+                            color: '#0f766e',
+                            marginBottom: '1.5rem',
+                            boxShadow: '0 2px 8px rgba(15, 118, 110, 0.08)'
+                        }}>
+                            <Sparkles size={16} className="text-teal-600 animate-pulse" />
+                            <span style={{ fontSize: '0.88rem', fontWeight: '700' }}>
+                                AI Symptom Analysis: <span style={{ textTransform: 'capitalize', color: '#115e59' }}>"{analyzedSymptom}"</span> &rarr; Recommended: <strong style={{ color: '#0f2d6b' }}>{testQuery}</strong>
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Location Status Control Capsule */}
+                    <div style={{
+                        maxWidth: '650px',
+                        margin: '0 auto 2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.75rem 1.25rem',
+                        background: locationEnabled ? '#f0fdf4' : '#fff7ed',
+                        border: `1px solid ${locationEnabled ? '#bbf7d0' : '#fed7aa'}`,
+                        borderRadius: '20px',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            {locationEnabled ? (
+                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#16a34a', boxShadow: '0 0 0 3px rgba(22, 163, 74, 0.2)' }} />
+                            ) : (
+                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ea580c' }} />
+                            )}
+                            <span style={{ fontSize: '0.86rem', fontWeight: '700', color: locationEnabled ? '#166534' : '#9a3412' }}>
+                                {locationEnabled 
+                                    ? `📍 GPS Location: ON ${userLocation ? `(${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E)` : ''}`
+                                    : '📍 GPS Location: OFF (Showing All India Labs)'}
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {locationEnabled ? (
+                                <button
+                                    onClick={handleTurnOffLocation}
+                                    style={{
+                                        padding: '0.4rem 0.9rem',
+                                        background: '#fee2e2',
+                                        border: '1px solid #fca5a5',
+                                        borderRadius: '100px',
+                                        color: '#991b1b',
+                                        fontWeight: '700',
+                                        fontSize: '0.78rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem'
+                                    }}
+                                >
+                                    <Power size={13} /> Turn Off Location
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleTurnOnLocation}
+                                    disabled={loading}
+                                    style={{
+                                        padding: '0.4rem 0.9rem',
+                                        background: '#0a1e46',
+                                        border: 'none',
+                                        borderRadius: '100px',
+                                        color: '#ffffff',
+                                        fontWeight: '700',
+                                        fontSize: '0.78rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        boxShadow: '0 2px 6px rgba(10, 30, 70, 0.2)'
+                                    }}
+                                >
+                                    <LocateFixed size={13} /> Turn On Location
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="search-bar-wrapper" style={{
                         maxWidth: '1000px',
                         margin: '0 auto',
@@ -149,17 +340,17 @@ const NearbySearch = () => {
                                 placeholder="Search specific diagnostics (e.g., Blood, MRI, Thyroid Panel)"
                                 value={testQuery}
                                 onChange={(e) => setTestQuery(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                onKeyPress={(e) => e.key === 'Enter' && (locationEnabled && userLocation ? executeLocationSearch(userLocation.lat, userLocation.lng) : handleTurnOnLocation())}
                                 style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '1.1rem', fontWeight: '500', outline: 'none' }}
                             />
                         </div>
                         <button
                             className="btn btn-primary search-action-btn"
-                            onClick={handleSearch}
+                            onClick={() => locationEnabled && userLocation ? executeLocationSearch(userLocation.lat, userLocation.lng) : handleTurnOnLocation()}
                             disabled={loading}
                         >
                             {loading ? <Activity size={20} style={{ animation: 'pulse 1s infinite' }} /> : <Navigation size={20} />}
-                            <span className="search-btn-text" style={{ marginLeft: '0.5rem' }}>{loading ? 'Processing' : 'Locate & Search'}</span>
+                            <span className="search-btn-text" style={{ marginLeft: '0.5rem' }}>{loading ? 'Processing' : (locationEnabled ? 'Search Nearby' : 'Locate & Search')}</span>
                         </button>
                     </div>
 
