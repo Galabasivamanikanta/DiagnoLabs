@@ -212,11 +212,6 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
 
         const rolePersonaInstruction = ROLE_PERSONAS[activeRole] || `You are the "DiagnoLabs Clinical AI" assisting ${userName}.`;
 
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-flash-latest',
-            systemInstruction: `${SYSTEM_INSTRUCTION}\n\nCURRENT ACTIVE ROLE PERSONA:\n${rolePersonaInstruction}`
-        });
-
         // ── Build conversation history ──────────────────────────
         const contents = [];
 
@@ -338,13 +333,40 @@ router.post('/', optionalAuth, aiSentinel, async (req, res) => {
             });
         }
 
-        contents.push({ role: 'user', parts: currentParts });
+        // ── Candidate Gemini Model Hierarchy ─────────────────
+        const CANDIDATE_MODELS = [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+            'gemini-flash-latest'
+        ];
 
-        // ── Call Gemini ─────────────────────────────────────────
-        const result = await model.generateContent({ contents });
-        const responseText = result.response.text();
+        let responseText = '';
+        let lastError = null;
 
-        console.log(`[AI-CLINICAL] Response generated (${responseText.length} chars)`);
+        for (const modelName of CANDIDATE_MODELS) {
+            try {
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    systemInstruction: `${SYSTEM_INSTRUCTION}\n\nCURRENT ACTIVE ROLE PERSONA:\n${rolePersonaInstruction}`
+                });
+                const result = await model.generateContent({ contents });
+                responseText = result.response.text();
+                if (responseText) {
+                    console.log(`[AI-CLINICAL] Response generated using ${modelName} (${responseText.length} chars)`);
+                    break;
+                }
+            } catch (modelErr) {
+                lastError = modelErr;
+                console.warn(`[AI-CLINICAL] ${modelName} attempt note:`, modelErr.message);
+            }
+        }
+
+        if (!responseText) {
+            if (lastError) throw lastError;
+            throw new Error("No response generated from Gemini models.");
+        }
 
         // 🧠 Auto-Learn & Capture Query Pattern in Background
         if (prompt && prompt.length > 8) {

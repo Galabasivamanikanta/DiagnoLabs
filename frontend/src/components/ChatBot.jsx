@@ -945,26 +945,35 @@ const ChatBot = () => {
                 console.warn("[AI-GATEWAY] Backend fallback:", backendErr.message);
             }
 
-            // Tier 2: Direct Frontend Gemini SDK
+            // Tier 2: Direct Frontend Gemini Next-Gen SDK
             if (!reply) {
                 const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
                 if (geminiKey && geminiKey.length > 10 && !geminiKey.includes('your_gemini_api_key_here')) {
                     try {
                         const genAI = new GoogleGenerativeAI(geminiKey);
-                        const model = genAI.getGenerativeModel({
-                            model: "gemini-1.5-flash",
-                            systemInstruction: `You are the DiagnoLabs clinical assistant. Respond clearly, professionally, and concisely without emojis. Append [RECOMMEND: Exact Test Name] if suggesting tests. Append [ACTION: BOOK: Exact Test Name] or [ACTION: CHECKOUT] if instructing actions.`
-                        });
+                        const FRONTEND_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'];
+                        
+                        for (const modelName of FRONTEND_MODELS) {
+                            try {
+                                const model = genAI.getGenerativeModel({
+                                    model: modelName,
+                                    systemInstruction: `You are the DiagnoLabs clinical assistant powered by Google Gemini AI. Respond clearly, professionally, and concisely without emojis. Append [RECOMMEND: Exact Test Name] if suggesting tests. Append [ACTION: BOOK: Exact Test Name] or [ACTION: CHECKOUT] if instructing actions.`
+                                });
 
-                        if (attachedFile) {
-                            const result = await model.generateContent([
-                                { inlineData: { data: attachedFile.data, mimeType: attachedFile.mimeType } },
-                                text
-                            ]);
-                            reply = result.response.text();
-                        } else {
-                            const result = await model.generateContent(text);
-                            reply = result.response.text();
+                                if (attachedFile) {
+                                    const result = await model.generateContent([
+                                        { inlineData: { data: attachedFile.data, mimeType: attachedFile.mimeType } },
+                                        text
+                                    ]);
+                                    reply = result.response.text();
+                                } else {
+                                    const result = await model.generateContent(text);
+                                    reply = result.response.text();
+                                }
+                                if (reply) break;
+                            } catch (mErr) {
+                                console.warn(`[GEMINI-SDK] ${modelName} note:`, mErr.message);
+                            }
                         }
                     } catch (directSdkErr) {
                         console.warn("[AI-GATEWAY] Direct SDK fallback:", directSdkErr.message);
@@ -1192,11 +1201,14 @@ const ChatBot = () => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <div className="text-[0.98rem] font-extrabold text-[#0a1e46] tracking-tight leading-tight">
-                                        DiagnoLabs
+                                    <div className="text-[0.98rem] font-extrabold text-[#0a1e46] tracking-tight leading-tight flex items-center gap-1.5">
+                                        <span>DiagnoLabs</span>
+                                        <span className="px-1.5 py-0.5 rounded-full text-[0.6rem] font-bold bg-[#0a1e46] text-[#d4af37] border border-[#d4af37]/30 tracking-wider">
+                                            GEMINI AI
+                                        </span>
                                     </div>
                                     <div className="text-[0.62rem] font-bold text-[#b58b22] tracking-widest uppercase">
-                                        CLINICAL DISCOVERY
+                                        CLINICAL TRIAGE &amp; DISCOVERY
                                     </div>
                                 </div>
                             </div>
