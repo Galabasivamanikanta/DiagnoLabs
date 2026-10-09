@@ -759,12 +759,7 @@ const ChatBot = () => {
             const res = await login(loginEmail, loginPassword);
             if (res.success) {
                 setShowManualLogin(false);
-                speak(`Login successful. Welcome, ${res.user.name || 'User'}!`);
-                setMessages(prev => [...prev, {
-                    id: getUniqueId(),
-                    text: `Login verified! Welcome, **${res.user.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
-                    sender: 'bot'
-                }]);
+                handleLoginSuccess(res.user);
             } else {
                 setLoginError(res.message || "Invalid credentials.");
             }
@@ -904,15 +899,7 @@ const ChatBot = () => {
                 try {
                     const res = await login(id, pwd);
                     if (res.success) {
-                        speak(`Login verified! Welcome back, ${res.user.name || 'User'}!`);
-                        setMessages(prev => [
-                            ...prev,
-                            {
-                                id: getUniqueId(),
-                                text: `Authentication verified! Welcome back, **${res.user.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
-                                sender: 'bot'
-                            }
-                        ]);
+                        handleLoginSuccess(res.user);
                     } else {
                         speak("Login failed. Invalid credentials.");
                         setMessages(prev => [
@@ -1075,14 +1062,71 @@ const ChatBot = () => {
     };
 
     const handleLoginSuccess = (loggedInUser) => {
+        const userName = loggedInUser?.name || 'User';
+        const role = (loggedInUser?.role || 'patient').toLowerCase();
+
+        let targetPath = '/patient/history';
+        let roleTitle = 'Patient Portal';
+
+        if (role === 'doctor') {
+            targetPath = '/doctor/dashboard';
+            roleTitle = 'Doctor Dashboard';
+        } else if (role === 'nurse') {
+            targetPath = '/nurse/dashboard';
+            roleTitle = 'Nurse Dashboard';
+        } else if (role === 'receptionist' || role === 'reception') {
+            targetPath = '/reception/dashboard';
+            roleTitle = 'Front Desk Reception Dashboard';
+        } else if (role === 'inventory_manager' || role === 'inventory') {
+            targetPath = '/inventory/dashboard';
+            roleTitle = 'Inventory Manager Dashboard';
+        } else if (role === 'finance_manager' || role === 'finance') {
+            targetPath = '/finance/dashboard';
+            roleTitle = 'Finance Manager Dashboard';
+        } else if (role === 'marketing_head' || role === 'marketing') {
+            targetPath = '/marketing/dashboard';
+            roleTitle = 'Marketing Head Dashboard';
+        } else if (role === 'support_staff' || role === 'support') {
+            targetPath = '/support/dashboard';
+            roleTitle = 'Support Staff Dashboard';
+        } else if (role === 'delivery_partner' || role === 'delivery') {
+            targetPath = '/delivery/dashboard';
+            roleTitle = 'Delivery Logistics Dashboard';
+        } else if (role === 'quality_auditor' || role === 'quality') {
+            targetPath = '/quality/dashboard';
+            roleTitle = 'Quality Auditor Dashboard';
+        } else if (role === 'it_specialist' || role === 'it') {
+            targetPath = '/it/dashboard';
+            roleTitle = 'IT Specialist Dashboard';
+        } else if (role === 'phlebotomist') {
+            targetPath = '/collector/dashboard';
+            roleTitle = 'Phlebotomist Dashboard';
+        } else if (role === 'lab_partner') {
+            targetPath = '/partner/dashboard';
+            roleTitle = 'Lab Partner Dashboard';
+        } else if (role === 'admin' || role === 'super_admin') {
+            targetPath = '/admin/dashboard';
+            roleTitle = 'Administrative Control Dashboard';
+        } else if (role === 'employee' || role === 'staff') {
+            targetPath = '/employee/dashboard';
+            roleTitle = 'Staff Dashboard';
+        }
+
         setMessages(prev => [
             ...prev,
             {
                 id: getUniqueId(),
-                text: `Authentication verified! Welcome back, **${loggedInUser.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
+                text: `Authentication verified! Welcome back, **${userName}** (${roleTitle}). Shifting to your dashboard now...`,
                 sender: 'bot'
             }
         ]);
+
+        if (speak) speak(`Authentication verified. Welcome back, ${userName}. Shifting to your dashboard now.`);
+
+        // Shift / navigate page to user's dashboard
+        setTimeout(() => {
+            navigate(targetPath);
+        }, 1200);
     };
 
     const renderText = (text) => {
