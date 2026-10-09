@@ -6,7 +6,8 @@ import {
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     ClipboardList, CreditCard, BookOpen, Stethoscope, Package, Landmark,
     Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck, Radio, Compass,
-    Sparkle, Mic2, MapPin, Calendar, FileCheck, Info, Check, HelpCircle
+    Sparkle, Mic2, MapPin, Calendar, FileCheck, Info, Check, HelpCircle,
+    Layers, Search, Stethoscope as StethIcon
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,31 +50,37 @@ const parseAction = (text) => {
 const testIcon = (name = '') => {
     const n = name.toLowerCase();
     if (n.includes('blood') || n.includes('cbc') || n.includes('haemoglobin') || n.includes('platelet')) 
-        return <Droplets size={17} className="text-rose-500" />;
+        return <Droplets size={16} className="text-rose-500" />;
     if (n.includes('sugar') || n.includes('hba1c') || n.includes('diabetes') || n.includes('glucose')) 
-        return <Thermometer size={17} className="text-amber-500" />;
+        return <Thermometer size={16} className="text-amber-500" />;
     if (n.includes('thyroid') || n.includes('t3') || n.includes('t4') || n.includes('tsh')) 
-        return <Zap size={17} className="text-yellow-500" />;
+        return <Zap size={16} className="text-yellow-500" />;
     if (n.includes('heart') || n.includes('cardiac') || n.includes('ecg') || n.includes('lipid') || n.includes('cholesterol')) 
-        return <HeartPulse size={17} className="text-red-500" />;
+        return <HeartPulse size={16} className="text-red-500" />;
     if (n.includes('liver') || n.includes('kidney') || n.includes('urine') || n.includes('renal') || n.includes('lft') || n.includes('kft')) 
-        return <ShieldCheck size={17} className="text-emerald-500" />;
+        return <ShieldCheck size={16} className="text-emerald-500" />;
     if (n.includes('vitamin') || n.includes('b12') || n.includes('d3') || n.includes('iron') || n.includes('calcium')) 
-        return <Pill size={17} className="text-purple-500" />;
+        return <Pill size={16} className="text-purple-500" />;
     if (n.includes('full') || n.includes('body') || n.includes('checkup') || n.includes('package') || n.includes('fever')) 
-        return <Activity size={17} className="text-sky-500" />;
-    return <FlaskConical size={17} className="text-cyan-500" />;
+        return <Activity size={16} className="text-sky-500" />;
+    return <FlaskConical size={16} className="text-cyan-500" />;
 };
 
 // ─────────────────────────────────────────────────────────────
-// Role-Specific Chatbot Configurations (Clean Medical Styling)
+// Role-Specific Chatbot Configurations
 // ─────────────────────────────────────────────────────────────
 const ROLE_CHAT_CONFIGS = {
     patient: {
         title: 'Patient Health AI Copilot',
-        subtitle: 'Clinical Triage · Lab Booking · Voice Assistant',
+        subtitle: 'Clinical Triage · Lab Booking · Voice Flow',
         icon: <Sparkles size={20} className="text-sky-300" />,
-        greeting: `Welcome to **DiagnoLabs Clinical Voice Copilot**.\n\nI am your intelligent health assistant. You can speak or type to:\n• **Symptom Triage:** Analyze symptoms & get NABL diagnostic test suggestions\n• **Instant Booking:** Schedule sample collections (e.g., "Book CBC Test")\n• **Report Interpretation:** Understand biomarker values & normal reference intervals\n• **Preparation Guidelines:** Pre-test fasting rules & dietary protocols\n• **Lab Discovery:** Find nearest accredited pathology laboratories`,
+        features: [
+            { icon: <Activity size={15} className="text-sky-600" />, bg: 'bg-sky-50 border-sky-100', title: 'Symptom Triage', desc: 'Analyze health symptoms & suggest NABL diagnostic tests' },
+            { icon: <Calendar size={15} className="text-emerald-600" />, bg: 'bg-emerald-50 border-emerald-100', title: 'Instant Booking', desc: 'Schedule tests directly (e.g., "Book CBC Test")' },
+            { icon: <FileCheck size={15} className="text-indigo-600" />, bg: 'bg-indigo-50 border-indigo-100', title: 'Report Interpretation', desc: 'Understand biomarker values & normal reference intervals' },
+            { icon: <Pill size={15} className="text-purple-600" />, bg: 'bg-purple-50 border-purple-100', title: 'Preparation Guidelines', desc: 'Pre-test fasting rules & dietary protocols' },
+            { icon: <MapPin size={15} className="text-rose-600" />, bg: 'bg-rose-50 border-rose-100', title: 'Lab Discovery', desc: 'Find nearest accredited pathology laboratories' }
+        ],
         prompts: [
             { label: 'Fever & Infection', icon: <Thermometer size={13} className="text-amber-500" />, text: 'I have fever, chills, and body aches for 2 days. What tests should I get?' },
             { label: 'Diabetes Check', icon: <Droplets size={13} className="text-rose-500" />, text: 'Suggest the best diagnostic tests for Diabetes screening and monitoring.' },
@@ -86,7 +93,11 @@ const ROLE_CHAT_CONFIGS = {
         title: 'Doctor AI Clinical Copilot',
         subtitle: 'Differential Diagnosis · Decision Support',
         icon: <Stethoscope size={20} className="text-sky-300" />,
-        greeting: `Welcome Doctor. I am your **Clinical Decision Copilot**.\n\nReady to assist your diagnostic workflows:\n• **Differential Diagnosis:** Parameter correlation from patient lab values\n• **Prescription Templates:** Standard clinical management protocols\n• **Biomarker Trends:** Longitudinal patient health tracking & critical alerts\n• **Drug-Test Interactions:** Potential analytical interferences`,
+        features: [
+            { icon: <Activity size={15} className="text-sky-600" />, bg: 'bg-sky-50 border-sky-100', title: 'Differential Diagnosis', desc: 'Parameter correlation from patient laboratory values' },
+            { icon: <Pill size={15} className="text-purple-600" />, bg: 'bg-purple-50 border-purple-100', title: 'Prescription Protocols', desc: 'Standard evidence-based clinical management templates' },
+            { icon: <ShieldCheck size={15} className="text-emerald-600" />, bg: 'bg-emerald-50 border-emerald-100', title: 'Interaction Check', desc: 'Identify drug and analytical test interferences' }
+        ],
         prompts: [
             { label: 'Differential Diagnosis', icon: <Activity size={13} className="text-sky-500" />, text: 'Patient has Elevated TSH (8.5) and Low Free T4. What is the diagnosis and treatment?' },
             { label: 'Type-2 Diabetes Rx', icon: <Pill size={13} className="text-purple-500" />, text: 'Draft a standard prescription and monitoring protocol for Type-2 Diabetes.' },
@@ -97,7 +108,10 @@ const ROLE_CHAT_CONFIGS = {
         title: 'Nurse Clinical Assistant AI',
         subtitle: 'Vitals · Sterile Care Coordination',
         icon: <HeartPulse size={20} className="text-pink-300" />,
-        greeting: `Welcome Nurse. I am your **Clinical Care Assistant**.\n\nReady to assist your shift operations:\n• **Patient Vitals Entry:** Standard reference limits for BP, SpO2, and Pulse\n• **Sterile Phlebotomy:** Vacutainer tube sequence and aseptic draw protocol\n• **Queue Prioritization:** Emergency and fasting patient triage guidelines`,
+        features: [
+            { icon: <HeartPulse size={15} className="text-pink-600" />, bg: 'bg-pink-50 border-pink-100', title: 'Vitals Standards', desc: 'Reference ranges for BP, SpO2, and pulse rate' },
+            { icon: <FlaskConical size={15} className="text-cyan-600" />, bg: 'bg-cyan-50 border-cyan-100', title: 'Vacutainer Sequence', desc: 'Order of draw for sterile blood collection tubes' }
+        ],
         prompts: [
             { label: 'Vitals Reference Ranges', icon: <HeartPulse size={13} className="text-rose-500" />, text: 'What are the normal adult and senior vitals ranges for BP, SpO2, and Pulse?' },
             { label: 'Vacutainer Sequence', icon: <FlaskConical size={13} className="text-cyan-500" />, text: 'What is the correct order of draw for blood collection tubes (EDTA, Serum, Fluoride)?' }
@@ -107,7 +121,10 @@ const ROLE_CHAT_CONFIGS = {
         title: 'Phlebotomist Navigator AI',
         subtitle: 'Sample Collection · Cold Chain GPS',
         icon: <Droplets size={20} className="text-rose-300" />,
-        greeting: `Field Collector Assistant Active.\n\nAssisting with:\n• **GPS Routing:** Optimized navigation to patient home addresses\n• **Tube Selection:** EDTA, Fluoride, and Serum vacutainer protocols\n• **OTP Digital Verification:** 4-digit patient authentication handshake\n• **Cold-Chain Logistics:** 2°C to 8°C specimen temperature management`,
+        features: [
+            { icon: <MapPin size={15} className="text-rose-600" />, bg: 'bg-rose-50 border-rose-100', title: 'GPS Routing', desc: 'Optimized routing to patient collection addresses' },
+            { icon: <ShieldCheck size={15} className="text-emerald-600" />, bg: 'bg-emerald-50 border-emerald-100', title: 'OTP Verification', desc: '4-digit digital verification security handshake' }
+        ],
         prompts: [
             { label: 'Tube Color Guide', icon: <Droplets size={13} className="text-rose-500" />, text: 'Which tube color is used for HbA1c, Glucose, and Lipid Profile?' },
             { label: 'OTP Verification', icon: <ShieldCheck size={13} className="text-emerald-500" />, text: 'Explain the 4-digit OTP digital handshake verification procedure.' }
@@ -117,7 +134,10 @@ const ROLE_CHAT_CONFIGS = {
         title: 'Admin Master Copilot AI',
         subtitle: 'Platform Governance · RBAC Analytics',
         icon: <Crown size={20} className="text-amber-300" />,
-        greeting: `Platform Governance Copilot Active.\n\nAssisting with:\n• **RBAC Governance:** 14-Tier user access permissions & compliance\n• **Lab Accreditation:** NABL onboarding review & verification\n• **Operational Analytics:** Platform-wide booking volume, revenue, and SLA health`,
+        features: [
+            { icon: <ShieldCheck size={15} className="text-sky-600" />, bg: 'bg-sky-50 border-sky-100', title: 'RBAC Governance', desc: '14-Tier user access permissions & compliance' },
+            { icon: <ClipboardList size={15} className="text-emerald-600" />, bg: 'bg-emerald-50 border-emerald-100', title: 'Accreditation', desc: 'NABL onboarding review & verification' }
+        ],
         prompts: [
             { label: '14-Tier RBAC Overview', icon: <ShieldCheck size={13} className="text-sky-500" />, text: 'List the access privileges and data boundaries across the 14 RBAC user roles.' },
             { label: 'Lab Onboarding Checklist', icon: <ClipboardList size={13} className="text-emerald-500" />, text: 'What compliance documents are required to approve a new NABL lab partner?' }
@@ -127,7 +147,10 @@ const ROLE_CHAT_CONFIGS = {
         title: 'Front Desk Operations AI',
         subtitle: 'Reception · Walk-In Registration',
         icon: <UserCheck size={20} className="text-sky-300" />,
-        greeting: `Reception & Front Desk Assistant Active.\n\nAssisting with:\n• **Walk-In Registration:** Patient intake & test profile selection\n• **Appointment Check-In:** Verification of online scheduled appointments\n• **Invoice Printing:** Tax invoice & token generation`,
+        features: [
+            { icon: <UserCheck size={15} className="text-sky-600" />, bg: 'bg-sky-50 border-sky-100', title: 'Walk-In Registration', desc: 'Patient intake & test profile selection' },
+            { icon: <Calendar size={15} className="text-emerald-600" />, bg: 'bg-emerald-50 border-emerald-100', title: 'Check-In', desc: 'Verification of online scheduled appointments' }
+        ],
         prompts: [
             { label: 'Walk-In Registration', icon: <UserCheck size={13} className="text-sky-500" />, text: 'How do I register a new walk-in patient for a Thyroid and CBC test?' },
             { label: 'Appointment Check-In', icon: <Calendar size={13} className="text-emerald-500" />, text: 'What is the standard procedure to verify and check in an online booked patient?' }
@@ -141,57 +164,46 @@ const ROLE_CHAT_CONFIGS = {
 const generateClinicalFallback = (text, role = 'patient') => {
     const q = (text || '').toLowerCase().trim();
 
-    // 1. FEVER & INFECTIONS
     if (q.includes('fever') || q.includes('temperature') || q.includes('chills') || q.includes('dengue') || q.includes('malaria') || q.includes('typhoid') || q.includes('jwaram') || q.includes('cold') || q.includes('flu')) {
         return `Based on your reported fever and chills, a complete infection screening panel is clinically indicated to differentiate between Viral, Dengue, Malaria, or Typhoid etiology.\n\nRecommended Diagnostic Tests:\n1. **Complete Blood Count (CBC)** — Evaluates White Blood Cell count, Platelets, and Infection markers.\n2. **Dengue NS1 Antigen & IgM/IgG** — Detects early dengue viral markers.\n3. **Typhoid (Widal / Typhidot)** — Identifies enteric Salmonella infection.\n4. **Urine Routine Examination** — Rules out secondary urinary tract infections.\n\n**Pre-Test Preparation:** No strict fasting required. Maintain hydration. If body temperature exceeds 101°F, consult a physician promptly.\n\n[RECOMMEND: Complete Blood Count (CBC)][RECOMMEND: Dengue Serology Panel][ACTION: BOOK: Complete Blood Count (CBC)]`;
     }
 
-    // 2. DIABETES & BLOOD SUGAR
     if (q.includes('diabetes') || q.includes('sugar') || q.includes('glucose') || q.includes('hba1c') || q.includes('madhumeham') || q.includes('thirst') || q.includes('urination')) {
         return `For comprehensive Diabetes screening and blood glucose monitoring, the standard clinical protocol includes:\n\n• **HbA1c (Glycated Hemoglobin):** Evaluates 3-month average plasma glucose (No fasting required).\n• **Fasting Blood Sugar (FBS):** Requires 8 to 10 hours overnight fasting (plain water is permitted).\n• **Post-Prandial Blood Sugar (PPBS):** Sample drawn exactly 2 hours after a standard meal.\n• **Lipid Profile:** Screens for associated cardiovascular and metabolic risk.\n\n**Fasting Protocol:** Take water freely during fasting. Take morning insulin or oral medications only after sample draw.\n\n[RECOMMEND: HbA1c (Glycated Hemoglobin)][RECOMMEND: Fasting Blood Sugar (FBS)][ACTION: BOOK: HbA1c (Glycated Hemoglobin)]`;
     }
 
-    // 3. THYROID & METABOLISM
     if (q.includes('thyroid') || q.includes('t3') || q.includes('t4') || q.includes('tsh') || q.includes('weight gain') || q.includes('weight loss') || q.includes('hair fall') || q.includes('fatigue') || q.includes('neerasam') || q.includes('weakness')) {
         return `For evaluating thyroid endocrine function and metabolic fatigue:\n\n• **Thyroid Profile Total (T3, T4, TSH):** Assesses hypothyroidism or hyperthyroidism.\n• **Vitamin D3 & Vitamin B12:** Essential micronutrients whose deficiency mimics chronic thyroid exhaustion.\n• **Complete Blood Count (CBC):** Screens for anemia and decreased oxygenation capacity.\n\n**Preparation:** Morning fasting sample (8 hours) is preferred. Thyroid replacement medication should be taken after blood draw.\n\n[RECOMMEND: Thyroid Profile Total (T3, T4, TSH)][RECOMMEND: Vitamin D3 & B12 Combo][ACTION: BOOK: Thyroid Profile Total (T3, T4, TSH)]`;
     }
 
-    // 4. CARDIAC, CHOLESTEROL & BLOOD PRESSURE
     if (q.includes('heart') || q.includes('chest') || q.includes('cholesterol') || q.includes('bp') || q.includes('blood pressure') || q.includes('cardiac') || q.includes('lipid') || q.includes('palpitation')) {
         return `For cardiovascular risk evaluation and lipid metabolic assessment:\n\n• **Lipid Profile Extended:** Quantifies Total Cholesterol, HDL (Protective), LDL (Atherogenic), VLDL, and Triglycerides.\n• **High-Sensitivity CRP (hs-CRP):** Evaluates vascular arterial inflammation.\n• **Serum Electrolytes (Na+, K+, Cl-):** Monitors myocardial conduction balance.\n\n**Important Fasting Note:** Complete Lipid Profile strictly requires **10 to 12 hours overnight fasting** (plain water is permitted).\n\n[RECOMMEND: Lipid Profile Extended][RECOMMEND: Cardiac Risk Assessment Panel][ACTION: BOOK: Lipid Profile Extended]`;
     }
 
-    // 5. LIVER & JAUNDICE
     if (q.includes('liver') || q.includes('jaundice') || q.includes('yellow') || q.includes('bilirubin') || q.includes('sgot') || q.includes('sgpt') || q.includes('gastric') || q.includes('nausea')) {
         return `For hepatic function evaluation and enzyme screening:\n\n• **Liver Function Test (LFT):** Total & Direct Bilirubin, SGOT/AST, SGPT/ALT, Alkaline Phosphatase, and Serum Albumin.\n• **Viral Hepatitis Panel (HBsAg & HCV):** Identifies infectious viral hepatitis markers.\n\n**Preparation:** 8 hours fasting recommended. Avoid alcohol for at least 48 hours prior to testing.\n\n[RECOMMEND: Liver Function Test (LFT)][ACTION: BOOK: Liver Function Test (LFT)]`;
     }
 
-    // 6. KIDNEY & URINARY TRACT
     if (q.includes('kidney') || q.includes('urine') || q.includes('burning') || q.includes('creatinine') || q.includes('bun') || q.includes('uric acid') || q.includes('rft') || q.includes('kft')) {
         return `For renal function assessment and urinary tract evaluation:\n\n• **Renal Function Test (RFT / KFT):** Serum Creatinine, Blood Urea Nitrogen (BUN), and Uric Acid.\n• **Urine Routine & Microscopic Examination:** Identifies proteinuria, hematuria, and pus cell counts.\n• **Serum Electrolytes:** Monitors electrolyte filtration balance.\n\n**Sample Collection:** Collect mid-stream clean-catch morning urine sample.\n\n[RECOMMEND: Renal Function Test (RFT)][RECOMMEND: Urine Routine Examination][ACTION: BOOK: Renal Function Test (RFT)]`;
     }
 
-    // 7. FULL BODY / HEALTH CHECKUP
     if (q.includes('full body') || q.includes('checkup') || q.includes('package') || q.includes('annual') || q.includes('master') || q.includes('routine')) {
         return `The **DiagnoLabs Comprehensive Full Body Health Package** comprises 75+ vital parameters:\n\n1. Complete Blood Count (CBC - 24 parameters)\n2. Diabetes Screening (HbA1c & Fasting Glucose)\n3. Complete Lipid Profile (Cholesterol Fractions)\n4. Liver Function Test (LFT - 11 parameters)\n5. Kidney Function Test (KFT - Serum Creatinine & Uric Acid)\n6. Thyroid Profile (T3, T4, TSH)\n7. Vitamin D3 & Vitamin B12 Levels\n8. Urine Routine & Microscopy\n\n**Fasting Required:** 10 to 12 hours overnight fasting.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
     }
 
-    // 8. PRE-TEST FASTING GUIDELINES
     if (q.includes('fasting') || q.includes('empty stomach') || q.includes('prepare') || q.includes('diet') || q.includes('rules')) {
         return `**Official Pre-Test Preparation & Fasting Guidelines:**\n\n• **Lipid Profile & Fasting Blood Sugar:** 10 to 12 hours strict fasting. Only plain water is permitted.\n• **Thyroid Profile (TSH):** 8 hours fasting preferred. Take thyroid tablets after sample draw.\n• **Full Body Health Packages:** 10 to 12 hours overnight fasting.\n• **CBC, Vitamin D, Vitamin B12:** No strict fasting required; a light meal is permitted.\n\n[ACTION: CHECKOUT]`;
     }
 
-    // 9. LAB REPORTS & RESULTS
     if (q.includes('report') || q.includes('result') || q.includes('download') || q.includes('pdf') || q.includes('view report') || q.includes('status')) {
         return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are available immediately upon Pathologist clinical verification.\n• Each report contains a tamper-proof cryptographic QR code for instant authenticity verification.\n\n[ACTION: REPORT_ANALYZED]`;
     }
 
-    // 10. PRICING & BOOKING
     if (q.includes('price') || q.includes('cost') || q.includes('rate') || q.includes('offer') || q.includes('discount') || q.includes('coupon') || q.includes('book')) {
         return `DiagnoLabs offers transparent pricing with up to 40% discount on NABL diagnostic packages including **Complimentary Home Sample Collection**:\n\n• Complete Blood Count (CBC): ₹299\n• HbA1c Diabetes Screen: ₹450\n• Thyroid Profile (T3/T4/TSH): ₹499\n• Lipid Profile: ₹550\n• Comprehensive Full Body Package: ₹1,499 (75+ Parameters)\n\n[ACTION: CHECKOUT]`;
     }
 
-    // Default Fallback
     return `Hello. I am your **DiagnoLabs Clinical Diagnostic Assistant**.\n\nI can assist you with:\n• **Symptom Triage:** Evidence-based diagnostic test recommendations.\n• **Direct Scheduling:** Instant home collection booking with NABL-verified labs.\n• **Preparation Protocols:** Pre-test fasting and dietary guidance.\n• **Report Interpretation:** Diagnostic biomarker values and reference intervals.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
 };
 
@@ -277,7 +289,7 @@ const ChatBot = () => {
         setMessages([
             {
                 id: 1,
-                text: roleConfig.greeting,
+                isGreeting: true,
                 sender: 'bot',
                 recommendations: [],
                 action: null
@@ -591,7 +603,7 @@ const ChatBot = () => {
         stopSpeaking();
         setMessages([{
             id: Date.now(),
-            text: `Conversation reset. How can I assist you as **${roleConfig.title}** today?`,
+            isGreeting: true,
             sender: 'bot',
             recommendations: [],
             action: null
@@ -735,23 +747,60 @@ const ChatBot = () => {
                                     key={msg.id}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} max-w-[90%] ${msg.sender === 'user' ? 'self-end' : 'self-start'}`}
+                                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} max-w-[92%] ${msg.sender === 'user' ? 'self-end' : 'self-start'}`}
                                 >
-                                    {/* Message Bubble */}
-                                    <div
-                                        className={`px-4 py-3 text-[0.88rem] leading-[1.65] font-medium transition-all ${
-                                            msg.sender === 'user'
-                                                ? 'rounded-[20px] rounded-br-[4px] text-white shadow-[0_8px_20px_-4px_rgba(2,132,199,0.32)]'
-                                                : 'rounded-[20px] rounded-bl-[4px] bg-white text-slate-800 border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.04)]'
-                                        }`}
-                                        style={
-                                            msg.sender === 'user'
-                                                ? { background: 'linear-gradient(135deg, #071938 0%, #003366 50%, #0284c7 100%)' }
-                                                : {}
-                                        }
-                                    >
-                                        {renderText(msg.text)}
-                                    </div>
+                                    {/* Structured Feature Greeting Card with Lucide Vector Icons */}
+                                    {msg.isGreeting ? (
+                                        <div className="p-4 bg-white rounded-[22px] rounded-bl-[4px] border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] text-slate-800 w-full flex flex-col gap-3">
+                                            <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
+                                                <div className="w-7 h-7 rounded-lg bg-sky-100/80 border border-sky-200 flex items-center justify-center flex-shrink-0">
+                                                    <Sparkles size={14} className="text-sky-600" />
+                                                </div>
+                                                <div className="text-[0.88rem] font-extrabold text-slate-900 tracking-tight">
+                                                    DiagnoLabs Clinical Copilot
+                                                </div>
+                                            </div>
+
+                                            <div className="px-2.5 py-1.5 rounded-lg bg-sky-50/70 border border-sky-200/80 flex items-center gap-2 text-[0.72rem] font-bold text-sky-800">
+                                                <Mic2 size={13} className="text-sky-600 flex-shrink-0" />
+                                                <span>Voice Flow Active: Speak or type to interact</span>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 pt-1">
+                                                {roleConfig.features?.map((feat, fIdx) => (
+                                                    <div key={fIdx} className="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50/70 border border-slate-100 hover:bg-slate-50 transition-colors">
+                                                        <div className={`w-6 h-6 rounded-lg ${feat.bg} border flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm`}>
+                                                            {feat.icon}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="text-[0.78rem] font-bold text-slate-900">
+                                                                {feat.title}
+                                                            </div>
+                                                            <div className="text-[0.72rem] text-slate-500 font-medium leading-tight mt-0.5">
+                                                                {feat.desc}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        /* Standard Message Bubble */
+                                        <div
+                                            className={`px-4 py-3 text-[0.88rem] leading-[1.65] font-medium transition-all ${
+                                                msg.sender === 'user'
+                                                    ? 'rounded-[20px] rounded-br-[4px] text-white shadow-[0_8px_20px_-4px_rgba(2,132,199,0.32)]'
+                                                    : 'rounded-[20px] rounded-bl-[4px] bg-white text-slate-800 border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.04)]'
+                                            }`}
+                                            style={
+                                                msg.sender === 'user'
+                                                    ? { background: 'linear-gradient(135deg, #071938 0%, #003366 50%, #0284c7 100%)' }
+                                                    : {}
+                                            }
+                                        >
+                                            {renderText(msg.text)}
+                                        </div>
+                                    )}
 
                                     {/* NABL Verified Test Recommendation Cards */}
                                     {msg.recommendations?.length > 0 && (
@@ -817,7 +866,7 @@ const ChatBot = () => {
                                 </motion.div>
                             )}
 
-                            {/* Modern Voice Tip Box */}
+                            {/* Voice Tip Banner */}
                             {showQuickPrompts && !isLoading && (
                                 <div className="p-2.5 bg-sky-50/80 border border-dashed border-sky-200 rounded-2xl flex items-center gap-2 text-[0.72rem] text-sky-800 shadow-sm">
                                     <Sparkle size={14} className="text-sky-500 flex-shrink-0" />
@@ -827,7 +876,7 @@ const ChatBot = () => {
                                 </div>
                             )}
 
-                            {/* Quick Action Prompt Pills with Professional Lucide Icons */}
+                            {/* Quick Action Prompt Pills */}
                             <AnimatePresence>
                                 {showQuickPrompts && !isLoading && roleConfig.prompts?.length > 0 && (
                                     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex flex-wrap gap-1.5 mt-1">
