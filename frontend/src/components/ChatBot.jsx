@@ -454,6 +454,32 @@ const ChatBot = () => {
     const recognitionRef = useRef(null);
     const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
     const speechBufferRef = useRef('');
+    const chatPanelRef = useRef(null);
+    const chatButtonRef = useRef(null);
+
+    // Close chatbot when clicking anywhere outside the chat window
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClickOutside = (event) => {
+            if (
+                chatPanelRef.current &&
+                !chatPanelRef.current.contains(event.target) &&
+                chatButtonRef.current &&
+                !chatButtonRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isOpen]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -981,6 +1007,7 @@ const ChatBot = () => {
         <>
             {/* Floating Action Button */}
             <motion.button
+                ref={chatButtonRef}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(o => !o)}
@@ -1004,6 +1031,7 @@ const ChatBot = () => {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
+                        ref={chatPanelRef}
                         initial={{ opacity: 0, y: 30, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 30, scale: 0.96 }}
