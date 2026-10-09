@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Mic, MicOff, Volume2, VolumeX, Sparkles, ShieldCheck, CheckCircle2,
     Compass, FileText, Calendar, Search, HelpCircle, X, ArrowRight,
-    Activity, ChevronRight, Zap, RefreshCw, Power, AlertCircle
+    Activity, ChevronRight, Zap, RefreshCw, Power, AlertCircle, Play
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
@@ -17,6 +17,69 @@ const cleanSpeechText = (text) =>
         .replace(/\*(.*?)\*/g, '$1')
         .trim();
 
+// Subtle audio confirmation chime using Web Audio API
+const playChime = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+    } catch {
+        // Ignore audio context error
+    }
+};
+
+// Interactive In-Page DOM Click Action Dispatcher
+const executeDOMAction = (actionType) => {
+    // 1. Download Report
+    if (actionType === 'download') {
+        const downloadBtns = document.querySelectorAll('button, a');
+        for (const btn of downloadBtns) {
+            const txt = (btn.innerText || btn.getAttribute('aria-label') || '').toLowerCase();
+            if (txt.includes('download') || txt.includes('view report') || txt.includes('pdf')) {
+                btn.click();
+                return true;
+            }
+        }
+    }
+
+    // 2. Book Now / Checkout CTA
+    if (actionType === 'book') {
+        const bookBtns = document.querySelectorAll('button, a');
+        for (const btn of bookBtns) {
+            const txt = (btn.innerText || btn.getAttribute('aria-label') || '').toLowerCase();
+            if (txt.includes('book now') || txt.includes('book appointment') || txt.includes('proceed to checkout') || txt.includes('checkout') || txt.includes('pay now')) {
+                btn.click();
+                return true;
+            }
+        }
+    }
+
+    // 3. Payment submit button
+    if (actionType === 'pay') {
+        const payBtns = document.querySelectorAll('button, input[type="submit"]');
+        for (const btn of payBtns) {
+            const txt = (btn.innerText || btn.value || '').toLowerCase();
+            if (txt.includes('pay') || txt.includes('confirm') || txt.includes('proceed') || txt.includes('place order')) {
+                btn.click();
+                return true;
+            }
+        }
+    }
+
+    return false;
+};
+
 export const GlobalVoiceAssistant = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -28,6 +91,7 @@ export const GlobalVoiceAssistant = () => {
     });
     const [showPermissionModal, setShowPermissionModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [helpTab, setHelpTab] = useState('english'); // 'english', 'telugu', 'hindi'
     const [isMuted, setIsMuted] = useState(() => {
         return localStorage.getItem('diagnolabs_voice_assistant_muted') === 'true';
     });
@@ -38,14 +102,13 @@ export const GlobalVoiceAssistant = () => {
     const [liveTranscript, setLiveTranscript] = useState('');
     const [lastActionText, setLastActionText] = useState('');
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isMinimized, setIsMinimized] = useState(false);
 
     const recognitionRef = useRef(null);
     const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
     const restartTimerRef = useRef(null);
     const isManualStopRef = useRef(false);
 
-    // Check if we are on standalone admin/employee dashboards where global voice assistant should be disabled
+    // Check if we are on standalone admin/employee dashboards
     const isStandaloneDashboard = [
         '/admin/dashboard',
         '/doctor/dashboard',
@@ -69,7 +132,6 @@ export const GlobalVoiceAssistant = () => {
             const hasChosen = localStorage.getItem('diagnolabs_voice_assistant_enabled');
             const hasDismissedSession = sessionStorage.getItem('diagnolabs_voice_dismissed');
             if (hasChosen === null && !hasDismissedSession) {
-                // Show permission dialog 1 second after login
                 const timer = setTimeout(() => {
                     setShowPermissionModal(true);
                 }, 1000);
@@ -110,21 +172,56 @@ export const GlobalVoiceAssistant = () => {
         synthRef.current.speak(utterance);
     }, [isMuted]);
 
-    // Command Dispatcher & Processor
+    // Advanced Multilingual Command Dispatcher & Processor
     const processVoiceCommand = useCallback((rawTranscript) => {
         const text = (rawTranscript || '').toLowerCase().trim();
         if (!text) return;
 
+        playChime();
         setIsProcessing(true);
         setLiveTranscript(rawTranscript);
 
-        // Remove wake words if spoken
+        // Clean wake words
         const cmd = text
-            .replace(/^(hey\s+)?(diagnolabs|diagno|assistant|bot)\s*/i, '')
+            .replace(/^(hey\s+|hi\s+|namaste\s+)?(diagnolabs|diagno|assistant|bot)\s*/i, '')
             .trim();
 
-        // 1. Navigation Commands
-        if (cmd === 'go home' || cmd === 'home' || cmd === 'home page' || cmd === 'open home' || cmd === 'main page') {
+        // ─────────────────────────────────────────────────────────────
+        // 1. IN-PAGE DOM INTERACTIVE ACTIONS
+        // ─────────────────────────────────────────────────────────────
+        if (cmd.includes('click download') || cmd.includes('download pdf') || cmd.includes('download report') || cmd.includes('report download cheyi')) {
+            const executed = executeDOMAction('download');
+            if (executed) {
+                setLastActionText('Clicked Download Report');
+                speak('Downloading your verified digital report.');
+                setIsProcessing(false);
+                return;
+            } else {
+                navigate('/patient/history');
+                setLastActionText('Opening Reports for Download');
+                speak('Opening test reports to download your verified PDF.');
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        if (cmd.includes('click book') || cmd.includes('click pay') || cmd.includes('pay now') || cmd.includes('proceed to payment') || cmd.includes('confirm booking')) {
+            const executed = executeDOMAction('pay') || executeDOMAction('book');
+            if (executed) {
+                setLastActionText('Triggered Booking / Payment Action');
+                speak('Executing payment and booking confirmation.');
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 2. NAVIGATION COMMANDS (English + Telugu + Hindi)
+        // ─────────────────────────────────────────────────────────────
+        if (
+            cmd === 'go home' || cmd === 'home' || cmd === 'home page' || cmd === 'open home' || cmd === 'main page' ||
+            cmd.includes('home ki vellu') || cmd.includes('main page ki vellu') || cmd.includes('ghar jao') || cmd.includes('home jao')
+        ) {
             navigate('/');
             setLastActionText('Navigating to Home Page');
             speak('Navigating to Home page.');
@@ -135,7 +232,8 @@ export const GlobalVoiceAssistant = () => {
         if (
             cmd.includes('my report') || cmd.includes('show report') || cmd.includes('lab report') ||
             cmd.includes('download report') || cmd.includes('view report') || cmd.includes('test result') ||
-            cmd.includes('reports')
+            cmd.includes('reports') || cmd.includes('report lu') || cmd.includes('na reports') ||
+            cmd.includes('report chupinchu') || cmd.includes('mera report') || cmd.includes('report dikhao')
         ) {
             navigate('/patient/history');
             setLastActionText('Opening Diagnostic Lab Reports');
@@ -144,7 +242,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('my profile') || cmd.includes('open profile') || cmd.includes('user profile') || cmd.includes('account details')) {
+        if (
+            cmd.includes('my profile') || cmd.includes('open profile') || cmd.includes('user profile') ||
+            cmd.includes('account details') || cmd.includes('na profile') || cmd.includes('mera profile')
+        ) {
             navigate('/patient/profile');
             setLastActionText('Opening User Profile');
             speak('Opening your patient profile.');
@@ -152,7 +253,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('my booking') || cmd.includes('appointments') || cmd.includes('view booking') || cmd.includes('order history')) {
+        if (
+            cmd.includes('my booking') || cmd.includes('appointments') || cmd.includes('view booking') ||
+            cmd.includes('order history') || cmd.includes('appointment lu') || cmd.includes('orders')
+        ) {
             navigate('/patient/history');
             setLastActionText('Opening Appointments & Bookings');
             speak('Opening your appointments and test booking history.');
@@ -160,7 +264,11 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('nearby lab') || cmd.includes('labs near me') || cmd.includes('find nearby') || cmd.includes('nearest lab')) {
+        if (
+            cmd.includes('nearby lab') || cmd.includes('labs near me') || cmd.includes('find nearby') ||
+            cmd.includes('nearest lab') || cmd.includes('daggarlo unna lab') || cmd.includes('paas ke lab') ||
+            cmd.includes('nearby')
+        ) {
             navigate('/nearby-search');
             setLastActionText('Finding Nearby Diagnostic Labs');
             speak('Searching for verified NABL diagnostic labs in your vicinity.');
@@ -168,7 +276,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('india lab') || cmd.includes('all labs') || cmd.includes('find lab in india') || cmd.includes('lab finder')) {
+        if (
+            cmd.includes('india lab') || cmd.includes('all labs') || cmd.includes('find lab in india') ||
+            cmd.includes('lab finder') || cmd.includes('city labs') || cmd.includes('labs directory')
+        ) {
             navigate('/india-labs-finder');
             setLastActionText('Opening India Labs Finder');
             speak('Opening the all-India diagnostic labs finder.');
@@ -176,7 +287,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('book test') || cmd.includes('book appointment') || cmd.includes('schedule test') || cmd.includes('checkout') || cmd.includes('book now')) {
+        if (
+            cmd.includes('book test') || cmd.includes('book appointment') || cmd.includes('schedule test') ||
+            cmd.includes('checkout') || cmd.includes('book now') || cmd.includes('book cheyi') || cmd.includes('book karo')
+        ) {
             navigate('/checkout');
             setLastActionText('Navigating to Checkout & Booking');
             speak('Opening the test booking and checkout portal.');
@@ -184,10 +298,65 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 2. Dynamic Search Commands: "search for cbc", "find thyroid test", "search diabetes package"
-        const searchMatch = cmd.match(/^(?:search(?:\s+for)?|find|look\s+for)\s+(.+)$/i);
+        // ─────────────────────────────────────────────────────────────
+        // 3. CITY-WISE LAB LOCATOR BY VOICE
+        // ─────────────────────────────────────────────────────────────
+        const cityMatch = cmd.match(/(?:labs\s+in|find\s+labs\s+in|labs\s+near)\s+([a-zA-Z\s]+)/i);
+        if (cityMatch && cityMatch[1]) {
+            const city = cityMatch[1].trim();
+            if (city && !['near me', 'my area', 'vicinity'].includes(city.toLowerCase())) {
+                navigate(`/india-labs-finder?search=${encodeURIComponent(city)}`);
+                setLastActionText(`Finding Labs in ${city}`);
+                speak(`Searching for certified diagnostic labs in ${city}.`);
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 4. DIRECT TEST BOOKING & SEARCH BY VOICE
+        // ─────────────────────────────────────────────────────────────
+        const directTests = [
+            { key: 'cbc', label: 'Complete Blood Count (CBC)', q: 'Complete Blood Count' },
+            { key: 'blood test', label: 'Complete Blood Count', q: 'Complete Blood Count' },
+            { key: 'haemoglobin', label: 'Hemoglobin Test', q: 'Complete Blood Count' },
+            { key: 'diabetes', label: 'Diabetes Screening (HbA1c)', q: 'HbA1c' },
+            { key: 'sugar', label: 'Fasting & PP Blood Sugar', q: 'HbA1c' },
+            { key: 'hba1c', label: 'HbA1c Glycated Hemoglobin', q: 'HbA1c' },
+            { key: 'thyroid', label: 'Thyroid Profile (T3, T4, TSH)', q: 'Thyroid Profile' },
+            { key: 'tsh', label: 'Thyroid Stimulating Hormone', q: 'Thyroid Profile' },
+            { key: 'lipid', label: 'Lipid Profile (Cholesterol)', q: 'Lipid Profile' },
+            { key: 'cholesterol', label: 'Lipid Profile', q: 'Lipid Profile' },
+            { key: 'vitamin d', label: 'Vitamin D3 & B12', q: 'Vitamin D3' },
+            { key: 'vitamin b12', label: 'Vitamin B12', q: 'Vitamin B12' },
+            { key: 'liver', label: 'Liver Function Test (LFT)', q: 'Liver Function Test' },
+            { key: 'lft', label: 'Liver Function Test (LFT)', q: 'Liver Function Test' },
+            { key: 'kidney', label: 'Kidney Function Test (KFT)', q: 'Renal Function Test' },
+            { key: 'kft', label: 'Renal Function Test', q: 'Renal Function Test' },
+            { key: 'rft', label: 'Renal Function Test', q: 'Renal Function Test' },
+            { key: 'creatinine', label: 'Serum Creatinine', q: 'Renal Function Test' },
+            { key: 'urine', label: 'Urine Routine Examination', q: 'Urine Routine' },
+            { key: 'full body', label: 'Full Body Health Package', q: 'Full Body' },
+            { key: 'master checkup', label: 'Master Full Body Package', q: 'Full Body' },
+            { key: 'dengue', label: 'Dengue Serology NS1 & IgM', q: 'Dengue NS1' },
+            { key: 'malaria', label: 'Malaria Antigen', q: 'Malaria Antigen' },
+            { key: 'typhoid', label: 'Typhoid Widal / Typhidot', q: 'Typhoid' }
+        ];
+
+        for (const t of directTests) {
+            if (cmd.includes(t.key)) {
+                navigate(`/search?q=${encodeURIComponent(t.q)}`);
+                setLastActionText(`Found Test: ${t.label}`);
+                speak(`Opening diagnostic labs offering ${t.label}.`);
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        // Generic Dynamic Search Commands
+        const searchMatch = cmd.match(/^(?:search(?:\s+for)?|find|look\s+for|vetuku|dhoondo)\s+(.+)$/i);
         if (searchMatch && searchMatch[1]) {
-            const query = searchMatch[1].replace(/test|package|panel/gi, '').trim();
+            const query = searchMatch[1].replace(/test|package|panel|cheyi|karo/gi, '').trim();
             navigate(`/search?q=${encodeURIComponent(query || searchMatch[1])}`);
             setLastActionText(`Searching for: ${searchMatch[1]}`);
             speak(`Searching for ${searchMatch[1]} across accredited diagnostic labs.`);
@@ -195,20 +364,13 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // Direct test keyword match (e.g. "Complete blood count", "Thyroid test", "Lipid profile")
-        const directTestKeywords = ['cbc', 'blood test', 'thyroid', 'diabetes', 'sugar test', 'lipid profile', 'vitamin d', 'urine test', 'liver function', 'kidney function', 'full body'];
-        for (const kw of directTestKeywords) {
-            if (cmd.includes(kw)) {
-                navigate(`/search?q=${encodeURIComponent(kw)}`);
-                setLastActionText(`Searching for: ${kw.toUpperCase()}`);
-                speak(`Searching tests for ${kw}.`);
-                setIsProcessing(false);
-                return;
-            }
-        }
-
-        // 3. ChatBot Controls
-        if (cmd.includes('open chat') || cmd.includes('open chatbot') || cmd.includes('open assistant') || cmd.includes('talk to bot') || cmd === 'help me') {
+        // ─────────────────────────────────────────────────────────────
+        // 5. CHATBOT CONTROLS
+        // ─────────────────────────────────────────────────────────────
+        if (
+            cmd.includes('open chat') || cmd.includes('open chatbot') || cmd.includes('open assistant') ||
+            cmd.includes('talk to bot') || cmd === 'help me' || cmd.includes('chatbot open cheyi') || cmd.includes('chat kholo')
+        ) {
             window.dispatchEvent(new CustomEvent('diagnolabs:open-chat'));
             setLastActionText('Opened Clinical AI ChatBot');
             speak('Opening DiagnoLabs clinical assistant.');
@@ -216,7 +378,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        if (cmd.includes('close chat') || cmd.includes('close chatbot') || cmd.includes('hide chat') || cmd.includes('minimize chat')) {
+        if (
+            cmd.includes('close chat') || cmd.includes('close chatbot') || cmd.includes('hide chat') ||
+            cmd.includes('minimize chat') || cmd.includes('chatbot close cheyi') || cmd.includes('chat band karo')
+        ) {
             window.dispatchEvent(new CustomEvent('diagnolabs:close-chat'));
             setLastActionText('Closed Clinical AI ChatBot');
             speak('Minimized clinical assistant.');
@@ -224,36 +389,56 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 4. Page Scrolling Controls
-        if (cmd.includes('scroll down') || cmd.includes('page down')) {
+        // ─────────────────────────────────────────────────────────────
+        // 6. PAGE SCROLLING CONTROLS
+        // ─────────────────────────────────────────────────────────────
+        if (cmd.includes('scroll down') || cmd.includes('page down') || cmd.includes('kindaki scroll') || cmd.includes('neeche scroll')) {
             window.scrollBy({ top: 650, behavior: 'smooth' });
             setLastActionText('Scrolled Down');
             setIsProcessing(false);
             return;
         }
 
-        if (cmd.includes('scroll up') || cmd.includes('page up')) {
+        if (cmd.includes('scroll up') || cmd.includes('page up') || cmd.includes('paiki scroll') || cmd.includes('upar scroll')) {
             window.scrollBy({ top: -650, behavior: 'smooth' });
             setLastActionText('Scrolled Up');
             setIsProcessing(false);
             return;
         }
 
-        if (cmd.includes('scroll to top') || cmd.includes('top of page') || cmd.includes('go to top')) {
+        if (cmd.includes('scroll to top') || cmd.includes('top of page') || cmd.includes('go to top') || cmd.includes('top ki vellu')) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setLastActionText('Scrolled to Top');
             setIsProcessing(false);
             return;
         }
 
-        if (cmd.includes('scroll to bottom') || cmd.includes('bottom of page')) {
+        if (cmd.includes('scroll to bottom') || cmd.includes('bottom of page') || cmd.includes('bottom ki vellu')) {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             setLastActionText('Scrolled to Bottom');
             setIsProcessing(false);
             return;
         }
 
-        // 5. Login Credentials Command (e.g. "login with email X and password Y" or "email X password Y")
+        if (cmd.includes('reload page') || cmd.includes('refresh page') || cmd === 'refresh') {
+            setLastActionText('Reloading Page');
+            speak('Reloading page.');
+            setTimeout(() => window.location.reload(), 600);
+            setIsProcessing(false);
+            return;
+        }
+
+        if (cmd.includes('go back') || cmd === 'back') {
+            setLastActionText('Going Back');
+            speak('Going back.');
+            navigate(-1);
+            setIsProcessing(false);
+            return;
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 7. LOGIN CREDENTIALS BY VOICE
+        // ─────────────────────────────────────────────────────────────
         const normalizedCmd = cmd
             .replace(/\s+(at|@)\s+/gi, '@')
             .replace(/\s+(dot|\.)\s+/gi, '.')
@@ -271,6 +456,7 @@ export const GlobalVoiceAssistant = () => {
                     if (res.success) {
                         speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
                         setLastActionText(`Logged in as ${res.user.name || 'User'}`);
+                        navigate('/patient/history', { replace: true });
                     } else {
                         speak("Login failed. Please check your credentials.");
                         setLastActionText("Login failed: Invalid credentials");
@@ -283,8 +469,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 6. Logout Command
-        if (cmd === 'logout' || cmd === 'sign out' || cmd === 'log out') {
+        // ─────────────────────────────────────────────────────────────
+        // 8. LOGOUT COMMAND
+        // ─────────────────────────────────────────────────────────────
+        if (cmd === 'logout' || cmd === 'sign out' || cmd === 'log out' || cmd.includes('logout cheyi') || cmd.includes('logout karo')) {
             if (logout) logout();
             navigate('/userlogin');
             setLastActionText('Logged Out Successfully');
@@ -293,7 +481,9 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 6. Voice Help & Cheatsheet
+        // ─────────────────────────────────────────────────────────────
+        // 9. VOICE GUIDE & CHEATSHEET
+        // ─────────────────────────────────────────────────────────────
         if (cmd.includes('voice command') || cmd.includes('what can i say') || cmd === 'help' || cmd.includes('show commands')) {
             setShowHelpModal(true);
             setLastActionText('Opening Voice Command Guide');
@@ -302,8 +492,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 7. Stop Assistant
-        if (cmd.includes('stop listening') || cmd.includes('turn off voice') || cmd.includes('disable voice') || cmd.includes('stop assistant')) {
+        // ─────────────────────────────────────────────────────────────
+        // 10. STOP / PAUSE ASSISTANT
+        // ─────────────────────────────────────────────────────────────
+        if (cmd.includes('stop listening') || cmd.includes('turn off voice') || cmd.includes('disable voice') || cmd.includes('stop assistant') || cmd.includes('voice aapeyi')) {
             handleDisableAssistant();
             setLastActionText('Voice Assistant Deactivated');
             speak('Voice assistant has been paused.');
@@ -311,8 +503,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // 8. Clinical Medical Symptoms / Inquiries Fallback -> Route to ChatBot with Query
-        const medicalSymptoms = ['fever', 'chills', 'cough', 'dengue', 'malaria', 'typhoid', 'fasting', 'empty stomach', 'pain', 'jaundice', 'vomiting', 'weakness', 'fatigue', 'hba1c', 'cholesterol'];
+        // ─────────────────────────────────────────────────────────────
+        // 11. CLINICAL SYMPTOMS FALLBACK -> ROUTE TO CHATBOT
+        // ─────────────────────────────────────────────────────────────
+        const medicalSymptoms = ['fever', 'chills', 'cough', 'dengue', 'malaria', 'typhoid', 'fasting', 'empty stomach', 'pain', 'jaundice', 'vomiting', 'weakness', 'fatigue', 'hba1c', 'cholesterol', 'jwaram', 'neerasam'];
         const hasSymptom = medicalSymptoms.some(s => cmd.includes(s));
         if (hasSymptom) {
             window.dispatchEvent(new CustomEvent('diagnolabs:open-chat', { detail: { query: rawTranscript } }));
@@ -325,7 +519,7 @@ export const GlobalVoiceAssistant = () => {
         // If unrecognized command, give subtle feedback
         setLastActionText(`Command heard: "${rawTranscript}"`);
         setIsProcessing(false);
-    }, [navigate, speak, logout]);
+    }, [navigate, speak, logout, login]);
 
     // Continuous Speech Recognition Engine Setup
     useEffect(() => {
@@ -381,7 +575,6 @@ export const GlobalVoiceAssistant = () => {
         };
 
         rec.onerror = (event) => {
-            // Ignore benign 'no-speech' or 'aborted' errors in continuous mode
             if (event.error !== 'no-speech' && event.error !== 'aborted') {
                 console.warn('Voice Assistant Speech recognition error:', event.error);
             }
@@ -389,7 +582,6 @@ export const GlobalVoiceAssistant = () => {
 
         rec.onend = () => {
             setIsListening(false);
-            // If still enabled and not manually stopped, auto-restart continuous listening after 400ms
             if (isEnabled && !isManualStopRef.current && !isStandaloneDashboard) {
                 if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
                 restartTimerRef.current = setTimeout(() => {
@@ -469,7 +661,7 @@ export const GlobalVoiceAssistant = () => {
     };
 
     if (isStandaloneDashboard) {
-        return null; // Don't render on admin / staff dashboards
+        return null;
     }
 
     return (
@@ -477,26 +669,26 @@ export const GlobalVoiceAssistant = () => {
             {/* 1. INITIAL PERMISSION MODAL ON LOGIN */}
             <AnimatePresence>
                 {showPermissionModal && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-navy-950/70 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0a1e46]/70 backdrop-blur-md">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white rounded-3xl shadow-2xl border border-teal-100 max-w-md w-full overflow-hidden"
+                            className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden"
                         >
                             {/* Header Banner */}
-                            <div className="bg-gradient-to-r from-teal-600 via-teal-700 to-navy-900 p-6 text-white text-center relative">
+                            <div className="bg-[#0a1e46] p-6 text-white text-center relative">
                                 <button
                                     onClick={handleDismissPermission}
-                                    className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+                                    className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors cursor-pointer"
                                 >
                                     <X size={20} />
                                 </button>
-                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner ring-4 ring-white/20">
-                                    <Mic size={32} className="text-teal-200 animate-pulse" />
+                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner ring-4 ring-[#d4af37]/30">
+                                    <Mic size={32} className="text-[#d4af37] animate-pulse" />
                                 </div>
                                 <h3 className="text-xl font-bold tracking-tight">DiagnoLabs Voice Assistant</h3>
-                                <p className="text-xs text-teal-100/90 mt-1">
+                                <p className="text-xs text-slate-300 mt-1">
                                     Automated Hands-Free Navigation & Voice Control
                                 </p>
                             </div>
@@ -504,49 +696,49 @@ export const GlobalVoiceAssistant = () => {
                             {/* Body Content */}
                             <div className="p-6 space-y-4">
                                 <p className="text-sm text-slate-600 leading-relaxed">
-                                    Would you like to enable the <strong>Hands-Free Voice Assistant</strong>? Even without opening the chatbot, you can navigate pages, search tests, check lab reports, and manage bookings using simple voice commands.
+                                    Enable the <strong>Hands-Free Voice Assistant</strong> to navigate pages, search diagnostic tests, download reports, and book appointments using English, Telugu, or Hindi voice commands.
                                 </p>
 
                                 <div className="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs text-slate-700">
-                                    <div className="font-semibold text-teal-800 flex items-center gap-1.5 mb-1.5">
-                                        <Sparkles size={14} className="text-teal-600" /> Example Voice Commands:
+                                    <div className="font-semibold text-[#0a1e46] flex items-center gap-1.5 mb-1.5">
+                                        <Sparkles size={14} className="text-[#d4af37]" /> Example Voice Commands:
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                                        <span>"Show my reports" or "Download report"</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#0a1e46]" />
+                                        <span>"Show my reports" or "Report lu chupinchu"</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                                        <span>"Search for Complete Blood Count"</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#0a1e46]" />
+                                        <span>"Book Complete Blood Count"</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                                        <span>"Book a full body checkup"</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#0a1e46]" />
+                                        <span>"Find labs in Hyderabad / Vijayawada"</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                                        <span>"Find labs near me" or "Go home"</span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#0a1e46]" />
+                                        <span>"Click Download Report" or "Scroll down"</span>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                     <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-                                    <span>Microphone is only used locally for voice command matching.</span>
+                                    <span>Microphone is processed locally for fast and secure execution.</span>
                                 </div>
 
                                 {/* Action Buttons */}
                                 <div className="flex gap-3 pt-2">
                                     <button
                                         onClick={handleDismissPermission}
-                                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+                                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
                                     >
                                         Maybe Later
                                     </button>
                                     <button
                                         onClick={handleEnableAssistant}
-                                        className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold text-sm shadow-lg shadow-teal-600/25 hover:shadow-teal-600/40 hover:from-teal-500 hover:to-teal-600 transition-all flex items-center justify-center gap-2"
+                                        className="flex-1 py-3 px-4 rounded-xl bg-[#0a1e46] hover:bg-[#071530] text-white font-semibold text-sm shadow-lg shadow-navy-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
-                                        <Mic size={16} /> Enable Voice
+                                        <Mic size={16} className="text-[#d4af37]" /> Enable Voice
                                     </button>
                                 </div>
                             </div>
@@ -564,7 +756,7 @@ export const GlobalVoiceAssistant = () => {
                             initial={{ opacity: 0, y: 15, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                            className="bg-navy-900/95 text-white backdrop-blur-md rounded-2xl shadow-xl border border-teal-500/30 p-3 max-w-xs sm:max-w-sm flex flex-col gap-2 ring-1 ring-white/10"
+                            className="bg-[#0a1e46]/95 text-white backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 p-3 max-w-xs sm:max-w-sm flex flex-col gap-2 ring-1 ring-white/10"
                         >
                             {/* HUD Header */}
                             <div className="flex items-center justify-between gap-3 text-xs">
@@ -579,8 +771,8 @@ export const GlobalVoiceAssistant = () => {
                                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                                         )}
                                     </span>
-                                    <span className="font-bold tracking-wide text-teal-300">
-                                        VOICE ASSISTANT
+                                    <span className="font-bold tracking-wide text-[#d4af37] text-[0.72rem] uppercase">
+                                        VOICE COMMAND TO ACTION
                                     </span>
                                 </div>
 
@@ -588,21 +780,21 @@ export const GlobalVoiceAssistant = () => {
                                     <button
                                         onClick={toggleMute}
                                         title={isMuted ? "Unmute Voice Feedback" : "Mute Voice Feedback"}
-                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
                                     >
-                                        {isMuted ? <VolumeX size={14} className="text-rose-400" /> : <Volume2 size={14} className="text-teal-300" />}
+                                        {isMuted ? <VolumeX size={14} className="text-rose-400" /> : <Volume2 size={14} className="text-emerald-300" />}
                                     </button>
                                     <button
                                         onClick={() => setShowHelpModal(true)}
                                         title="Voice Commands Guide"
-                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
                                     >
                                         <HelpCircle size={14} />
                                     </button>
                                     <button
                                         onClick={handleDisableAssistant}
                                         title="Disable Voice Assistant"
-                                        className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 transition-colors"
+                                        className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 transition-colors cursor-pointer"
                                     >
                                         <Power size={14} />
                                     </button>
@@ -611,11 +803,11 @@ export const GlobalVoiceAssistant = () => {
 
                             {/* Soundwave animation when listening */}
                             {isListening && (
-                                <div className="flex items-center justify-center gap-1 py-1 px-2 bg-white/5 rounded-lg">
-                                    <span className="w-1 bg-teal-400 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-3" />
+                                <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/5 rounded-xl border border-white/5">
+                                    <span className="w-1 bg-[#d4af37] rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-3" />
                                     <span className="w-1 bg-teal-300 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-5" />
-                                    <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-2" />
-                                    <span className="w-1 bg-teal-200 rounded-full animate-[pulse_0.5s_ease-in-out_infinite] h-6" />
+                                    <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-2.5" />
+                                    <span className="w-1 bg-amber-200 rounded-full animate-[pulse_0.5s_ease-in-out_infinite] h-6" />
                                     <span className="w-1 bg-teal-400 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-4" />
                                     <span className="w-1 bg-emerald-300 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
                                 </div>
@@ -629,15 +821,43 @@ export const GlobalVoiceAssistant = () => {
                                     </p>
                                 ) : (
                                     <p className="text-slate-400">
-                                        Listening for voice commands... (e.g. "Show reports", "Search CBC")
+                                        Speak any command (e.g. "Show reports", "Book CBC", "Nearby Labs")
                                     </p>
                                 )}
                                 {lastActionText && (
-                                    <div className="mt-1 flex items-center gap-1.5 text-emerald-400 font-semibold text-[10px] bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/20">
+                                    <div className="mt-1.5 flex items-center gap-1.5 text-emerald-400 font-semibold text-[10px] bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
                                         <CheckCircle2 size={11} className="shrink-0" />
                                         <span className="truncate">{lastActionText}</span>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Quick Action Suggestion Chips */}
+                            <div className="flex flex-wrap gap-1 pt-1 border-t border-white/10">
+                                <button
+                                    onClick={() => processVoiceCommand('Show my reports')}
+                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                >
+                                    Reports
+                                </button>
+                                <button
+                                    onClick={() => processVoiceCommand('Book Complete Blood Count')}
+                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                >
+                                    Book CBC
+                                </button>
+                                <button
+                                    onClick={() => processVoiceCommand('Find labs near me')}
+                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                >
+                                    Nearby Labs
+                                </button>
+                                <button
+                                    onClick={() => processVoiceCommand('Open chatbot')}
+                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                >
+                                    ChatBot
+                                </button>
                             </div>
                         </motion.div>
                     )}
@@ -648,21 +868,22 @@ export const GlobalVoiceAssistant = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={toggleAssistant}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-lg border transition-all ${
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl border transition-all cursor-pointer ${
                         isEnabled
-                            ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-400 shadow-teal-600/30'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400 hover:text-teal-700 shadow-slate-900/10'
+                            ? 'bg-[#0a1e46] text-white border-[#d4af37] shadow-[0_10px_25px_rgba(10,30,70,0.3)]'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-[#0a1e46] hover:text-[#0a1e46] shadow-slate-900/10'
                     }`}
                 >
-                    <div className={`p-1.5 rounded-full ${isEnabled ? 'bg-white/20 text-white animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
+                    <div className={`p-1.5 rounded-full ${isEnabled ? 'bg-white/15 text-[#d4af37] animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
                         {isEnabled ? <Mic size={16} /> : <MicOff size={16} />}
                     </div>
                     <div className="text-left">
-                        <div className="text-xs font-bold leading-none">
-                            {isEnabled ? 'Voice Assistant ON' : 'Voice Assistant'}
+                        <div className="text-xs font-bold leading-none flex items-center gap-1.5">
+                            <span>{isEnabled ? 'Voice Assistant ON' : 'Voice Assistant'}</span>
+                            {isEnabled && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
                         </div>
                         <div className="text-[10px] opacity-80 leading-none mt-0.5">
-                            {isEnabled ? 'Listening hands-free' : 'Click to enable'}
+                            {isEnabled ? 'Hands-Free Active' : 'Click to enable'}
                         </div>
                     </div>
                 </motion.button>
@@ -671,7 +892,7 @@ export const GlobalVoiceAssistant = () => {
             {/* 3. VOICE COMMAND HELP & CHEATSHEET MODAL */}
             <AnimatePresence>
                 {showHelpModal && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-navy-950/70 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#0a1e46]/70 backdrop-blur-md">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -679,107 +900,207 @@ export const GlobalVoiceAssistant = () => {
                             className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh]"
                         >
                             {/* Modal Header */}
-                            <div className="bg-navy-900 p-5 text-white flex items-center justify-between border-b border-white/10">
+                            <div className="bg-[#0a1e46] p-5 text-white flex items-center justify-between border-b border-white/10">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-teal-500/20 text-teal-300 rounded-xl border border-teal-500/30">
+                                    <div className="p-2 bg-white/10 text-[#d4af37] rounded-xl border border-[#d4af37]/30">
                                         <Sparkles size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-base">DiagnoLabs Voice Commands</h3>
-                                        <p className="text-xs text-slate-400">Speak naturally anywhere across the portal</p>
+                                        <h3 className="font-bold text-base">DiagnoLabs Voice Command Directory</h3>
+                                        <p className="text-xs text-slate-300">Hands-Free Automation Across All Pages</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                                 >
                                     <X size={18} />
                                 </button>
                             </div>
 
+                            {/* Language Selector Tabs */}
+                            <div className="flex border-b border-slate-200 bg-slate-50 px-5 pt-3 gap-2">
+                                <button
+                                    onClick={() => setHelpTab('english')}
+                                    className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition cursor-pointer ${
+                                        helpTab === 'english' ? 'border-[#0a1e46] text-[#0a1e46]' : 'border-transparent text-slate-400 hover:text-slate-600'
+                                    }`}
+                                >
+                                    English Commands
+                                </button>
+                                <button
+                                    onClick={() => setHelpTab('telugu')}
+                                    className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition cursor-pointer ${
+                                        helpTab === 'telugu' ? 'border-[#0a1e46] text-[#0a1e46]' : 'border-transparent text-slate-400 hover:text-slate-600'
+                                    }`}
+                                >
+                                    తెలుగు కమాండ్స్ (Telugu)
+                                </button>
+                                <button
+                                    onClick={() => setHelpTab('hindi')}
+                                    className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition cursor-pointer ${
+                                        helpTab === 'hindi' ? 'border-[#0a1e46] text-[#0a1e46]' : 'border-transparent text-slate-400 hover:text-slate-600'
+                                    }`}
+                                >
+                                    हिंदी कमांड (Hindi)
+                                </button>
+                            </div>
+
                             {/* Modal Commands List */}
                             <div className="p-6 overflow-y-auto space-y-4 text-sm text-slate-700">
-                                {/* Category 1: Navigation */}
-                                <div>
-                                    <h4 className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <Compass size={14} /> Navigation & Pages
-                                    </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Go home" / "Home page"</span>
-                                            <span className="text-slate-500">Navigates to main homepage</span>
+                                {helpTab === 'english' && (
+                                    <>
+                                        {/* Category 1: Navigation & Actions */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <Compass size={14} /> Navigation & UI Actions
+                                            </h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Go home" / "Home page"</span>
+                                                    <span className="text-slate-500">Navigates to main home page</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Show my reports"</span>
+                                                    <span className="text-slate-500">Opens diagnostic test reports</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Click Download Report"</span>
+                                                    <span className="text-slate-500">Downloads newest report PDF</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Find labs near me"</span>
+                                                    <span className="text-slate-500">Opens nearby lab locator</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Show my reports"</span>
-                                            <span className="text-slate-500">Opens diagnostic test reports</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"My profile"</span>
-                                            <span className="text-slate-500">Opens patient profile</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Find labs near me"</span>
-                                            <span className="text-slate-500">Opens nearby lab locator</span>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {/* Category 2: Search Tests */}
-                                <div>
-                                    <h4 className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <Search size={14} /> Diagnostic Test Search
-                                    </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Search Complete Blood Count"</span>
-                                            <span className="text-slate-500">Finds CBC lab tests</span>
+                                        {/* Category 2: Direct Test Booking */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <Search size={14} /> Diagnostic Test Search & Booking
+                                            </h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Book Complete Blood Count"</span>
+                                                    <span className="text-slate-500">Finds CBC lab tests</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Book Diabetes test (HbA1c)"</span>
+                                                    <span className="text-slate-500">Finds sugar & HbA1c panels</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Book Full Body Checkup"</span>
+                                                    <span className="text-slate-500">Opens package booking</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Find labs in Hyderabad"</span>
+                                                    <span className="text-slate-500">Filters labs by city name</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Search for Diabetes test"</span>
-                                            <span className="text-slate-500">Finds HbA1c & sugar packages</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Book full body checkup"</span>
-                                            <span className="text-slate-500">Starts booking flow</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Search Thyroid package"</span>
-                                            <span className="text-slate-500">Screens for T3, T4, TSH</span>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {/* Category 3: Assistant & Chat */}
-                                <div>
-                                    <h4 className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                        <Activity size={14} /> Chat & Page Controls
-                                    </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Open chatbot"</span>
-                                            <span className="text-slate-500">Opens clinical AI assistant</span>
+                                        {/* Category 3: Assistant & Scrolling */}
+                                        <div>
+                                            <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <Activity size={14} /> Page Scrolling & Chat
+                                            </h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Open chatbot" / "Close chat"</span>
+                                                    <span className="text-slate-500">Toggles AI clinical assistant</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Scroll down" / "Scroll up"</span>
+                                                    <span className="text-slate-500">Smooth viewport scrolling</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Logout"</span>
+                                                    <span className="text-slate-500">Signs out securely</span>
+                                                </div>
+                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <span className="font-semibold text-slate-900 block">"Stop listening"</span>
+                                                    <span className="text-slate-500">Pauses voice recognition</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Scroll down" / "Scroll up"</span>
-                                            <span className="text-slate-500">Smooth page navigation</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Logout"</span>
-                                            <span className="text-slate-500">Signs out securely</span>
-                                        </div>
-                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                                            <span className="font-semibold text-navy-900 block">"Stop listening"</span>
-                                            <span className="text-slate-500">Pauses voice assistant</span>
+                                    </>
+                                )}
+
+                                {helpTab === 'telugu' && (
+                                    <div>
+                                        <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <Sparkles size={14} /> తెలుగు వాయిస్ కమాండ్స్
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Report lu chupinchu"</span>
+                                                <span className="text-slate-500">ల్యాబ్ రిపోర్టులు ఓపెన్ చేస్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Daggarlo unna lab lu"</span>
+                                                <span className="text-slate-500">సమీపంలోని NABL ల్యాబ్స్ వెతుకుతుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Blood test book cheyi"</span>
+                                                <span className="text-slate-500">CBC బ్లడ్ టెస్ట్ బుకింగ్ ఓపెన్ చేస్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Home page ki vellu"</span>
+                                                <span className="text-slate-500">మెయిన్ హోమ్ పేజీకి తీసుకెళ్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Kindaki scroll cheyi"</span>
+                                                <span className="text-slate-500">పేజీని క్రిందికి స్క్రోల్ చేస్తుంది</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Chat bot open cheyi"</span>
+                                                <span className="text-slate-500">AI క్లినికల్ చాట్‌బాట్ ఓపెన్ చేస్తుంది</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {helpTab === 'hindi' && (
+                                    <div>
+                                        <h4 className="text-xs font-bold text-[#0a1e46] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <Sparkles size={14} /> हिंदी वॉयस कमांड्स
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Mera report dikhao"</span>
+                                                <span className="text-slate-500">रिपोर्ट्स पेज खोलता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Paas ke lab dhoondo"</span>
+                                                <span className="text-slate-500">नजदीकी लैब खोजता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Blood test book karo"</span>
+                                                <span className="text-slate-500">टेस्ट बुकिंग शुरू करता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Ghar jao" / "Home page"</span>
+                                                <span className="text-slate-500">होम पेज पर ले जाता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Neeche scroll karo"</span>
+                                                <span className="text-slate-500">पेज नीचे स्क्रॉल करता है</span>
+                                            </div>
+                                            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                                <span className="font-semibold text-slate-900 block">"Chatbot kholo"</span>
+                                                <span className="text-slate-500">AI असिस्टेंट चैट खोलता है</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Modal Footer */}
                             <div className="p-4 bg-slate-50 border-t border-slate-100 text-right">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="py-2.5 px-5 bg-navy-900 text-white text-xs font-semibold rounded-xl hover:bg-navy-800 transition-colors"
+                                    className="py-2.5 px-5 bg-[#0a1e46] hover:bg-[#071530] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                                 >
                                     Got It
                                 </button>
