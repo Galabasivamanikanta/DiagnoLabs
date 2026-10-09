@@ -560,8 +560,22 @@ router.post('/admin-register', verifyTokenAndAdmin, authLimiter, async (req, res
         
         const emailHtml = `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-bottom: 4px solid #0a1e46;">
-            <img src="https://diagnolabs-platform.vercel.app/email-logo.png" alt="DiagnoLabs Logo" style="height: 60px; width: auto;" />
+          <div style="background: linear-gradient(135deg, #071938 0%, #003366 55%, #0284c7 100%); padding: 24px 20px; text-align: center; border-bottom: 3px solid #38bdf8;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+              <tr>
+                <td style="vertical-align: middle; padding-right: 10px;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #0284c7, #38bdf8); border-radius: 10px; text-align: center; line-height: 36px; color: #ffffff; font-size: 22px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">✚</div>
+                </td>
+                <td style="vertical-align: middle; text-align: left;">
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.1;">
+                    Diagno<span style="color: #38bdf8;">Labs</span>
+                  </div>
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 700; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;">
+                    Staff & Security Access Portal
+                  </div>
+                </td>
+              </tr>
+            </table>
           </div>
           <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
             <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Welcome to the Team, ${name}!</h2>
@@ -844,8 +858,22 @@ router.post('/admin-recover', async (req, res) => {
         
         const emailHtml = `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-bottom: 4px solid #0a1e46;">
-            <img src="https://diagnolabs-platform.vercel.app/email-logo.png" alt="DiagnoLabs Logo" style="max-height: 55px; width: auto;" />
+          <div style="background: linear-gradient(135deg, #071938 0%, #003366 55%, #0284c7 100%); padding: 24px 20px; text-align: center; border-bottom: 3px solid #38bdf8;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+              <tr>
+                <td style="vertical-align: middle; padding-right: 10px;">
+                  <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #0284c7, #38bdf8); border-radius: 10px; text-align: center; line-height: 36px; color: #ffffff; font-size: 22px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">✚</div>
+                </td>
+                <td style="vertical-align: middle; text-align: left;">
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.1;">
+                    Diagno<span style="color: #38bdf8;">Labs</span>
+                  </div>
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 10px; font-weight: 700; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;">
+                    Account Security & Recovery
+                  </div>
+                </td>
+              </tr>
+            </table>
           </div>
           <div style="padding: 32px 24px; background-color: #ffffff; color: #1e293b;">
             <h2 style="margin-top: 0; color: #0a1e46; font-size: 20px;">Account Recovered</h2>
