@@ -125,6 +125,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
 
     // Voice Auto-Login States
     const [isVoiceLoggingIn, setIsVoiceLoggingIn] = useState(false);
+    const [isAiSpeakingPrompt, setIsAiSpeakingPrompt] = useState(false);
     const [voiceStatusText, setVoiceStatusText] = useState('');
     const recognitionRef = useRef(null);
 
@@ -170,6 +171,7 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         } finally {
             setLoading(false);
             setIsVoiceLoggingIn(false);
+            setIsAiSpeakingPrompt(false);
             setVoiceStatusText('');
         }
     }, [identifier, password, login, speak, onLoginSuccess]);
@@ -178,6 +180,9 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         e.preventDefault();
         executeLogin(identifier, password);
     };
+
+    // Forward declaration of listenWithMic to use inside callbacks
+    const listenWithMicRef = useRef(null);
 
     // Voice Auto-Login Parser
     const handleVoiceLoginInput = useCallback((rawSpeech) => {
@@ -239,8 +244,17 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         if (emailOrPhoneMatch) {
             const cleanId = emailOrPhoneMatch[1].trim();
             setIdentifier(cleanId);
-            setVoiceStatusText(`Email/ID set to ${cleanId}. Now please speak your password.`);
-            if (speak) speak(`Email recognized as ${cleanId}. Now please speak your password.`);
+            setVoiceStatusText(`Email recognized as ${cleanId}. Assistant speaking...`);
+            setIsAiSpeakingPrompt(true);
+            if (speak) {
+                speak(`Email recognized as ${cleanId}. Now please speak your password.`, () => {
+                    setIsAiSpeakingPrompt(false);
+                    if (listenWithMicRef.current) listenWithMicRef.current();
+                });
+            } else {
+                setIsAiSpeakingPrompt(false);
+                if (listenWithMicRef.current) listenWithMicRef.current();
+            }
             return;
         }
 
@@ -258,27 +272,16 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         }
     }, [identifier, password, executeLogin, speak]);
 
-    const startVoiceLogin = () => {
+    // Dedicated function to activate microphone only when AI is NOT speaking
+    const listenWithMic = useCallback(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Voice recognition is supported in Google Chrome and Microsoft Edge.");
-            return;
-        }
+        if (!SpeechRecognition) return;
 
-        if (isVoiceLoggingIn) {
-            try {
-                recognitionRef.current?.stop();
-            } catch {
-                // Ignore
-            }
-            setIsVoiceLoggingIn(false);
-            setVoiceStatusText('');
-            return;
+        try {
+            recognitionRef.current?.stop();
+        } catch {
+            // Ignore
         }
-
-        setIsVoiceLoggingIn(true);
-        setVoiceStatusText('Listening... Speak "Email [your-email] password [your-password]"');
-        if (speak) speak('Please speak your email or User ID, followed by your password.');
 
         const rec = new SpeechRecognition();
         rec.continuous = false;
@@ -286,6 +289,12 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         rec.lang = 'en-IN';
 
         let capturedTranscript = '';
+
+        rec.onstart = () => {
+            setIsVoiceLoggingIn(true);
+            setIsAiSpeakingPrompt(false);
+            setVoiceStatusText('Mic Active! Speak: "your-email password your-password"');
+        };
 
         rec.onresult = (e) => {
             let transcript = '';
@@ -295,17 +304,19 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
             capturedTranscript = transcript;
             if (transcript.trim()) {
                 setVoiceStatusText(`Heard: "${transcript}"`);
-                handleVoiceLoginInput(transcript.trim());
             }
         };
 
-        rec.onerror = () => {
+        rec.onerror = (err) => {
+            console.warn("Voice login recognition error:", err);
             setIsVoiceLoggingIn(false);
+            setIsAiSpeakingPrompt(false);
             setVoiceStatusText('');
         };
 
         rec.onend = () => {
             setIsVoiceLoggingIn(false);
+            setIsAiSpeakingPrompt(false);
             if (capturedTranscript.trim()) {
                 handleVoiceLoginInput(capturedTranscript.trim());
             }
@@ -315,7 +326,46 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
         try {
             rec.start();
         } catch (err) {
-            console.warn("Speech start error:", err);
+            console.warn("Speech recognition start failed:", err);
+            setIsVoiceLoggingIn(false);
+            setIsAiSpeakingPrompt(false);
+        }
+    }, [handleVoiceLoginInput]);
+
+    listenWithMicRef.current = listenWithMic;
+
+    const startVoiceLogin = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Voice recognition is supported in Google Chrome and Microsoft Edge.");
+            return;
+        }
+
+        if (isVoiceLoggingIn || isAiSpeakingPrompt) {
+            try {
+                recognitionRef.current?.stop();
+            } catch {
+                // Ignore
+            }
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            setIsVoiceLoggingIn(false);
+            setIsAiSpeakingPrompt(false);
+            setVoiceStatusText('');
+            return;
+        }
+
+        setIsVoiceLoggingIn(true);
+        setIsAiSpeakingPrompt(true);
+        setVoiceStatusText('Assistant is speaking instruction... Please wait for mic.');
+
+        // AI speaks first! The microphone is ONLY activated after AI finishes speaking!
+        if (speak) {
+            speak('Please speak your email or User ID, followed by your password.', () => {
+                // Callback fires when AI voice finishes speaking!
+                listenWithMic();
+            });
+        } else {
+            listenWithMic();
         }
     };
 
@@ -333,19 +383,43 @@ const InChatLoginCard = ({ onLoginSuccess, speak }) => {
                 type="button"
                 onClick={startVoiceLogin}
                 className={`w-full py-2 px-3 rounded-xl border font-bold text-[0.78rem] flex items-center justify-center gap-2 transition-all ${
-                    isVoiceLoggingIn
+                    isAiSpeakingPrompt
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                        : isVoiceLoggingIn
                         ? 'bg-red-500 text-white border-red-600 animate-pulse shadow-md shadow-red-500/20'
                         : 'bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-500 shadow-sm hover:from-teal-500 hover:to-teal-600 cursor-pointer'
                 }`}
             >
-                <Mic size={14} className={isVoiceLoggingIn ? 'animate-bounce' : ''} />
-                <span>{isVoiceLoggingIn ? 'Listening to your credentials...' : 'Voice Auto-Login (Speak Details)'}</span>
+                {isAiSpeakingPrompt ? (
+                    <>
+                        <Volume2 size={14} className="animate-bounce" />
+                        <span>Assistant Speaking... (Please Wait)</span>
+                    </>
+                ) : isVoiceLoggingIn ? (
+                    <>
+                        <Mic size={14} className="animate-pulse" />
+                        <span>Listening... Speak Your Details</span>
+                    </>
+                ) : (
+                    <>
+                        <Mic size={14} />
+                        <span>Voice Auto-Login (Speak Details)</span>
+                    </>
+                )}
             </button>
 
             {/* Voice Status Toast */}
             {voiceStatusText && (
-                <div className="text-[0.72rem] text-teal-800 bg-teal-50 border border-teal-200 p-2 rounded-xl flex items-center gap-1.5 animate-fadeIn font-medium">
-                    <Radio size={12} className="text-teal-600 animate-pulse shrink-0" />
+                <div className={`text-[0.72rem] p-2 rounded-xl flex items-center gap-1.5 animate-fadeIn font-medium border ${
+                    isAiSpeakingPrompt
+                        ? 'text-amber-900 bg-amber-50 border-amber-200'
+                        : 'text-teal-800 bg-teal-50 border-teal-200'
+                }`}>
+                    {isAiSpeakingPrompt ? (
+                        <Volume2 size={12} className="text-amber-600 shrink-0 animate-bounce" />
+                    ) : (
+                        <Radio size={12} className="text-teal-600 animate-pulse shrink-0" />
+                    )}
                     <span className="truncate">{voiceStatusText}</span>
                 </div>
             )}
@@ -496,12 +570,18 @@ const ChatBot = () => {
         if (!isOpen) stopSpeaking();
     }, [isOpen, stopSpeaking]);
 
-    const speak = useCallback((text) => {
-        if (isMuted || !synthRef.current) return;
+    const speak = useCallback((text, onEnd) => {
+        if (isMuted || !synthRef.current) {
+            if (onEnd) onEnd();
+            return;
+        }
         synthRef.current.cancel();
         
         const cleaned = cleanText(text);
-        if (!cleaned) return;
+        if (!cleaned) {
+            if (onEnd) onEnd();
+            return;
+        }
 
         const utterance = new SpeechSynthesisUtterance(cleaned.substring(0, 350));
         utterance.lang = 'en-IN';
@@ -520,11 +600,25 @@ const ChatBot = () => {
 
         if (preferredVoice) utterance.voice = preferredVoice;
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        let endCalled = false;
+        const handleEnd = () => {
+            if (!endCalled) {
+                endCalled = true;
+                setIsSpeaking(false);
+                if (onEnd) onEnd();
+            }
+        };
 
-        synthRef.current.speak(utterance);
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = handleEnd;
+        utterance.onerror = handleEnd;
+
+        try {
+            synthRef.current.speak(utterance);
+        } catch (e) {
+            console.warn("Speech synthesis error:", e);
+            handleEnd();
+        }
     }, [isMuted]);
 
     // Speech Recognition Setup
