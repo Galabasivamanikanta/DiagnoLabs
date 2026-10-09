@@ -659,71 +659,7 @@ const Demo = () => {
               </div>
             </div>
 
-            {/* 2. Tour Slide Navigation Chips Bar */}
-            <div style={{
-              display: 'flex',
-              gap: '0.65rem',
-              overflowX: 'auto',
-              padding: '0.5rem 0 1.25rem',
-              scrollbarWidth: 'none'
-            }}>
-              {marketingTourSteps.map((step, idx) => {
-                const isActive = activeTourIndex === idx;
-                return (
-                  <button
-                    key={step.id}
-                    onClick={() => {
-                      setActiveTourIndex(idx);
-                      setSlideProgress(0);
-                      if (isNarrating) speakMarketingText(step.speech);
-                    }}
-                    style={{
-                      position: 'relative',
-                      overflow: 'hidden',
-                      padding: '0.65rem 1.35rem',
-                      borderRadius: '100px',
-                      border: isActive ? '1px solid #bae6fd' : '1px solid #f1f5f9',
-                      background: isActive ? '#e0f2fe' : '#f8fafc',
-                      color: isActive ? '#0a1e46' : '#64748b',
-                      fontSize: '0.82rem',
-                      fontWeight: isActive ? '800' : '600',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease',
-                      flexShrink: 0
-                    }}
-                  >
-                    {/* Active 5-Second Linear Fill Underline */}
-                    {isActive && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          height: '3px',
-                          width: `${isNarrating ? 100 : slideProgress}%`,
-                          background: '#0284c7',
-                          transition: isHovered ? 'none' : 'width 50ms linear'
-                        }}
-                      />
-                    )}
-                    <span style={{
-                      color: isActive ? '#0284c7' : '#94a3b8',
-                      fontWeight: '800',
-                      fontSize: '0.78rem'
-                    }}>
-                      0{idx + 1}
-                    </span>
-                    <span>{step.title.split(' ')[0]} {step.title.split(' ')[1]}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 3. Main Slide Content Area (2-Column Layout) */}
+            {/* 2. Main Slide Content Area (2-Column Layout) */}
             <div style={{
               background: '#f8fafc',
               borderRadius: '24px',
