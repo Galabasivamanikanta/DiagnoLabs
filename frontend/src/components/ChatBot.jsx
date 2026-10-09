@@ -4,7 +4,7 @@ import {
     Droplets, Thermometer, Zap, HeartPulse, ShieldCheck, ArrowRight,
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
     Calendar, FileText, HelpCircle, Paperclip, Mic, MicOff, Radio,
-    Sparkles, RefreshCw
+    Sparkles, RefreshCw, ChevronDown
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
