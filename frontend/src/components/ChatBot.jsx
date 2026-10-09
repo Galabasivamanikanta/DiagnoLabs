@@ -113,12 +113,148 @@ const generateClinicalFallback = (text, userName) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Reusable In-Chat Login Card Component
+// ─────────────────────────────────────────────────────────────
+const InChatLoginCard = ({ onLoginSuccess, speak }) => {
+    const { login, googleLogin } = useContext(AuthContext);
+    const [identifier, setIdentifier] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setLoading(true);
+            setError('');
+            const res = await googleLogin(credentialResponse.credential);
+            if (res.success) {
+                if (speak) speak(`Login successful. Welcome back, ${res.user.name || 'User'}!`);
+                onLoginSuccess(res.user);
+            } else {
+                setError(res.message || "Google Authentication failed");
+            }
+        } catch {
+            setError("Failed to sign in with Google.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleManualSubmit = async (e) => {
+        e.preventDefault();
+        if (!identifier || !password) {
+            setError("Please enter your email, phone, or User ID and password.");
+            return;
+        }
+        try {
+            setLoading(true);
+            setError('');
+            const res = await login(identifier, password);
+            if (res.success) {
+                if (speak) speak(`Login successful. Welcome, ${res.user.name || 'User'}!`);
+                onLoginSuccess(res.user);
+            } else {
+                setError(res.message || "Invalid credentials.");
+            }
+        } catch {
+            setError("Login failed. Please check your credentials.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm my-1">
+            <div className="text-[0.76rem] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                    <Lock size={13} className="text-[#0a1e46]" /> Secure Portal Login:
+                </span>
+                <span className="text-[0.68rem] text-amber-700 font-semibold lowercase">patient access</span>
+            </div>
+
+            {/* 1. Google One-Click Login */}
+            <div className="w-full flex justify-center py-1">
+                <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError("Google Sign-In Failed")}
+                    useOneTap={false}
+                    shape="pill"
+                    size="medium"
+                    text="signin_with"
+                    width="100%"
+                />
+            </div>
+
+            <div className="flex items-center gap-2 my-0.5">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-[0.68rem] text-slate-400 font-bold uppercase">or sign in with credentials</span>
+                <div className="flex-1 h-px bg-slate-200" />
+            </div>
+
+            {/* 2. Manual Login Form */}
+            <form onSubmit={handleManualSubmit} className="flex flex-col gap-2">
+                {error && (
+                    <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
+                        <AlertCircle size={13} className="shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+                
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
+                    <User size={14} className="text-slate-400 shrink-0" />
+                    <input 
+                        type="text" 
+                        placeholder="Email, Phone, or User ID" 
+                        value={identifier}
+                        onChange={e => setIdentifier(e.target.value)}
+                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
+                        required
+                    />
+                </div>
+
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
+                    <Lock size={14} className="text-slate-400 shrink-0" />
+                    <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Password" 
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
+                        required
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 p-0.5">
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2.5 bg-[#0a1e46] hover:bg-[#0f2d6b] text-white rounded-xl text-[0.8rem] font-bold shadow-md shadow-navy-950/10 flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 size={13} className="animate-spin" /> Verifying...
+                        </>
+                    ) : (
+                        <>
+                            <ArrowRight size={14} /> Sign In to DiagnoLabs
+                        </>
+                    )}
+                </button>
+            </form>
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────
 // Main Clean White DiagnoLabs ChatBot Component
 // ─────────────────────────────────────────────────────────────
 const ChatBot = () => {
     const navigate = useNavigate();
     const { isMobile } = useDevice();
-    const { user, login, googleLogin, logout } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
 
     const [messages, setMessages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -130,14 +266,6 @@ const ChatBot = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [attachedFile, setAttachedFile] = useState(null);
     const [voiceFeedbackText, setVoiceFeedbackText] = useState('');
-
-    // Inline Manual Login States inside ChatBot
-    const [showManualLogin, setShowManualLogin] = useState(false);
-    const [loginEmail, setLoginEmail] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [loginLoading, setLoginLoading] = useState(false);
-    const [loginError, setLoginError] = useState('');
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -589,88 +717,16 @@ const ChatBot = () => {
         setVoiceFeedbackText('');
     };
 
-    const renderLoginWidget = () => (
-        <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl flex flex-col gap-2.5 shadow-sm my-1">
-            <div className="text-[0.76rem] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                    <Lock size={13} className="text-[#0a1e46]" /> Secure Portal Login:
-                </span>
-                <span className="text-[0.68rem] text-amber-700 font-semibold lowercase">patient access</span>
-            </div>
-
-            {/* 1. Google One-Click Login */}
-            <div className="w-full flex justify-center py-1">
-                <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setLoginError("Google Sign-In Failed")}
-                    useOneTap={false}
-                    shape="pill"
-                    size="medium"
-                    text="signin_with"
-                    width="100%"
-                />
-            </div>
-
-            <div className="flex items-center gap-2 my-0.5">
-                <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-[0.68rem] text-slate-400 font-bold uppercase">or sign in with credentials</span>
-                <div className="flex-1 h-px bg-slate-200" />
-            </div>
-
-            {/* 2. Manual Login Form: Email / Phone / Customer ID + Password */}
-            <form onSubmit={handleManualLogin} className="flex flex-col gap-2">
-                {loginError && (
-                    <div className="text-[0.72rem] text-red-600 font-bold bg-red-50 p-2 rounded-lg border border-red-200 flex items-center gap-1.5">
-                        <AlertCircle size={13} className="shrink-0" />
-                        <span>{loginError}</span>
-                    </div>
-                )}
-                
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
-                    <User size={14} className="text-slate-400 shrink-0" />
-                    <input 
-                        type="text" 
-                        placeholder="Email, Phone, or User ID" 
-                        value={loginEmail}
-                        onChange={e => setLoginEmail(e.target.value)}
-                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
-                        required
-                    />
-                </div>
-
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:border-[#0a1e46] transition-colors">
-                    <Lock size={14} className="text-slate-400 shrink-0" />
-                    <input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Password" 
-                        value={loginPassword}
-                        onChange={e => setLoginPassword(e.target.value)}
-                        className="flex-1 text-[0.8rem] border-none outline-none bg-transparent"
-                        required
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 p-0.5">
-                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loginLoading}
-                    className="w-full py-2.5 bg-[#0a1e46] hover:bg-[#0f2d6b] text-white rounded-xl text-[0.8rem] font-bold shadow-md shadow-navy-950/10 flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer"
-                >
-                    {loginLoading ? (
-                        <>
-                            <Loader2 size={13} className="animate-spin" /> Verifying...
-                        </>
-                    ) : (
-                        <>
-                            <ArrowRight size={14} /> Sign In to DiagnoLabs
-                        </>
-                    )}
-                </button>
-            </form>
-        </div>
-    );
+    const handleLoginSuccess = (loggedInUser) => {
+        setMessages(prev => [
+            ...prev,
+            {
+                id: getUniqueId(),
+                text: `Authentication verified! Welcome back, **${loggedInUser.name || 'User'}**. All diagnostic features, lab bookings, and report records are now active.`,
+                sender: 'bot'
+            }
+        ]);
+    };
 
     const renderText = (text) => {
         const noEmojiText = (text || '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
@@ -786,7 +842,7 @@ const ChatBot = () => {
                                     </div>
 
                                     {/* If User is NOT Logged In: Display Google Sign-In & Manual Login in ChatBot */}
-                                    {!user && renderLoginWidget()}
+                                    {!user && <InChatLoginCard onLoginSuccess={handleLoginSuccess} speak={speak} />}
 
                                     {/* 4 Action Cards with Border and Right Arrow */}
                                     <div className="flex flex-col gap-2.5">
@@ -877,7 +933,7 @@ const ChatBot = () => {
                                             {/* In-Chat Login Widget Prompt */}
                                             {msg.showLoginOptions && !user && (
                                                 <div className="w-full mt-2">
-                                                    {renderLoginWidget()}
+                                                    <InChatLoginCard onLoginSuccess={handleLoginSuccess} speak={speak} />
                                                 </div>
                                             )}
 
