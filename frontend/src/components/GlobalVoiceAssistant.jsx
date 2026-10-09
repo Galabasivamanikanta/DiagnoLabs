@@ -747,114 +747,113 @@ export const GlobalVoiceAssistant = () => {
                 )}
             </AnimatePresence>
 
-            {/* 2. FLOATING VOICE ASSISTANT HUD / WIDGET */}
-            <div className="fixed bottom-6 left-6 z-[9990] flex flex-col items-start gap-2 select-none">
+            {/* 2. MINIMALIST CLINICAL GLASSMORPHIC VOICE ASSISTANT HUD */}
+            <div className="fixed bottom-6 left-6 z-[9990] flex flex-col items-start gap-2 select-none font-sans">
                 {/* Active Voice Pill HUD */}
                 <AnimatePresence>
                     {isEnabled && (
                         <motion.div
-                            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                            initial={{ opacity: 0, y: 12, scale: 0.96 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                            className="bg-[#0a1e46]/95 text-white backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 p-3 max-w-xs sm:max-w-sm flex flex-col gap-2 ring-1 ring-white/10"
+                            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                            className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_14px_40px_rgba(10,30,70,0.12)] border border-slate-200/90 p-3 max-w-[340px] sm:max-w-[360px] flex flex-col gap-2 ring-1 ring-slate-100"
                         >
-                            {/* HUD Header */}
-                            <div className="flex items-center justify-between gap-3 text-xs">
+                            {/* Capsule Header Row */}
+                            <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-100">
                                 <div className="flex items-center gap-2">
-                                    <span className="relative flex h-2.5 w-2.5">
-                                        {isListening ? (
-                                            <>
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                                            </>
-                                        ) : (
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                                        )}
-                                    </span>
-                                    <span className="font-bold tracking-wide text-[#d4af37] text-[0.72rem] uppercase">
-                                        VOICE COMMAND TO ACTION
-                                    </span>
+                                    <div className="w-7 h-7 rounded-lg bg-[#0a1e46] text-white flex items-center justify-center shadow-sm">
+                                        <Mic size={14} className={isListening ? "text-[#d4af37] animate-pulse" : "text-white"} />
+                                    </div>
+                                    <div>
+                                        <div className="text-[0.76rem] font-extrabold text-[#0a1e46] tracking-tight flex items-center gap-1.5">
+                                            <span>Voice Assistant</span>
+                                            <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+                                        </div>
+                                        <div className="text-[0.62rem] font-bold text-slate-400 uppercase tracking-wider">
+                                            {isListening ? 'Hands-Free Active' : 'Ready'}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={toggleMute}
-                                        title={isMuted ? "Unmute Voice Feedback" : "Mute Voice Feedback"}
-                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                        title={isMuted ? "Unmute Audio Feedback" : "Mute Audio Feedback"}
+                                        className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                                     >
-                                        {isMuted ? <VolumeX size={14} className="text-rose-400" /> : <Volume2 size={14} className="text-emerald-300" />}
+                                        {isMuted ? <VolumeX size={14} className="text-rose-500" /> : <Volume2 size={14} className="text-[#0a1e46]" />}
                                     </button>
                                     <button
                                         onClick={() => setShowHelpModal(true)}
                                         title="Voice Commands Guide"
-                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                        className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                                     >
                                         <HelpCircle size={14} />
                                     </button>
                                     <button
                                         onClick={handleDisableAssistant}
-                                        title="Disable Voice Assistant"
-                                        className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 transition-colors cursor-pointer"
+                                        title="Turn Off Voice Assistant"
+                                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                     >
                                         <Power size={14} />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Soundwave animation when listening */}
-                            {isListening && (
-                                <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white/5 rounded-xl border border-white/5">
-                                    <span className="w-1 bg-[#d4af37] rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-3" />
-                                    <span className="w-1 bg-teal-300 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-5" />
-                                    <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-2.5" />
-                                    <span className="w-1 bg-amber-200 rounded-full animate-[pulse_0.5s_ease-in-out_infinite] h-6" />
-                                    <span className="w-1 bg-teal-400 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-4" />
-                                    <span className="w-1 bg-emerald-300 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                            {/* Live Soundwave & Transcript Status */}
+                            <div className="flex items-center gap-2.5 px-2.5 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                                {isListening && (
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                        <span className="w-0.5 bg-[#0a1e46] rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-3" />
+                                        <span className="w-0.5 bg-[#d4af37] rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-5" />
+                                        <span className="w-0.5 bg-emerald-500 rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-2.5" />
+                                        <span className="w-0.5 bg-[#0a1e46] rounded-full animate-[pulse_0.5s_ease-in-out_infinite] h-4" />
+                                    </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    {liveTranscript ? (
+                                        <p className="text-[0.74rem] font-medium text-slate-700 truncate italic">
+                                            "{liveTranscript}"
+                                        </p>
+                                    ) : (
+                                        <p className="text-[0.72rem] text-slate-400 truncate">
+                                            Say: "Show reports", "Book CBC", "Nearby labs"...
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Action Feedback Badge (if any) */}
+                            {lastActionText && (
+                                <div className="flex items-center gap-1.5 text-emerald-700 font-semibold text-[0.72rem] bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg">
+                                    <CheckCircle2 size={12} className="shrink-0 text-emerald-600" />
+                                    <span className="truncate">{lastActionText}</span>
                                 </div>
                             )}
 
-                            {/* Live Transcript / Last Action display */}
-                            <div className="text-[11px] leading-snug">
-                                {liveTranscript ? (
-                                    <p className="text-slate-200 italic line-clamp-2">
-                                        "{liveTranscript}"
-                                    </p>
-                                ) : (
-                                    <p className="text-slate-400">
-                                        Speak any command (e.g. "Show reports", "Book CBC", "Nearby Labs")
-                                    </p>
-                                )}
-                                {lastActionText && (
-                                    <div className="mt-1.5 flex items-center gap-1.5 text-emerald-400 font-semibold text-[10px] bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">
-                                        <CheckCircle2 size={11} className="shrink-0" />
-                                        <span className="truncate">{lastActionText}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Quick Action Suggestion Chips */}
-                            <div className="flex flex-wrap gap-1 pt-1 border-t border-white/10">
+                            {/* Quick Suggestion Chips */}
+                            <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
                                 <button
                                     onClick={() => processVoiceCommand('Show my reports')}
-                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.68rem] font-semibold transition cursor-pointer shrink-0"
                                 >
                                     Reports
                                 </button>
                                 <button
                                     onClick={() => processVoiceCommand('Book Complete Blood Count')}
-                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.68rem] font-semibold transition cursor-pointer shrink-0"
                                 >
                                     Book CBC
                                 </button>
                                 <button
                                     onClick={() => processVoiceCommand('Find labs near me')}
-                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.68rem] font-semibold transition cursor-pointer shrink-0"
                                 >
                                     Nearby Labs
                                 </button>
                                 <button
                                     onClick={() => processVoiceCommand('Open chatbot')}
-                                    className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-semibold text-slate-200 transition cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.68rem] font-semibold transition cursor-pointer shrink-0"
                                 >
                                     ChatBot
                                 </button>
@@ -863,29 +862,24 @@ export const GlobalVoiceAssistant = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Floating Microphone Trigger Pill (Toggle Button) */}
+                {/* Floating Microphone Trigger Pill */}
                 <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
                     onClick={toggleAssistant}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl border transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-full shadow-lg border transition-all cursor-pointer ${
                         isEnabled
-                            ? 'bg-[#0a1e46] text-white border-[#d4af37] shadow-[0_10px_25px_rgba(10,30,70,0.3)]'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-[#0a1e46] hover:text-[#0a1e46] shadow-slate-900/10'
+                            ? 'bg-[#0a1e46] text-white border-slate-700 shadow-[0_8px_20px_rgba(10,30,70,0.2)]'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 shadow-sm'
                     }`}
                 >
-                    <div className={`p-1.5 rounded-full ${isEnabled ? 'bg-white/15 text-[#d4af37] animate-pulse' : 'bg-slate-100 text-slate-600'}`}>
-                        {isEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isEnabled ? 'bg-white/15 text-[#d4af37]' : 'bg-slate-100 text-slate-600'}`}>
+                        {isEnabled ? <Mic size={12} className="animate-pulse" /> : <MicOff size={12} />}
                     </div>
-                    <div className="text-left">
-                        <div className="text-xs font-bold leading-none flex items-center gap-1.5">
-                            <span>{isEnabled ? 'Voice Assistant ON' : 'Voice Assistant'}</span>
-                            {isEnabled && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
-                        </div>
-                        <div className="text-[10px] opacity-80 leading-none mt-0.5">
-                            {isEnabled ? 'Hands-Free Active' : 'Click to enable'}
-                        </div>
-                    </div>
+                    <span className="text-[0.76rem] font-bold">
+                        {isEnabled ? 'Voice Assistant ON' : 'Voice Assistant'}
+                    </span>
+                    {isEnabled && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
                 </motion.button>
             </div>
 
