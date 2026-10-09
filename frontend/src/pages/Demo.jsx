@@ -11,7 +11,8 @@ import {
   Building2,
   BadgeCheck,
   FlaskConical,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import './Demo.css';
 import BrandLogo from '../components/BrandLogo';
@@ -378,7 +379,10 @@ const Demo = () => {
       {/* Hero Section */}
       <section className="demo-hero">
         <div className="demo-hero-content">
-          <div className="demo-hero-badge">India's Most Advanced Clinical Network</div>
+          <div className="demo-hero-badge">
+            <Sparkles size={14} className="text-amber-600" />
+            <span>India's Most Advanced Clinical Network</span>
+          </div>
           <h1 className="demo-hero-title">Precision Discovery.<br /><span>Expert Diagnosis.</span></h1>
           <p className="demo-hero-subtitle">Unified gateway to India's most trusted NABL-certified clinical networks with cutting-edge technology and expert pathologists.</p>
           <div className="demo-hero-buttons">
