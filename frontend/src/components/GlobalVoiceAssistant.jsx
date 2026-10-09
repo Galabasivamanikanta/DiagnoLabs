@@ -104,6 +104,7 @@ export const GlobalVoiceAssistant = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState('');
     const [lastActionText, setLastActionText] = useState('');
+    const [aiSpokenFeedback, setAiSpokenFeedback] = useState('');
     const [isSpeaking, setIsSpeaking] = useState(false);
 
     const recognitionRef = useRef(null);
@@ -145,11 +146,13 @@ export const GlobalVoiceAssistant = () => {
 
     // Speech Synthesis helper
     const speak = useCallback((text) => {
-        if (isMuted || !synthRef.current || typeof window === 'undefined') return;
-        synthRef.current.cancel();
-
         const cleaned = cleanSpeechText(text);
         if (!cleaned) return;
+
+        setAiSpokenFeedback(cleaned);
+
+        if (isMuted || !synthRef.current || typeof window === 'undefined') return;
+        synthRef.current.cancel();
 
         const utterance = new SpeechSynthesisUtterance(cleaned);
         utterance.lang = 'en-IN';
@@ -171,6 +174,10 @@ export const GlobalVoiceAssistant = () => {
         utterance.onstart = () => setIsSpeaking(true);
         utterance.onend = () => setIsSpeaking(false);
         utterance.onerror = () => setIsSpeaking(false);
+
+        if (synthRef.current.paused) {
+            synthRef.current.resume();
+        }
 
         synthRef.current.speak(utterance);
     }, [isMuted]);
@@ -508,6 +515,7 @@ export const GlobalVoiceAssistant = () => {
         if (cmd.includes('scroll down') || cmd.includes('page down') || cmd.includes('kindaki scroll') || cmd.includes('neeche scroll')) {
             window.scrollBy({ top: 650, behavior: 'smooth' });
             setLastActionText('Scrolled Down');
+            speak('Scrolling down.');
             setIsProcessing(false);
             return;
         }
@@ -515,6 +523,7 @@ export const GlobalVoiceAssistant = () => {
         if (cmd.includes('scroll up') || cmd.includes('page up') || cmd.includes('paiki scroll') || cmd.includes('upar scroll')) {
             window.scrollBy({ top: -650, behavior: 'smooth' });
             setLastActionText('Scrolled Up');
+            speak('Scrolling up.');
             setIsProcessing(false);
             return;
         }
@@ -522,6 +531,7 @@ export const GlobalVoiceAssistant = () => {
         if (cmd.includes('scroll to top') || cmd.includes('top of page') || cmd.includes('go to top') || cmd.includes('top ki vellu')) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setLastActionText('Scrolled to Top');
+            speak('Scrolling to top of page.');
             setIsProcessing(false);
             return;
         }
@@ -529,6 +539,7 @@ export const GlobalVoiceAssistant = () => {
         if (cmd.includes('scroll to bottom') || cmd.includes('bottom of page') || cmd.includes('bottom ki vellu')) {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             setLastActionText('Scrolled to Bottom');
+            speak('Scrolling to bottom of page.');
             setIsProcessing(false);
             return;
         }
@@ -693,8 +704,10 @@ export const GlobalVoiceAssistant = () => {
             return;
         }
 
-        // If unrecognized command, give subtle feedback
-        setLastActionText(`Command heard: "${rawTranscript}"`);
+        // If unrecognized command, give intelligent spoken and visual feedback
+        const fallbackSpeech = `I heard "${rawTranscript}". You can say "Show reports", "Book Complete Blood Count", "Find labs near me", "Turn on location", or "Explain demo".`;
+        setLastActionText(`Recognized: "${rawTranscript}"`);
+        speak(fallbackSpeech);
         setIsProcessing(false);
     }, [navigate, speak, logout, login, turnOnLocation, turnOffLocation, showLocationPromptModal]);
 
@@ -1005,6 +1018,17 @@ export const GlobalVoiceAssistant = () => {
                                 <div className="flex items-center gap-1.5 text-emerald-700 font-semibold text-[0.72rem] bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg">
                                     <CheckCircle2 size={12} className="shrink-0 text-emerald-600" />
                                     <span className="truncate">{lastActionText}</span>
+                                </div>
+                            )}
+
+                            {/* AI Spoken Voice Response Banner */}
+                            {aiSpokenFeedback && (
+                                <div className="flex items-start gap-1.5 p-2 bg-sky-50 border border-sky-200/90 rounded-xl text-[0.72rem] text-sky-950 font-medium leading-tight">
+                                    <Volume2 size={13} className="text-sky-600 shrink-0 mt-0.5 animate-pulse" />
+                                    <div className="flex-1 min-w-0">
+                                        <span className="font-bold text-sky-900 block text-[0.64rem] uppercase tracking-wider">AI Voice Response:</span>
+                                        <p className="line-clamp-2 text-slate-800 font-semibold">{aiSpokenFeedback}</p>
+                                    </div>
                                 </div>
                             )}
 
