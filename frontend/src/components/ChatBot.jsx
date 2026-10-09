@@ -1,14 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useContext } from 'react';
 import {
-    MessageSquare, Send, Sparkles, ChevronDown, RefreshCw,
-    Mic, MicOff, Paperclip, FileText, X, Loader2, FlaskConical,
+    MessageSquare, Send, X, Loader2, FlaskConical,
     Droplets, Thermometer, Zap, HeartPulse, ShieldCheck, ArrowRight,
     Volume2, VolumeX, CheckCircle2, AlertCircle, Pill, Activity,
-    ClipboardList, CreditCard, BookOpen, Stethoscope, Package, Landmark,
-    Megaphone, LifeBuoy, Truck, Cpu, Crown, UserCheck, Radio, Compass,
-    Sparkle, Mic2, MapPin, Calendar, FileCheck, Info, Check, HelpCircle,
-    Layers, Search, Stethoscope as StethIcon, ShieldAlert, FileSearch,
-    Stethoscope as DoctorIcon
+    Calendar, FileText, HelpCircle, Paperclip, Mic, MicOff, Radio,
+    Sparkles, RefreshCw
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,17 +15,13 @@ import { AuthContext } from '../context/AuthContext';
 import useDevice from '../hooks/useDevice';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// ─────────────────────────────────────────────────────────────
-// Helpers & Role Configurations
-// ─────────────────────────────────────────────────────────────
-
 let msgIdCounter = 0;
 const getUniqueId = (offset = 0) => {
     msgIdCounter += 1;
     return Date.now() + msgIdCounter + offset;
 };
 
-// Strips emojis & markdown for voice synthesis
+// Strips emojis & markdown for speech synthesis
 const cleanText = (text) =>
     (text || '')
         .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '')
@@ -53,143 +45,26 @@ const parseAction = (text) => {
 const testIcon = (name = '') => {
     const n = name.toLowerCase();
     if (n.includes('blood') || n.includes('cbc') || n.includes('haemoglobin') || n.includes('platelet')) 
-        return <Droplets size={20} className="text-rose-600" />;
+        return <Droplets size={18} className="text-rose-600" />;
     if (n.includes('sugar') || n.includes('hba1c') || n.includes('diabetes') || n.includes('glucose')) 
-        return <Thermometer size={20} className="text-amber-600" />;
+        return <Thermometer size={18} className="text-amber-600" />;
     if (n.includes('thyroid') || n.includes('t3') || n.includes('t4') || n.includes('tsh')) 
-        return <Zap size={20} className="text-yellow-600" />;
+        return <Zap size={18} className="text-yellow-600" />;
     if (n.includes('heart') || n.includes('cardiac') || n.includes('ecg') || n.includes('lipid') || n.includes('cholesterol')) 
-        return <HeartPulse size={20} className="text-red-600" />;
+        return <HeartPulse size={18} className="text-red-600" />;
     if (n.includes('liver') || n.includes('kidney') || n.includes('urine') || n.includes('renal') || n.includes('lft') || n.includes('kft')) 
-        return <ShieldCheck size={20} className="text-emerald-600" />;
+        return <ShieldCheck size={18} className="text-emerald-600" />;
     if (n.includes('vitamin') || n.includes('b12') || n.includes('d3') || n.includes('iron') || n.includes('calcium')) 
-        return <Pill size={20} className="text-purple-600" />;
+        return <Pill size={18} className="text-purple-600" />;
     if (n.includes('full') || n.includes('body') || n.includes('checkup') || n.includes('package') || n.includes('fever')) 
-        return <Activity size={20} className="text-sky-600" />;
-    return <FlaskConical size={20} className="text-cyan-600" />;
+        return <Activity size={18} className="text-sky-600" />;
+    return <FlaskConical size={18} className="text-cyan-600" />;
 };
 
 // ─────────────────────────────────────────────────────────────
-// Prominent Icon Role Configurations (Zero Emojis, Bold Icons)
+// Clinical Fallback Engine
 // ─────────────────────────────────────────────────────────────
-const ROLE_CHAT_CONFIGS = {
-    patient: {
-        title: 'Patient Health AI Copilot',
-        subtitle: 'Clinical Triage · Lab Booking · Voice Assistant',
-        icon: <Sparkles size={22} className="text-sky-300" />,
-        features: [
-            { 
-                icon: <Activity size={20} className="text-sky-600" />, 
-                bg: 'bg-sky-100 border-sky-200', 
-                title: 'Symptom Triage', 
-                desc: 'Analyze symptoms & get NABL diagnostic test suggestions' 
-            },
-            { 
-                icon: <Calendar size={20} className="text-emerald-600" />, 
-                bg: 'bg-emerald-100 border-emerald-200', 
-                title: 'Instant Booking', 
-                desc: 'Schedule home collection (e.g. "Book CBC Test")' 
-            },
-            { 
-                icon: <FileCheck size={20} className="text-indigo-600" />, 
-                bg: 'bg-indigo-100 border-indigo-200', 
-                title: 'Report Interpretation', 
-                desc: 'Understand biomarker values & normal reference intervals' 
-            },
-            { 
-                icon: <Pill size={20} className="text-purple-600" />, 
-                bg: 'bg-purple-100 border-purple-200', 
-                title: 'Preparation Guidelines', 
-                desc: 'Pre-test fasting rules & dietary protocols' 
-            },
-            { 
-                icon: <MapPin size={20} className="text-rose-600" />, 
-                bg: 'bg-rose-100 border-rose-200', 
-                title: 'Lab Discovery', 
-                desc: 'Find nearest accredited pathology laboratories' 
-            }
-        ],
-        prompts: [
-            { label: 'Fever & Infection', icon: <Thermometer size={16} className="text-amber-500" />, text: 'I have fever, chills, and body aches for 2 days. What tests should I get?' },
-            { label: 'Diabetes Check', icon: <Droplets size={16} className="text-rose-500" />, text: 'Suggest the best diagnostic tests for Diabetes screening and monitoring.' },
-            { label: 'Thyroid & Fatigue', icon: <Zap size={16} className="text-yellow-500" />, text: 'I have extreme fatigue and sudden weight gain. Which thyroid test is best?' },
-            { label: 'Fasting Guidelines', icon: <ClipboardList size={16} className="text-emerald-500" />, text: 'Do I need 10 to 12 hours fasting before my Lipid Profile and Sugar tests?' },
-            { label: 'Full Body Package', icon: <Activity size={16} className="text-sky-500" />, text: 'What tests are included in the Comprehensive Full Body Health Package?' }
-        ]
-    },
-    doctor: {
-        title: 'Doctor AI Clinical Copilot',
-        subtitle: 'Differential Diagnosis · Decision Support',
-        icon: <Stethoscope size={22} className="text-sky-300" />,
-        features: [
-            { icon: <Activity size={20} className="text-sky-600" />, bg: 'bg-sky-100 border-sky-200', title: 'Differential Diagnosis', desc: 'Parameter correlation from patient laboratory values' },
-            { icon: <Pill size={20} className="text-purple-600" />, bg: 'bg-purple-100 border-purple-200', title: 'Prescription Protocols', desc: 'Standard evidence-based clinical management templates' },
-            { icon: <ShieldCheck size={20} className="text-emerald-600" />, bg: 'bg-emerald-100 border-emerald-200', title: 'Interaction Check', desc: 'Identify drug and analytical test interferences' }
-        ],
-        prompts: [
-            { label: 'Differential Diagnosis', icon: <Activity size={16} className="text-sky-500" />, text: 'Patient has Elevated TSH (8.5) and Low Free T4. What is the diagnosis and treatment?' },
-            { label: 'Type-2 Diabetes Rx', icon: <Pill size={16} className="text-purple-500" />, text: 'Draft a standard prescription and monitoring protocol for Type-2 Diabetes.' },
-            { label: 'Drug-Lab Interaction', icon: <ShieldCheck size={16} className="text-emerald-500" />, text: 'Does Biotin or Metformin interfere with Thyroid panel tests?' }
-        ]
-    },
-    nurse: {
-        title: 'Nurse Clinical Assistant AI',
-        subtitle: 'Vitals · Sterile Care Coordination',
-        icon: <HeartPulse size={22} className="text-pink-300" />,
-        features: [
-            { icon: <HeartPulse size={20} className="text-pink-600" />, bg: 'bg-pink-100 border-pink-200', title: 'Vitals Standards', desc: 'Reference ranges for BP, SpO2, and pulse rate' },
-            { icon: <FlaskConical size={20} className="text-cyan-600" />, bg: 'bg-cyan-100 border-cyan-200', title: 'Vacutainer Sequence', desc: 'Order of draw for sterile blood collection tubes' }
-        ],
-        prompts: [
-            { label: 'Vitals Reference Ranges', icon: <HeartPulse size={16} className="text-rose-500" />, text: 'What are the normal adult and senior vitals ranges for BP, SpO2, and Pulse?' },
-            { label: 'Vacutainer Sequence', icon: <FlaskConical size={16} className="text-cyan-500" />, text: 'What is the correct order of draw for blood collection tubes (EDTA, Serum, Fluoride)?' }
-        ]
-    },
-    phlebotomist: {
-        title: 'Phlebotomist Navigator AI',
-        subtitle: 'Sample Collection · Cold Chain GPS',
-        icon: <Droplets size={22} className="text-rose-300" />,
-        features: [
-            { icon: <MapPin size={20} className="text-rose-600" />, bg: 'bg-rose-100 border-rose-200', title: 'GPS Routing', desc: 'Optimized routing to patient collection addresses' },
-            { icon: <ShieldCheck size={20} className="text-emerald-600" />, bg: 'bg-emerald-100 border-emerald-200', title: 'OTP Verification', desc: '4-digit digital verification security handshake' }
-        ],
-        prompts: [
-            { label: 'Tube Color Guide', icon: <Droplets size={16} className="text-rose-500" />, text: 'Which tube color is used for HbA1c, Glucose, and Lipid Profile?' },
-            { label: 'OTP Verification', icon: <ShieldCheck size={16} className="text-emerald-500" />, text: 'Explain the 4-digit OTP digital handshake verification procedure.' }
-        ]
-    },
-    admin: {
-        title: 'Admin Master Copilot AI',
-        subtitle: 'Platform Governance · RBAC Analytics',
-        icon: <Crown size={22} className="text-amber-300" />,
-        features: [
-            { icon: <ShieldCheck size={20} className="text-sky-600" />, bg: 'bg-sky-100 border-sky-200', title: 'RBAC Governance', desc: '14-Tier user access permissions & compliance' },
-            { icon: <ClipboardList size={20} className="text-emerald-600" />, bg: 'bg-emerald-100 border-emerald-200', title: 'Accreditation', desc: 'NABL onboarding review & verification' }
-        ],
-        prompts: [
-            { label: '14-Tier RBAC Overview', icon: <ShieldCheck size={16} className="text-sky-500" />, text: 'List the access privileges and data boundaries across the 14 RBAC user roles.' },
-            { label: 'Lab Onboarding Checklist', icon: <ClipboardList size={16} className="text-emerald-500" />, text: 'What compliance documents are required to approve a new NABL lab partner?' }
-        ]
-    },
-    employee: {
-        title: 'Front Desk Operations AI',
-        subtitle: 'Reception · Walk-In Registration',
-        icon: <UserCheck size={22} className="text-sky-300" />,
-        features: [
-            { icon: <UserCheck size={20} className="text-sky-600" />, bg: 'bg-sky-100 border-sky-200', title: 'Walk-In Registration', desc: 'Patient intake & test profile selection' },
-            { icon: <Calendar size={20} className="text-emerald-600" />, bg: 'bg-emerald-100 border-emerald-200', title: 'Check-In', desc: 'Verification of online scheduled appointments' }
-        ],
-        prompts: [
-            { label: 'Walk-In Registration', icon: <UserCheck size={16} className="text-sky-500" />, text: 'How do I register a new walk-in patient for a Thyroid and CBC test?' },
-            { label: 'Appointment Check-In', icon: <Calendar size={16} className="text-emerald-500" />, text: 'What is the standard procedure to verify and check in an online booked patient?' }
-        ]
-    }
-};
-
-// ─────────────────────────────────────────────────────────────
-// Clinical Fallback Engine (Zero Emojis)
-// ─────────────────────────────────────────────────────────────
-const generateClinicalFallback = (text, role = 'patient') => {
+const generateClinicalFallback = (text) => {
     const q = (text || '').toLowerCase().trim();
 
     if (q.includes('fever') || q.includes('temperature') || q.includes('chills') || q.includes('dengue') || q.includes('malaria') || q.includes('typhoid') || q.includes('jwaram') || q.includes('cold') || q.includes('flu')) {
@@ -228,27 +103,22 @@ const generateClinicalFallback = (text, role = 'patient') => {
         return `You can view and download all your digitally signed NABL diagnostic lab reports with secure QR verification in your patient dashboard.\n\n• Reports are available immediately upon Pathologist clinical verification.\n• Each report contains a tamper-proof cryptographic QR code for instant authenticity verification.\n\n[ACTION: REPORT_ANALYZED]`;
     }
 
-    if (q.includes('price') || q.includes('cost') || q.includes('rate') || q.includes('offer') || q.includes('discount') || q.includes('coupon') || q.includes('book')) {
-        return `DiagnoLabs offers transparent pricing with up to 40% discount on NABL diagnostic packages including Complimentary Home Sample Collection:\n\n• Complete Blood Count (CBC): ₹299\n• HbA1c Diabetes Screen: ₹450\n• Thyroid Profile (T3/T4/TSH): ₹499\n• Lipid Profile: ₹550\n• Comprehensive Full Body Package: ₹1,499 (75+ Parameters)\n\n[ACTION: CHECKOUT]`;
+    if (q.includes('book') || q.includes('appointment') || q.includes('schedule') || q.includes('home collection')) {
+        return `You can schedule home sample collection across all verified NABL labs in your area with zero collection fee.\n\nPopular Diagnostic Packages:\n• Complete Blood Count (CBC) — ₹299\n• HbA1c Diabetes Screen — ₹450\n• Comprehensive Full Body Package — ₹1,499\n\n[ACTION: CHECKOUT]`;
     }
 
-    return `Hello. I am your DiagnoLabs Clinical Diagnostic Assistant.\n\nI can assist you with:\n• Symptom Triage: Evidence-based diagnostic test recommendations.\n• Direct Scheduling: Instant home collection booking with NABL-verified labs.\n• Preparation Protocols: Pre-test fasting and dietary guidance.\n• Report Interpretation: Diagnostic biomarker values and reference intervals.\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
+    return `Hello. I am the DiagnoLabs clinical assistant.\n\nHow can I help you today?\n• Explore diagnostic tests & packages\n• Book an appointment for home sample collection\n• Check your verified digital lab report status\n• Ask any medical preparation or health question\n\n[RECOMMEND: Comprehensive Full Body Health Package][ACTION: BOOK: Comprehensive Full Body Health Package]`;
 };
 
 // ─────────────────────────────────────────────────────────────
-// Main Ultra-Modern ChatBot Component
+// Main Clean White DiagnoLabs ChatBot Component
 // ─────────────────────────────────────────────────────────────
 const ChatBot = () => {
     const navigate = useNavigate();
     const { isMobile } = useDevice();
     const { user } = useContext(AuthContext);
 
-    // Determine role
-    const currentRole = (user?.role || user?.role_name || 'patient').toLowerCase();
-    const roleConfig = ROLE_CHAT_CONFIGS[currentRole] || ROLE_CHAT_CONFIGS.patient;
-
     const [messages, setMessages] = useState([]);
-    const [showQuickPrompts, setShowQuickPrompts] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -261,10 +131,10 @@ const ChatBot = () => {
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+    const inputRef = useRef(null);
     const recognitionRef = useRef(null);
     const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
-    // Auto-scroll
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading, speechTranscript]);
@@ -280,7 +150,6 @@ const ChatBot = () => {
         if (!isOpen) stopSpeaking();
     }, [isOpen, stopSpeaking]);
 
-    // Text to Speech
     const speak = useCallback((text) => {
         if (isMuted || !synthRef.current) return;
         synthRef.current.cancel();
@@ -311,98 +180,6 @@ const ChatBot = () => {
 
         synthRef.current.speak(utterance);
     }, [isMuted]);
-
-    // Initial greeting on role change
-    useEffect(() => {
-        setMessages([
-            {
-                id: 1,
-                isGreeting: true,
-                sender: 'bot',
-                recommendations: [],
-                action: null
-            }
-        ]);
-    }, [currentRole]);
-
-    // ─────────────────────────────────────────────────────────
-    // Voice Command Processor
-    // ─────────────────────────────────────────────────────────
-    const processVoiceCommand = useCallback((rawText) => {
-        const text = rawText.toLowerCase().trim();
-
-        if (text.includes('open report') || text.includes('show report') || text.includes('view report') || text.includes('my report') || text.includes('download report')) {
-            setVoiceFeedbackText('Opening your Lab Reports...');
-            speak('Opening your digital lab reports.');
-            setTimeout(() => navigate('/patient/history'), 1200);
-            return true;
-        }
-
-        if (text.includes('open booking') || text.includes('my booking') || text.includes('view booking') || text.includes('track sample')) {
-            setVoiceFeedbackText('Opening your Bookings & Tracking...');
-            speak('Navigating to your test bookings.');
-            setTimeout(() => navigate('/patient/history'), 1200);
-            return true;
-        }
-
-        if (text.includes('go to home') || text.includes('open home') || text.includes('homepage')) {
-            setVoiceFeedbackText('Navigating to Home...');
-            speak('Taking you to the home page.');
-            setTimeout(() => navigate('/'), 1000);
-            return true;
-        }
-
-        if (text.includes('find lab') || text.includes('search lab') || text.includes('nearest lab')) {
-            setVoiceFeedbackText('Searching nearest NABL labs...');
-            speak('Opening lab discovery search.');
-            setTimeout(() => navigate('/search'), 1000);
-            return true;
-        }
-
-        if (text.includes('checkout') || text.includes('go to cart') || text.includes('make payment')) {
-            setVoiceFeedbackText('Proceeding to Checkout...');
-            speak('Taking you to the checkout screen.');
-            setTimeout(() => navigate('/checkout'), 1000);
-            return true;
-        }
-
-        if (text.includes('clear chat') || text.includes('reset chat') || text.includes('start over')) {
-            handleReset();
-            speak('Chat conversation has been reset.');
-            return true;
-        }
-
-        if (text.includes('mute voice') || text.includes('stop talking') || text.includes('be quiet') || text.includes('turn off voice')) {
-            setIsMuted(true);
-            stopSpeaking();
-            setVoiceFeedbackText('Voice output muted.');
-            return true;
-        }
-
-        if (text.includes('unmute voice') || text.includes('turn on voice') || text.includes('speak')) {
-            setIsMuted(false);
-            setVoiceFeedbackText('Voice output enabled.');
-            speak('Voice output is now active.');
-            return true;
-        }
-
-        if (text.startsWith('book ') || text.startsWith('schedule ') || text.includes('book test') || text.includes('test book cheyyi')) {
-            let testQuery = text
-                .replace(/^book\s+/i, '')
-                .replace(/^schedule\s+/i, '')
-                .replace(/test/gi, '')
-                .replace(/book cheyyi/gi, '')
-                .trim();
-
-            if (!testQuery) testQuery = 'Complete Blood Count';
-            setVoiceFeedbackText(`Searching & Booking: ${testQuery}...`);
-            speak(`Finding accredited labs for ${testQuery}.`);
-            setTimeout(() => navigate(`/search?q=${encodeURIComponent(testQuery)}`), 1500);
-            return true;
-        }
-
-        return false;
-    }, [navigate, speak, stopSpeaking]);
 
     // Speech Recognition Setup
     useEffect(() => {
@@ -501,14 +278,43 @@ const ChatBot = () => {
         else if (action === 'MED_INFO') navigate('/search');
     };
 
-    const buildContext = () => {
-        const path = window.location.pathname;
-        return `Role: [${currentRole.toUpperCase()}]. User: [${user?.name || 'Patient'}]. Active Page: [${path}].`;
-    };
+    // Voice Command Processor
+    const processVoiceCommand = useCallback((rawText) => {
+        const text = rawText.toLowerCase().trim();
 
-    // ─────────────────────────────────────────────────────────
-    // Send Handler (Multi-Tier AI Engine)
-    // ─────────────────────────────────────────────────────────
+        if (text.includes('open report') || text.includes('show report') || text.includes('view report') || text.includes('my report') || text.includes('check report')) {
+            setVoiceFeedbackText('Opening your Lab Reports...');
+            speak('Opening your digital lab reports.');
+            setTimeout(() => navigate('/patient/history'), 1000);
+            return true;
+        }
+
+        if (text.includes('open booking') || text.includes('my booking') || text.includes('book appointment') || text.includes('track sample')) {
+            setVoiceFeedbackText('Opening Bookings...');
+            speak('Navigating to your test bookings.');
+            setTimeout(() => navigate('/patient/history'), 1000);
+            return true;
+        }
+
+        if (text.includes('explore test') || text.includes('search test') || text.includes('all tests')) {
+            setVoiceFeedbackText('Exploring diagnostic tests...');
+            speak('Opening diagnostic tests directory.');
+            setTimeout(() => navigate('/search'), 1000);
+            return true;
+        }
+
+        if (text.startsWith('book ') || text.startsWith('schedule ')) {
+            let testQuery = text.replace(/^book\s+/i, '').replace(/^schedule\s+/i, '').replace(/test/gi, '').trim();
+            if (!testQuery) testQuery = 'Complete Blood Count';
+            setVoiceFeedbackText(`Searching: ${testQuery}...`);
+            speak(`Finding accredited labs for ${testQuery}.`);
+            setTimeout(() => navigate(`/search?q=${encodeURIComponent(testQuery)}`), 1200);
+            return true;
+        }
+
+        return false;
+    }, [navigate, speak]);
+
     const handleSend = async (overrideText) => {
         const text = (overrideText || inputValue).trim();
         if (!text && !attachedFile) return;
@@ -518,7 +324,6 @@ const ChatBot = () => {
         setMessages(prev => [...prev, { id: getUniqueId(), text: displayText, sender: 'user' }]);
         setInputValue('');
         setSpeechTranscript('');
-        setShowQuickPrompts(false);
         setIsLoading(true);
         stopSpeaking();
 
@@ -535,8 +340,8 @@ const ChatBot = () => {
             try {
                 const apiRes = await axios.post(`${API_BASE_URL}/api/chat`, {
                     prompt: text,
-                    context: buildContext(),
-                    userRole: currentRole,
+                    context: `Patient: ${user?.name || 'User'}. Current Page: ${window.location.pathname}`,
+                    userRole: 'patient',
                     fileData: attachedFile?.data,
                     fileType: attachedFile?.mimeType
                 }, {
@@ -559,7 +364,7 @@ const ChatBot = () => {
                         const genAI = new GoogleGenerativeAI(geminiKey);
                         const model = genAI.getGenerativeModel({
                             model: "gemini-1.5-flash",
-                            systemInstruction: `You are the ${roleConfig.title}. Context: ${buildContext()}. Always provide empathetic, clear clinical guidance. Do not use emojis in clinical text. Append [RECOMMEND: Exact Test Name] if suggesting tests. Append [ACTION: BOOK: Exact Test Name] or [ACTION: CHECKOUT] if instructing actions.`
+                            systemInstruction: `You are the DiagnoLabs clinical assistant. Respond clearly, professionally, and concisely without emojis. Append [RECOMMEND: Exact Test Name] if suggesting tests. Append [ACTION: BOOK: Exact Test Name] or [ACTION: CHECKOUT] if instructing actions.`
                         });
 
                         if (attachedFile) {
@@ -578,9 +383,9 @@ const ChatBot = () => {
                 }
             }
 
-            // Tier 3: Guaranteed Clinical Intelligence Fallback
+            // Tier 3: Guaranteed Fallback
             if (!reply) {
-                reply = generateClinicalFallback(text, currentRole);
+                reply = generateClinicalFallback(text);
             }
 
             const recommendations = parseRecommendations(reply);
@@ -609,7 +414,7 @@ const ChatBot = () => {
 
         } catch (err) {
             console.error("AI Error:", err);
-            const fallbackReply = generateClinicalFallback(text, currentRole);
+            const fallbackReply = generateClinicalFallback(text);
             const cleanedText = fallbackReply.replace(/\[RECOMMEND:[^\]]+\]/gi, '').replace(/\[ACTION:[^\]]+\]/gi, '').trim();
             
             const errBotMsg = {
@@ -627,16 +432,21 @@ const ChatBot = () => {
         }
     };
 
+    const handleActionCardClick = (actionType) => {
+        if (actionType === 'explore') {
+            handleSend('Show me the popular diagnostic tests and health packages available.');
+        } else if (actionType === 'book') {
+            handleSend('How do I book an appointment for a home blood sample collection?');
+        } else if (actionType === 'report') {
+            handleSend('How can I check and download my lab report status?');
+        } else if (actionType === 'ask') {
+            inputRef.current?.focus();
+        }
+    };
+
     const handleReset = () => {
         stopSpeaking();
-        setMessages([{
-            id: Date.now(),
-            isGreeting: true,
-            sender: 'bot',
-            recommendations: [],
-            action: null
-        }]);
-        setShowQuickPrompts(true);
+        setMessages([]);
         setVoiceFeedbackText('');
     };
 
@@ -645,7 +455,7 @@ const ChatBot = () => {
         const parts = noEmojiText.split(/\*\*(.*?)\*\*/g);
         return parts.map((part, i) =>
             i % 2 === 1
-                ? <strong key={i} className="font-bold text-slate-900 tracking-tight">{part}</strong>
+                ? <strong key={i} className="font-bold text-slate-900">{part}</strong>
                 : part.split('\n').map((line, j, arr) =>
                     j < arr.length - 1 ? [line, <br key={`${i}-${j}`} />] : line
                 )
@@ -654,343 +464,276 @@ const ChatBot = () => {
 
     return (
         <>
-            {/* Floating Action Button (FAB) */}
+            {/* Floating Action Button */}
             <motion.button
-                whileHover={{ scale: 1.06, y: -2 }}
-                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(o => !o)}
-                aria-label="Open AI Copilot Chat"
-                className="fixed bottom-6 right-6 z-[1500] w-[62px] h-[62px] rounded-2xl flex items-center justify-center text-white cursor-pointer shadow-[0_12px_32px_rgba(2,132,199,0.38)] transition-shadow duration-300"
-                style={{
-                    background: 'linear-gradient(135deg, #071938 0%, #003366 50%, #0284c7 100%)',
-                    border: '1.5px solid rgba(255, 255, 255, 0.25)'
-                }}
+                aria-label="Open DiagnoLabs Assistant"
+                className="fixed bottom-6 right-6 z-[1500] w-[60px] h-[60px] rounded-full flex items-center justify-center text-white cursor-pointer shadow-[0_10px_30px_rgba(10,30,70,0.25)] bg-[#0a1e46] border-2 border-white"
             >
                 <AnimatePresence mode="wait">
                     {isOpen ? (
                         <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                            <ChevronDown size={26} className="text-sky-200" />
+                            <ChevronDown size={24} className="text-white" />
                         </motion.div>
                     ) : (
                         <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                            <MessageSquare size={26} className="text-white" />
+                            <MessageSquare size={24} className="text-white" />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </motion.button>
 
-            {/* Main Chat Panel */}
+            {/* Chat Panel - Exact Replica of User Mockup */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                        initial={{ opacity: 0, y: 30, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 40, scale: 0.96 }}
-                        transition={{ type: 'spring', damping: 26, stiffness: 340 }}
-                        className="fixed bottom-24 right-6 z-[1500] flex flex-col overflow-hidden bg-white/95 backdrop-blur-2xl rounded-[28px] border border-slate-200/80 shadow-[0_25px_65px_-12px_rgba(7,25,56,0.32)]"
+                        exit={{ opacity: 0, y: 30, scale: 0.96 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                        className="fixed bottom-24 right-6 z-[1500] flex flex-col bg-white rounded-[24px] border border-slate-200/90 shadow-[0_20px_60px_rgba(10,30,70,0.12)] overflow-hidden"
                         style={{
-                            width: isMobile ? 'calc(100vw - 2rem)' : '425px',
-                            height: isMobile ? '82vh' : '680px',
-                            maxHeight: isMobile ? '640px' : '720px'
+                            width: isMobile ? 'calc(100vw - 2rem)' : '390px',
+                            height: isMobile ? '80vh' : '540px',
+                            maxHeight: isMobile ? '600px' : '580px'
                         }}
                     >
-                        {/* Header */}
-                        <div 
-                            className="px-5 py-4 text-white relative overflow-hidden flex-shrink-0"
-                            style={{
-                                background: 'linear-gradient(135deg, #071938 0%, #003366 55%, #0284c7 100%)',
-                                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                            }}
-                        >
-                            <div className="absolute top-0 right-0 w-36 h-36 bg-sky-400/15 rounded-full blur-2xl pointer-events-none" />
-
-                            <div className="flex justify-between items-center relative z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
-                                        {roleConfig.icon}
-                                    </div>
-                                    <div>
-                                        <div className="font-extrabold text-[0.98rem] flex items-center gap-2 tracking-tight">
-                                            {roleConfig.title}
-                                            <span className="relative flex h-2 w-2">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                                            </span>
-                                        </div>
-                                        <div className="text-[0.66rem] font-bold text-sky-200 tracking-wider uppercase opacity-90">
-                                            {roleConfig.subtitle}
-                                        </div>
-                                    </div>
+                        {/* Header: Logo, Title, Subtitle, Online Status, Close */}
+                        <div className="px-5 py-3.5 bg-white border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                {/* Hexagon ECG Logo Icon */}
+                                <div className="w-9 h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" stroke="#0a1e46" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M7 12H9.5L11 9L13 15L14.5 12H17" stroke="#d4af37" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
                                 </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <motion.button
-                                        whileTap={{ scale: 0.88 }}
-                                        onClick={() => { setIsMuted(m => !m); stopSpeaking(); }}
-                                        title={isMuted ? 'Unmute audio response' : 'Mute audio response'}
-                                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-sky-200 transition-colors cursor-pointer"
-                                    >
-                                        {isMuted ? <VolumeX size={15} className="text-white/40" /> : <Volume2 size={15} className="text-sky-300" />}
-                                    </motion.button>
-                                    <motion.button
-                                        whileTap={{ scale: 0.88 }}
-                                        onClick={handleReset}
-                                        title="Reset conversation"
-                                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80 transition-colors cursor-pointer"
-                                    >
-                                        <RefreshCw size={15} />
-                                    </motion.button>
+                                <div>
+                                    <div className="text-[0.98rem] font-extrabold text-[#0a1e46] tracking-tight leading-tight">
+                                        DiagnoLabs
+                                    </div>
+                                    <div className="text-[0.62rem] font-bold text-[#b58b22] tracking-widest uppercase">
+                                        CLINICAL DISCOVERY
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Voice Status Bar */}
-                            {(isListening || isSpeaking || voiceFeedbackText) && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="mt-2.5 px-3 py-1.5 bg-black/25 backdrop-blur-md rounded-lg flex items-center justify-between text-[0.72rem] text-sky-100 border border-white/10"
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 text-[0.78rem] font-semibold text-slate-500">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                                    <span>Online</span>
+                                </div>
+                                <button 
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-slate-400 hover:text-slate-600 transition p-1 cursor-pointer"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        {isListening && <Radio size={14} className="text-rose-400 animate-pulse" />}
-                                        {isSpeaking && <Volume2 size={14} className="text-sky-300 animate-bounce" />}
-                                        <span className="font-semibold">{voiceFeedbackText || (isListening ? 'Listening to speech...' : 'Playing voice response...')}</span>
-                                    </div>
-                                    {isSpeaking && (
-                                        <button 
-                                            onClick={stopSpeaking}
-                                            className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-[0.65rem] font-bold transition cursor-pointer"
-                                        >
-                                            Stop
-                                        </button>
-                                    )}
-                                </motion.div>
-                            )}
+                                    <X size={18} />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Messages Feed */}
-                        <div className="flex-1 overflow-y-auto p-4 bg-[#f8fafc] flex flex-col gap-3.5 scroll-smooth">
-                            {messages.map(msg => (
-                                <motion.div
-                                    key={msg.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} max-w-[94%] ${msg.sender === 'user' ? 'self-end' : 'self-start'}`}
-                                >
-                                    {/* Prominent Feature Cards Greeting with Large Bold Icons */}
-                                    {msg.isGreeting ? (
-                                        <div className="p-4 bg-white rounded-[24px] rounded-bl-[6px] border border-slate-200/90 shadow-[0_4px_24px_rgba(0,0,0,0.05)] text-slate-800 w-full flex flex-col gap-3.5">
-                                            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                                                <div className="w-9 h-9 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                                    <Sparkles size={18} className="text-sky-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-[0.92rem] font-extrabold text-slate-900 tracking-tight">
-                                                        DiagnoLabs Clinical Copilot
-                                                    </div>
-                                                    <div className="text-[0.68rem] font-semibold text-slate-500">
-                                                        NABL Diagnostic Intelligence & Voice Engine
-                                                    </div>
-                                                </div>
-                                            </div>
+                        {/* Voice Feedback Strip if speaking/listening */}
+                        {(isListening || isSpeaking || voiceFeedbackText) && (
+                            <div className="px-4 py-1.5 bg-sky-50 text-[0.72rem] text-sky-800 border-b border-sky-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    {isListening && <Radio size={13} className="text-red-500 animate-pulse" />}
+                                    {isSpeaking && <Volume2 size={13} className="text-sky-600 animate-bounce" />}
+                                    <span className="font-semibold">{voiceFeedbackText || (isListening ? 'Listening...' : 'Speaking reply...')}</span>
+                                </div>
+                                {isSpeaking && (
+                                    <button onClick={stopSpeaking} className="text-[0.65rem] font-bold text-sky-700 underline">Stop</button>
+                                )}
+                            </div>
+                        )}
 
-                                            <div className="px-3 py-2 rounded-xl bg-sky-50 border border-sky-200 flex items-center gap-2.5 text-[0.76rem] font-bold text-sky-800">
-                                                <Mic2 size={16} className="text-sky-600 flex-shrink-0" />
-                                                <span>Voice Flow Active: Speak or type any health query</span>
-                                            </div>
-
-                                            {/* Feature Rows with Large Colorful Icon Badges */}
-                                            <div className="flex flex-col gap-2.5 pt-1">
-                                                {roleConfig.features?.map((feat, fIdx) => (
-                                                    <div key={fIdx} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/80 transition-all">
-                                                        <div className={`w-9 h-9 rounded-xl ${feat.bg} border flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                                                            {feat.icon}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="text-[0.82rem] font-extrabold text-slate-900">
-                                                                {feat.title}
-                                                            </div>
-                                                            <div className="text-[0.74rem] text-slate-600 font-medium leading-tight mt-0.5">
-                                                                {feat.desc}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        /* Standard Message Bubble */
-                                        <div
-                                            className={`px-4 py-3 text-[0.88rem] leading-[1.65] font-medium transition-all ${
-                                                msg.sender === 'user'
-                                                    ? 'rounded-[20px] rounded-br-[4px] text-white shadow-[0_8px_20px_-4px_rgba(2,132,199,0.32)]'
-                                                    : 'rounded-[20px] rounded-bl-[4px] bg-white text-slate-800 border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.04)]'
-                                            }`}
-                                            style={
-                                                msg.sender === 'user'
-                                                    ? { background: 'linear-gradient(135deg, #071938 0%, #003366 50%, #0284c7 100%)' }
-                                                    : {}
-                                            }
-                                        >
-                                            {renderText(msg.text)}
-                                        </div>
-                                    )}
-
-                                    {/* NABL Verified Test Recommendation Cards */}
-                                    {msg.recommendations?.length > 0 && (
-                                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="w-full mt-2 flex flex-col gap-2">
-                                            {msg.recommendations.map((testName, idx) => (
-                                                <div 
-                                                    key={idx} 
-                                                    className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-center justify-between gap-2.5 hover:border-sky-300 transition-all"
-                                                >
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center flex-shrink-0">
-                                                            {testIcon(testName)}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="text-[0.62rem] font-extrabold text-sky-600 uppercase tracking-wider">
-                                                                NABL Verified Test
-                                                            </div>
-                                                            <div className="text-[0.84rem] font-bold text-slate-900 truncate">
-                                                                {testName}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleBook(testName)}
-                                                        className="px-3.5 py-1.5 rounded-lg text-white font-bold text-[0.76rem] flex items-center gap-1.5 flex-shrink-0 cursor-pointer shadow-sm hover:shadow transition-all"
-                                                        style={{ background: 'linear-gradient(135deg, #0284c7, #003366)' }}
-                                                    >
-                                                        Book <ArrowRight size={13} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </motion.div>
-                                    )}
-
-                                    {/* Action Banner */}
-                                    {msg.action && !msg.action.startsWith('BOOK:') && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, scale: 0.96 }} 
-                                            animate={{ opacity: 1, scale: 1 }} 
-                                            className="w-full mt-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between"
-                                        >
-                                            <span className="text-[0.78rem] font-bold text-emerald-800 flex items-center gap-2">
-                                                <CheckCircle2 size={16} className="text-emerald-600" />
-                                                {msg.action === 'CHECKOUT' ? 'Proceed to Test Checkout' : msg.action === 'REPORT_ANALYZED' ? 'View Patient Reports' : 'View Test Bookings'}
-                                            </span>
-                                            <button 
-                                                onClick={() => handleAction(msg.action)} 
-                                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[0.74rem] font-bold cursor-pointer transition shadow-sm"
-                                            >
-                                                Go ➜
-                                            </button>
-                                        </motion.div>
-                                    )}
-                                </motion.div>
-                            ))}
-
-                            {/* Typing Indicator */}
-                            {isLoading && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="self-start">
-                                    <div className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-2">
-                                        <Loader2 size={16} className="animate-spin text-sky-600" />
-                                        <span className="text-[0.8rem] font-bold text-slate-500">AI Copilot analyzing...</span>
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-y-auto p-5 bg-white flex flex-col gap-4 scroll-smooth">
+                            {/* If no chat messages, show the exact 4 Action Cards UI */}
+                            {messages.length === 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {/* Greeting Text */}
+                                    <div className="pt-1">
+                                        <h3 className="text-[1.12rem] font-bold text-[#0f2444] tracking-tight mb-1">
+                                            Hello! I'm the DiagnoLabs assistant.
+                                        </h3>
+                                        <p className="text-[0.86rem] text-slate-500 font-medium">
+                                            How can I help you today?
+                                        </p>
                                     </div>
-                                </motion.div>
-                            )}
 
-                            {/* Voice Tip Banner */}
-                            {showQuickPrompts && !isLoading && (
-                                <div className="p-3 bg-sky-50 border border-dashed border-sky-200 rounded-2xl flex items-center gap-2.5 text-[0.74rem] text-sky-900 shadow-sm">
-                                    <Sparkle size={16} className="text-sky-600 flex-shrink-0" />
-                                    <span className="leading-snug">
-                                        <strong>Voice Command:</strong> Tap mic & speak <em className="text-sky-950 font-bold">"Book CBC Test"</em> or <em className="text-sky-950 font-bold">"Show My Reports"</em>
-                                    </span>
+                                    {/* 4 Action Cards with Border and Right Arrow */}
+                                    <div className="flex flex-col gap-2.5">
+                                        {/* Card 1: Explore diagnostic tests */}
+                                        <button
+                                            onClick={() => handleActionCardClick('explore')}
+                                            className="w-full px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 rounded-2xl flex items-center justify-between text-left transition-all group shadow-sm cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <FlaskConical size={19} className="text-[#0a1e46]" />
+                                                <span className="text-[0.88rem] font-semibold text-[#0a1e46]">
+                                                    Explore diagnostic tests
+                                                </span>
+                                            </div>
+                                            <ArrowRight size={16} className="text-slate-400 group-hover:text-[#0a1e46] group-hover:translate-x-0.5 transition-all" />
+                                        </button>
+
+                                        {/* Card 2: Book an appointment */}
+                                        <button
+                                            onClick={() => handleActionCardClick('book')}
+                                            className="w-full px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 rounded-2xl flex items-center justify-between text-left transition-all group shadow-sm cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Calendar size={19} className="text-[#0a1e46]" />
+                                                <span className="text-[0.88rem] font-semibold text-[#0a1e46]">
+                                                    Book an appointment
+                                                </span>
+                                            </div>
+                                            <ArrowRight size={16} className="text-slate-400 group-hover:text-[#0a1e46] group-hover:translate-x-0.5 transition-all" />
+                                        </button>
+
+                                        {/* Card 3: Check report status */}
+                                        <button
+                                            onClick={() => handleActionCardClick('report')}
+                                            className="w-full px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 rounded-2xl flex items-center justify-between text-left transition-all group shadow-sm cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <FileText size={19} className="text-[#0a1e46]" />
+                                                <span className="text-[0.88rem] font-semibold text-[#0a1e46]">
+                                                    Check report status
+                                                </span>
+                                            </div>
+                                            <ArrowRight size={16} className="text-slate-400 group-hover:text-[#0a1e46] group-hover:translate-x-0.5 transition-all" />
+                                        </button>
+
+                                        {/* Card 4: Ask a question */}
+                                        <button
+                                            onClick={() => handleActionCardClick('ask')}
+                                            className="w-full px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 rounded-2xl flex items-center justify-between text-left transition-all group shadow-sm cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <HelpCircle size={19} className="text-[#0a1e46]" />
+                                                <span className="text-[0.88rem] font-semibold text-[#0a1e46]">
+                                                    Ask a question
+                                                </span>
+                                            </div>
+                                            <ArrowRight size={16} className="text-slate-400 group-hover:text-[#0a1e46] group-hover:translate-x-0.5 transition-all" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Active Chat Messages */
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                                        <span className="text-[0.74rem] font-bold text-slate-400 uppercase tracking-wider">Conversation</span>
+                                        <button onClick={handleReset} className="text-[0.72rem] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer">
+                                            <RefreshCw size={12} /> Reset
+                                        </button>
+                                    </div>
+
+                                    {messages.map(msg => (
+                                        <div
+                                            key={msg.id}
+                                            className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} max-w-[92%] ${msg.sender === 'user' ? 'self-end' : 'self-start'}`}
+                                        >
+                                            <div
+                                                className={`px-4 py-2.5 text-[0.86rem] leading-relaxed font-medium ${
+                                                    msg.sender === 'user'
+                                                        ? 'rounded-2xl rounded-br-sm bg-[#0a1e46] text-white'
+                                                        : 'rounded-2xl rounded-bl-sm bg-slate-50 border border-slate-200 text-slate-800'
+                                                }`}
+                                            >
+                                                {renderText(msg.text)}
+                                            </div>
+
+                                            {/* Test Recommendations */}
+                                            {msg.recommendations?.length > 0 && (
+                                                <div className="w-full mt-2 flex flex-col gap-1.5">
+                                                    {msg.recommendations.map((testName, idx) => (
+                                                        <div key={idx} className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-2">
+                                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                                <div className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0">
+                                                                    {testIcon(testName)}
+                                                                </div>
+                                                                <span className="text-[0.8rem] font-bold text-[#0a1e46] truncate">{testName}</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleBook(testName)}
+                                                                className="px-2.5 py-1 bg-[#0a1e46] text-white rounded-lg text-[0.72rem] font-bold flex items-center gap-1 cursor-pointer flex-shrink-0"
+                                                            >
+                                                                Book <ArrowRight size={11} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Action Banner */}
+                                            {msg.action && !msg.action.startsWith('BOOK:') && (
+                                                <div className="w-full mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                                                    <span className="text-[0.74rem] font-bold text-emerald-800">
+                                                        {msg.action === 'CHECKOUT' ? 'Proceed to Checkout' : 'View Reports'}
+                                                    </span>
+                                                    <button onClick={() => handleAction(msg.action)} className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[0.7rem] font-bold">Go</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {isLoading && (
+                                        <div className="self-start px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2">
+                                            <Loader2 size={14} className="animate-spin text-[#0a1e46]" />
+                                            <span className="text-[0.76rem] font-medium text-slate-500">Assistant is typing...</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-
-                            {/* Quick Action Prompt Pills with Prominent Lucide Icons */}
-                            <AnimatePresence>
-                                {showQuickPrompts && !isLoading && roleConfig.prompts?.length > 0 && (
-                                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex flex-wrap gap-1.5 mt-1">
-                                        {roleConfig.prompts.map((q, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => handleSend(q.text)}
-                                                className="px-3.5 py-1.5 bg-white hover:bg-sky-50 hover:border-sky-300 border border-slate-200 rounded-full text-[0.76rem] font-bold text-slate-800 shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-2 active:scale-95"
-                                            >
-                                                {q.icon}
-                                                <span>{q.label}</span>
-                                            </button>
-                                        ))}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
 
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Input & Voice Bar */}
-                        <div className="p-3.5 bg-white border-t border-slate-100 flex-shrink-0 shadow-lg">
-                            <div 
-                                className={`flex items-center gap-1.5 p-1.5 rounded-2xl transition-all ${
-                                    isListening 
-                                        ? 'bg-red-50/90 border-2 border-red-400 ring-4 ring-red-100' 
-                                        : 'bg-slate-50 border border-slate-200 hover:border-slate-300 focus-within:border-sky-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-sky-100/50'
-                                }`}
-                            >
+                        {/* Input Bar - Exact Pill Container Design */}
+                        <div className="p-3.5 bg-white border-t border-slate-100 flex-shrink-0">
+                            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white hover:border-slate-300 focus-within:border-[#0a1e46] transition-all shadow-sm">
                                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} accept="image/*,.pdf" />
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    title="Attach prescription or lab report"
-                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 ${
-                                        attachedFile ? 'bg-sky-100 text-sky-700' : 'text-slate-400 hover:text-slate-600'
-                                    }`}
+                                    title="Attach document"
+                                    className="text-slate-400 hover:text-slate-600 transition p-1 cursor-pointer flex-shrink-0"
                                 >
                                     <Paperclip size={18} />
                                 </button>
 
                                 <input
+                                    ref={inputRef}
                                     type="text"
-                                    placeholder={isListening ? 'Listening to voice command...' : `Ask or speak to ${roleConfig.title}...`}
+                                    placeholder={isListening ? 'Listening...' : 'Type your message...'}
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                                    className="flex-1 bg-transparent border-none outline-none text-[0.88rem] font-medium text-slate-800 placeholder:text-slate-400 px-1 py-1"
+                                    className="flex-1 bg-transparent border-none outline-none text-[0.88rem] text-slate-800 placeholder:text-slate-400"
                                 />
 
-                                {/* Voice Mic Button */}
-                                <motion.button
-                                    whileTap={{ scale: 0.88 }}
+                                {/* Mic Button */}
+                                <button
                                     onClick={toggleListening}
-                                    title={isListening ? 'Stop listening' : 'Speak voice command'}
-                                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
-                                        isListening 
-                                            ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
-                                            : 'bg-sky-100 hover:bg-sky-200 text-sky-600'
+                                    title="Voice Input"
+                                    className={`p-1.5 rounded-full transition cursor-pointer flex-shrink-0 ${
+                                        isListening ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-slate-600'
                                     }`}
                                 >
-                                    {isListening ? (
-                                        <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}>
-                                            <Mic size={19} />
-                                        </motion.div>
-                                    ) : (
-                                        <Mic size={19} />
-                                    )}
-                                </motion.button>
+                                    <Mic size={18} />
+                                </button>
 
-                                {/* Send Button */}
-                                <motion.button
-                                    whileTap={{ scale: 0.9 }}
+                                {/* Solid Navy Circular Send Button */}
+                                <button
                                     onClick={() => handleSend()}
                                     disabled={isLoading}
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white cursor-pointer transition-all shadow-md flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{ background: 'linear-gradient(135deg, #003366, #0284c7)' }}
+                                    className="w-8 h-8 rounded-full bg-[#0a1e46] hover:bg-[#071530] text-white flex items-center justify-center transition shadow-sm cursor-pointer flex-shrink-0 disabled:opacity-50"
                                 >
-                                    <Send size={16} />
-                                </motion.button>
+                                    <Send size={14} className="translate-x-[1px]" />
+                                </button>
                             </div>
                         </div>
                     </motion.div>
