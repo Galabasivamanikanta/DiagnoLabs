@@ -130,8 +130,24 @@ const BookingHistory = () => {
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     };
 
-    // Filter Logic
-    const filtered = bookings.filter(b => {
+    // Filter & Deduplication Logic
+    const confirmedSet = new Set();
+    bookings.forEach(b => {
+        if (b.status !== 'Pending' || b.paymentStatus === 'Paid') {
+            const key = `${b.appointmentDate}_${b.appointmentTime}_${b.testDetails?.[0]?.testName || ''}`;
+            confirmedSet.add(key);
+        }
+    });
+
+    const deduplicatedBookings = bookings.filter(b => {
+        if (b.status === 'Pending' && b.paymentStatus === 'Pending') {
+            const key = `${b.appointmentDate}_${b.appointmentTime}_${b.testDetails?.[0]?.testName || ''}`;
+            if (confirmedSet.has(key)) return false;
+        }
+        return true;
+    });
+
+    const filtered = deduplicatedBookings.filter(b => {
         const matchSearch =
             b._id.toLowerCase().includes(search.toLowerCase()) ||
             b.testDetails?.some(t => t.testName?.toLowerCase().includes(search.toLowerCase())) ||

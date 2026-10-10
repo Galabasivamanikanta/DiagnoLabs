@@ -19,6 +19,7 @@ const Checkout = () => {
     const [locating, setLocating] = useState(false);
     const [labFullAddress, setLabFullAddress] = useState('');
     const [collectionType, setCollectionType] = useState('home'); // 'home' or 'visit'
+    const [submitting, setSubmitting] = useState(false);
 
     const handleLocationClick = () => {
         if (!navigator.geolocation) {
@@ -90,11 +91,14 @@ const Checkout = () => {
 
     const handleBooking = async (e) => {
         e.preventDefault();
+        if (submitting) return;
+        setSubmitting(true);
         
         // 1. Load Razorpay Script
         const resScript = await loadRazorpayScript();
         if (!resScript) {
             alert("Razorpay SDK failed to load. Are you online?");
+            setSubmitting(false);
             return;
         }
 
@@ -137,6 +141,11 @@ const Checkout = () => {
                 description: `Payment for ${test.testName}`,
                 image: window.location.origin + '/logo.svg',
                 order_id: orderData.id,
+                modal: {
+                    ondismiss: function () {
+                        setSubmitting(false);
+                    }
+                },
                 handler: async function (response) {
                     try {
                         // 6. Verify Signature on Success
@@ -159,6 +168,8 @@ const Checkout = () => {
                         }
                     } catch {
                         alert("Error verifying payment.");
+                    } finally {
+                        setSubmitting(false);
                     }
                 },
                 prefill: {
@@ -177,6 +188,7 @@ const Checkout = () => {
         } catch (err) {
             console.error(err);
             alert("Booking/Payment Initialization Failed: " + (err.response?.data?.message || err.message));
+            setSubmitting(false);
         }
     };
 
@@ -479,9 +491,34 @@ const Checkout = () => {
 
                     <button 
                         type="submit" 
-                        style={{ width: '100%', padding: '1.5rem', borderRadius: '16px', fontSize: '1.2rem', fontWeight: '800', color: 'white', background: '#0284c7', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}
+                        disabled={submitting}
+                        style={{ 
+                            width: '100%', 
+                            padding: '1.5rem', 
+                            borderRadius: '16px', 
+                            fontSize: '1.2rem', 
+                            fontWeight: '800', 
+                            color: 'white', 
+                            background: submitting ? '#94a3b8' : '#0284c7', 
+                            border: 'none', 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            gap: '1rem', 
+                            cursor: submitting ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: submitting ? 'none' : '0 8px 25px rgba(2, 132, 199, 0.3)'
+                        }}
                     >
-                        Confirm Booking
+                        {submitting ? (
+                            <>
+                                <Activity className="animate-spin" size={22} /> Securing Appointment...
+                            </>
+                        ) : (
+                            <>
+                                Confirm Booking <ArrowRight size={20} />
+                            </>
+                        )}
                     </button>
                 </form>
             </div>

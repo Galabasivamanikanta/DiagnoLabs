@@ -14,15 +14,36 @@ try {
 
 
 
-// CREATE NEW BOOKING (Authenticated)
+// CREATE NEW BOOKING (Authenticated) - with Idempotency & Duplicate Prevention
 router.post('/', verifyToken, async (req, res) => {
     // Ensure the patient ID matches the authenticated user (unless admin)
     if (req.user.role !== 'admin' && req.body.patient !== req.user.id) {
         return res.status(403).json("You can only book for yourself!");
     }
 
-    const newBooking = new Booking(req.body);
     try {
+        const testName = req.body.testDetails?.[0]?.testName;
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+        // Idempotency check: Reuse existing pending booking if created within last 10 minutes for the same patient/test/slot
+        const existingPending = await Booking.findOne({
+            patient: req.body.patient,
+            status: 'Pending',
+            paymentStatus: 'Pending',
+            createdAt: { $gte: tenMinutesAgo },
+            appointmentDate: req.body.appointmentDate,
+            appointmentTime: req.body.appointmentTime,
+            'testDetails.0.testName': testName
+        });
+
+        if (existingPending) {
+            // Update existing draft booking instead of creating a duplicate document
+            Object.assign(existingPending, req.body);
+            const updated = await existingPending.save();
+            return res.status(200).json(updated);
+        }
+
+        const newBooking = new Booking(req.body);
         const savedBooking = await newBooking.save();
 
         // Update User's address if provided
@@ -52,13 +73,34 @@ router.get('/all', verifyTokenAndAdmin, async (req, res) => {
     }
 });
 
-// GET USER'S BOOKINGS (Self or Admin)
+// GET USER'S BOOKINGS (Self or Admin) - with auto-deduplication of stale pending drafts
 router.get('/user/:id', verifyTokenAndAuthorization, async (req, res) => {
     try {
         const bookings = await Booking.find({ patient: req.params.id })
             .populate('lab')
             .sort({ createdAt: -1 });
-        res.status(200).json(bookings);
+
+        // Identify keys of confirmed / paid bookings
+        const confirmedSet = new Set();
+        bookings.forEach(b => {
+            if (b.status !== 'Pending' || b.paymentStatus === 'Paid') {
+                const key = `${b.appointmentDate}_${b.appointmentTime}_${b.testDetails?.[0]?.testName || ''}`;
+                confirmedSet.add(key);
+            }
+        });
+
+        // Filter out duplicate pending drafts where an active paid/confirmed booking already exists
+        const deduplicated = bookings.filter(b => {
+            if (b.status === 'Pending' && b.paymentStatus === 'Pending') {
+                const key = `${b.appointmentDate}_${b.appointmentTime}_${b.testDetails?.[0]?.testName || ''}`;
+                if (confirmedSet.has(key)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        res.status(200).json(deduplicated);
     } catch (err) {
         res.status(500).json(err);
     }
@@ -242,6 +284,22 @@ router.post('/verify-payment', verifyToken, async (req, res) => {
             booking.razorpaySignature = razorpay_signature;
             booking.status = 'Confirmed';
             await booking.save();
+
+            // Auto-clean any ghost duplicate pending bookings created during the same checkout attempt
+            try {
+                const testName = booking.testDetails?.[0]?.testName;
+                await Booking.deleteMany({
+                    _id: { $ne: booking._id },
+                    patient: booking.patient?._id || booking.patient,
+                    status: 'Pending',
+                    paymentStatus: 'Pending',
+                    appointmentDate: booking.appointmentDate,
+                    appointmentTime: booking.appointmentTime,
+                    'testDetails.0.testName': testName
+                });
+            } catch (cleanErr) {
+                console.warn("Ghost booking cleanup notice:", cleanErr.message);
+            }
 
             // Notify all parties via multi-channel notification engine
             try {
