@@ -45,66 +45,45 @@ const LABS_DIRECTORY = [
   }
 ];
 
-// Initialize DiagnoLabs MCP Server
-const mcpServer = new Server(
+const MCP_TOOLS = [
   {
-    name: "diagnolabs-mcp-server",
-    version: "1.0.0",
+    name: "search_diagnostic_labs",
+    description: "Search certified diagnostic laboratories by city or medical specialization.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        city: { type: "string", description: "City name (e.g. Hyderabad, Vadodara)" },
+        specialization: { type: "string", description: "Medical specialization" }
+      }
+    }
   },
   {
-    capabilities: {
-      tools: {},
-    },
+    name: "get_lab_tests_and_pricing",
+    description: "Fetch lab tests, turnaround times, and prices in INR for a given lab ID.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        labId: { type: "string", description: "The lab ID (e.g. lab_01, lab_02)" }
+      },
+      required: ["labId"]
+    }
+  },
+  {
+    name: "analyze_medical_report_insights",
+    description: "Analyze patient lab values and return plain-language medical insights.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        testName: { type: "string", description: "Test name (e.g. HbA1c, Fasting Glucose)" },
+        observedValue: { type: "number", description: "Numeric test reading" },
+        unit: { type: "string", description: "Unit of measurement" }
+      },
+      required: ["testName", "observedValue"]
+    }
   }
-);
+];
 
-// Register MCP Tools
-mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "search_diagnostic_labs",
-        description: "Search certified diagnostic laboratories by city or medical specialization.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            city: { type: "string", description: "City name (e.g. Hyderabad, Vadodara)" },
-            specialization: { type: "string", description: "Medical specialization" }
-          }
-        }
-      },
-      {
-        name: "get_lab_tests_and_pricing",
-        description: "Fetch lab tests, turnaround times, and prices in INR for a given lab ID.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            labId: { type: "string", description: "The lab ID (e.g. lab_01, lab_02)" }
-          },
-          required: ["labId"]
-        }
-      },
-      {
-        name: "analyze_medical_report_insights",
-        description: "Analyze patient lab values and return plain-language medical insights.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            testName: { type: "string", description: "Test name (e.g. HbA1c, Fasting Glucose)" },
-            observedValue: { type: "number", description: "Numeric test reading" },
-            unit: { type: "string", description: "Unit of measurement" }
-          },
-          required: ["testName", "observedValue"]
-        }
-      }
-    ]
-  };
-});
-
-// Handle Tool Execution
-mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
+function executeTool(name, args) {
   if (name === "search_diagnostic_labs") {
     let results = LABS_DIRECTORY;
     if (args?.city) results = results.filter(l => l.city.toLowerCase().includes(args.city.toLowerCase()));
@@ -118,7 +97,7 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "analyze_medical_report_insights") {
-    const { testName, observedValue, unit = "" } = args;
+    const { testName, observedValue, unit = "" } = args || {};
     let status = observedValue > 100 ? "ELEVATED" : "NORMAL";
     return {
       content: [{
@@ -135,38 +114,157 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   throw new Error(`Tool not found: ${name}`);
+}
+
+// Initialize DiagnoLabs MCP Server
+const mcpServer = new Server(
+  {
+    name: "diagnolabs-mcp-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Register MCP Tools
+mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools: MCP_TOOLS };
 });
 
-// SSE endpoint for MCP clients (Manufact, Claude, ChatGPT)
+// Handle Tool Execution
+mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+  return executeTool(name, args);
+});
+
+// SSE Transport for MCP clients
 let transport = null;
 
-app.get("/sse", async (req, res) => {
-  console.log("MCP SSE client connected");
+const handleSSE = async (req, res) => {
+  console.log("MCP SSE client connected on", req.path);
   transport = new SSEServerTransport("/messages", res);
   await mcpServer.connect(transport);
-});
+};
 
-app.post("/messages", async (req, res) => {
+app.get("/sse", handleSSE);
+app.get("/mcp/sse", handleSSE);
+app.get("/mcp", handleSSE);
+
+const handleMessages = async (req, res) => {
   if (transport) {
     await transport.handlePostMessage(req, res);
   } else {
     res.status(400).send("No active transport");
   }
-});
+};
 
-// Health check endpoint
+app.post("/messages", handleMessages);
+app.post("/mcp/messages", handleMessages);
+
+// Universal Direct JSON-RPC Handler (Handles MCP Initialize Check via HTTP POST)
+const handleJsonRpc = (req, res) => {
+  const body = req.body || {};
+  const id = body.id !== undefined ? body.id : 1;
+
+  if (body.method === "initialize") {
+    console.log("Received MCP initialize request, responding with protocol handshake...");
+    return res.status(200).json({
+      jsonrpc: "2.0",
+      id: id,
+      result: {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {
+            listChanged: false
+          }
+        },
+        serverInfo: {
+          name: "diagnolabs-mcp-server",
+          version: "1.0.0"
+        }
+      }
+    });
+  }
+
+  if (body.method === "notifications/initialized") {
+    return res.status(200).json({ jsonrpc: "2.0", id: id, result: {} });
+  }
+
+  if (body.method === "ping") {
+    return res.status(200).json({ jsonrpc: "2.0", id: id, result: {} });
+  }
+
+  if (body.method === "tools/list") {
+    return res.status(200).json({
+      jsonrpc: "2.0",
+      id: id,
+      result: { tools: MCP_TOOLS }
+    });
+  }
+
+  if (body.method === "tools/call") {
+    try {
+      const toolResult = executeTool(body.params?.name, body.params?.arguments);
+      return res.status(200).json({
+        jsonrpc: "2.0",
+        id: id,
+        result: toolResult
+      });
+    } catch (err) {
+      return res.status(400).json({
+        jsonrpc: "2.0",
+        id: id,
+        error: { code: -32601, message: err.message }
+      });
+    }
+  }
+
+  // Default fallback for any initialize/JSON-RPC handshake check
+  if (body.jsonrpc || body.method) {
+    return res.status(200).json({
+      jsonrpc: "2.0",
+      id: id,
+      result: {
+        protocolVersion: "2024-11-05",
+        capabilities: { tools: {} },
+        serverInfo: { name: "diagnolabs-mcp-server", version: "1.0.0" }
+      }
+    });
+  }
+
+  // If standard HTTP POST
+  return res.status(200).json({
+    status: "online",
+    server: "DiagnoLabs Official MCP Server",
+    version: "1.0.0"
+  });
+};
+
+// Route JSON-RPC checks on root and mcp endpoints
+app.post("/", handleJsonRpc);
+app.post("/mcp", handleJsonRpc);
+app.post("/sse", handleJsonRpc);
+
+// Health check endpoint (HTTP GET)
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     status: "online",
     server: "DiagnoLabs Official MCP Server",
     version: "1.0.0",
     endpoints: {
       sse: "/sse",
-      messages: "/messages"
+      messages: "/messages",
+      mcp: "/mcp"
     }
   });
 });
 
+app.get("/health", (req, res) => res.status(200).send("OK"));
+app.get("/ping", (req, res) => res.status(200).send("pong"));
+
 app.listen(PORT, () => {
-  console.log(`DiagnoLabs MCP Server running on port ${PORT}`);
+  console.log(`✅ DiagnoLabs MCP Server running on port ${PORT}`);
 });
