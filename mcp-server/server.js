@@ -1,24 +1,19 @@
+import express from "express";
+import cors from "cors";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-// Initialize DiagnoLabs MCP Server
-const server = new Server(
-  {
-    name: "diagnolabs-mcp-server",
-    version: "1.0.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
-);
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// Mock database for labs and diagnostic test catalog
+const PORT = process.env.PORT || 3000;
+
+// DiagnoLabs Mock Directory
 const LABS_DIRECTORY = [
   {
     id: "lab_01",
@@ -47,75 +42,57 @@ const LABS_DIRECTORY = [
     ],
     rating: 4.9,
     accreditation: "NABL Certified"
-  },
-  {
-    id: "lab_03",
-    name: "CarePoint Radiology & Imaging Lab",
-    city: "Bengaluru",
-    area: "Indiranagar",
-    specialization: ["Radiology", "MRI", "CT Scan", "Ultrasound"],
-    tests: [
-      { code: "USG_ABD", name: "Ultrasound Abdomen & Pelvis", price: 1800, turnaround: "2 hours" },
-      { code: "XRAY_CHEST", name: "Chest X-Ray PA View", price: 500, turnaround: "1 hour" }
-    ],
-    rating: 4.7,
-    accreditation: "CAP Accredited"
   }
 ];
 
-// Register available MCP tools for LLMs (Claude & ChatGPT)
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+// Initialize DiagnoLabs MCP Server
+const mcpServer = new Server(
+  {
+    name: "diagnolabs-mcp-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Register MCP Tools
+mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
         name: "search_diagnostic_labs",
-        description: "Search certified diagnostic laboratories by city, area, or medical specialization.",
+        description: "Search certified diagnostic laboratories by city or medical specialization.",
         inputSchema: {
           type: "object",
           properties: {
-            city: {
-              type: "string",
-              description: "City name to filter labs (e.g. Hyderabad, Vadodara, Bengaluru)"
-            },
-            specialization: {
-              type: "string",
-              description: "Medical specialization (e.g. Pathology, Radiology, Cardiology)"
-            }
+            city: { type: "string", description: "City name (e.g. Hyderabad, Vadodara)" },
+            specialization: { type: "string", description: "Medical specialization" }
           }
         }
       },
       {
         name: "get_lab_tests_and_pricing",
-        description: "Fetch all available lab tests, pricing (INR), turnaround times, and preparation instructions for a specific lab.",
+        description: "Fetch lab tests, turnaround times, and prices in INR for a given lab ID.",
         inputSchema: {
           type: "object",
           properties: {
-            labId: {
-              type: "string",
-              description: "The unique identifier of the lab (e.g. lab_01, lab_02)"
-            }
+            labId: { type: "string", description: "The lab ID (e.g. lab_01, lab_02)" }
           },
           required: ["labId"]
         }
       },
       {
         name: "analyze_medical_report_insights",
-        description: "Analyze uploaded patient lab values and return clear health insights with recommended next steps.",
+        description: "Analyze patient lab values and return plain-language medical insights.",
         inputSchema: {
           type: "object",
           properties: {
-            testName: {
-              type: "string",
-              description: "Name of the test (e.g. HbA1c, Fasting Glucose, TSH, Platelet Count)"
-            },
-            observedValue: {
-              type: "number",
-              description: "Patient's observed numeric test reading"
-            },
-            unit: {
-              type: "string",
-              description: "Unit of measurement (e.g. mg/dL, %, uIU/mL)"
-            }
+            testName: { type: "string", description: "Test name (e.g. HbA1c, Fasting Glucose)" },
+            observedValue: { type: "number", description: "Numeric test reading" },
+            unit: { type: "string", description: "Unit of measurement" }
           },
           required: ["testName", "observedValue"]
         }
@@ -124,113 +101,72 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// Handle tool executions
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+// Handle Tool Execution
+mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
-  switch (name) {
-    case "search_diagnostic_labs": {
-      let results = LABS_DIRECTORY;
-      if (args?.city) {
-        results = results.filter(l => l.city.toLowerCase().includes(args.city.toLowerCase()));
-      }
-      if (args?.specialization) {
-        results = results.filter(l => 
-          l.specialization.some(s => s.toLowerCase().includes(args.specialization.toLowerCase()))
-        );
-      }
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({ count: results.length, labs: results }, null, 2)
-          }
-        ]
-      };
-    }
+  if (name === "search_diagnostic_labs") {
+    let results = LABS_DIRECTORY;
+    if (args?.city) results = results.filter(l => l.city.toLowerCase().includes(args.city.toLowerCase()));
+    return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+  }
 
-    case "get_lab_tests_and_pricing": {
-      const lab = LABS_DIRECTORY.find(l => l.id === args?.labId);
-      if (!lab) {
-        return {
-          content: [{ type: "text", text: `Lab with ID '${args?.labId}' not found.` }],
-          isError: true
-        };
-      }
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              labName: lab.name,
-              accreditation: lab.accreditation,
-              availableTests: lab.tests
-            }, null, 2)
-          }
-        ]
-      };
-    }
+  if (name === "get_lab_tests_and_pricing") {
+    const lab = LABS_DIRECTORY.find(l => l.id === args?.labId);
+    if (!lab) return { content: [{ type: "text", text: "Lab not found" }], isError: true };
+    return { content: [{ type: "text", text: JSON.stringify(lab, null, 2) }] };
+  }
 
-    case "analyze_medical_report_insights": {
-      const { testName, observedValue, unit = "" } = args;
-      let status = "NORMAL";
-      let interpretation = "";
+  if (name === "analyze_medical_report_insights") {
+    const { testName, observedValue, unit = "" } = args;
+    let status = observedValue > 100 ? "ELEVATED" : "NORMAL";
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          test: testName,
+          value: `${observedValue} ${unit}`,
+          status,
+          insights: `Automated insight generated by DiagnoLabs AI for ${testName}.`,
+          disclaimer: "Consult a qualified doctor for medical advice."
+        }, null, 2)
+      }]
+    };
+  }
 
-      if (testName.toLowerCase().includes("hba1c")) {
-        if (observedValue < 5.7) {
-          status = "NORMAL";
-          interpretation = "Normal range. No indication of pre-diabetes or diabetes.";
-        } else if (observedValue <= 6.4) {
-          status = "ELEVATED (PRE-DIABETIC)";
-          interpretation = "Prediabetes range. Lifestyle modifications and dietary monitoring recommended.";
-        } else {
-          status = "HIGH (DIABETIC RANGE)";
-          interpretation = "Indicates diabetes. Please consult a qualified physician for evaluation.";
-        }
-      } else if (testName.toLowerCase().includes("glucose") || testName.toLowerCase().includes("sugar")) {
-        if (observedValue < 100) {
-          status = "NORMAL";
-          interpretation = "Normal fasting blood sugar levels.";
-        } else if (observedValue <= 125) {
-          status = "ELEVATED (IMPAIRED FASTING GLUCOSE)";
-          interpretation = "Borderline elevated fasting blood glucose.";
-        } else {
-          status = "HIGH";
-          interpretation = "Elevated fasting blood glucose. Clinical consultation recommended.";
-        }
-      } else {
-        interpretation = `Value of ${observedValue} ${unit} recorded for ${testName}. Cross-reference with clinical ranges recommended.`;
-      }
+  throw new Error(`Tool not found: ${name}`);
+});
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              test: testName,
-              value: `${observedValue} ${unit}`,
-              clinicalStatus: status,
-              insights: interpretation,
-              disclaimer: "DiagnoLabs AI provides educational insights only. Always consult a licensed medical professional."
-            }, null, 2)
-          }
-        ]
-      };
-    }
+// SSE endpoint for MCP clients (Manufact, Claude, ChatGPT)
+let transport = null;
 
-    default:
-      throw new Error(`Unknown tool: ${name}`);
+app.get("/sse", async (req, res) => {
+  console.log("MCP SSE client connected");
+  transport = new SSEServerTransport("/messages", res);
+  await mcpServer.connect(transport);
+});
+
+app.post("/messages", async (req, res) => {
+  if (transport) {
+    await transport.handlePostMessage(req, res);
+  } else {
+    res.status(400).send("No active transport");
   }
 });
 
-// Run server over STDIO transport
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("DiagnoLabs MCP Server running on stdio transport");
-}
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({
+    status: "online",
+    server: "DiagnoLabs Official MCP Server",
+    version: "1.0.0",
+    endpoints: {
+      sse: "/sse",
+      messages: "/messages"
+    }
+  });
+});
 
-main().catch((err) => {
-  console.error("Fatal error running DiagnoLabs MCP server:", err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`DiagnoLabs MCP Server running on port ${PORT}`);
 });
