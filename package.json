@@ -6,6 +6,7 @@
         "start": "node backend/server.js",
         "start:mcp": "node mcp-server/server.js",
         "build": "npm install --prefix backend",
+        "build:mcp": "npm install --prefix mcp-server",
         "dev": "npx concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
         "clean-start": "taskkill /f /im node.exe /t || true && taskkill /f /im vite.exe /t || true && npm run dev",
         "backend": "npm run dev --prefix backend",
