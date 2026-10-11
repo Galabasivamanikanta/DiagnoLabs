@@ -3,15 +3,18 @@
     "version": "1.0.0",
     "description": "Root configuration for DiagnoLabs Project",
     "scripts": {
-        "start": "npx concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
-        "dev": "npm start",
-        "clean-start": "taskkill /f /im node.exe /t || true && taskkill /f /im vite.exe /t || true && npm start",
+        "start": "node backend/server.js",
+        "start:mcp": "node mcp-server/server.js",
+        "build": "npm install --prefix backend",
+        "dev": "npx concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+        "clean-start": "taskkill /f /im node.exe /t || true && taskkill /f /im vite.exe /t || true && npm run dev",
         "backend": "npm run dev --prefix backend",
         "frontend": "npm run dev --prefix frontend",
         "install-all": "npm install --prefix backend && npm install --prefix frontend",
-        "build": "npm --prefix frontend run build"
+        "build:frontend": "npm --prefix frontend run build"
     },
     "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.4",
         "pdfkit": "^0.18.0"
     }
 }
