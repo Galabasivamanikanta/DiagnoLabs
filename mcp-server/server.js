@@ -265,6 +265,6 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => res.status(200).send("OK"));
 app.get("/ping", (req, res) => res.status(200).send("pong"));
 
-app.listen(PORT, () => {
-  console.log(`✅ DiagnoLabs MCP Server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ DiagnoLabs MCP Server running on port ${PORT} (0.0.0.0)`);
 });
