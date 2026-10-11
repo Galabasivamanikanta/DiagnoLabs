@@ -1,0 +1,17 @@
+{
+  "name": "diagnolabs-mcp-server",
+  "version": "1.0.0",
+  "description": "Official Model Context Protocol (MCP) Server for DiagnoLabs Healthcare Platform",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "keywords": ["mcp", "ai", "healthcare", "diagnolabs", "claude", "chatgpt"],
+  "author": "Siva Manikanta Galaba",
+  "license": "MIT"
+}
